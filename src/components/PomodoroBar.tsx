@@ -18,8 +18,8 @@ export default function PomodoroBar() {
   const isDone = phase === 'break-done'
 
   const progress = totalSeconds > 0 ? ((totalSeconds - secondsLeft) / totalSeconds) * 100 : 0
-  const fillColor = isWork ? '#c0432e' : '#2f7d44'
-  const labelColor = isWork ? '#e08a6a' : '#5fb070'
+  const fillColor = isWork ? '#e15a3c' : '#22c55e'
+  const labelColor = isWork ? '#f08a6a' : '#6ee79f'
 
   const relaunch = () => {
     if (isFree) startFree()
@@ -32,15 +32,15 @@ export default function PomodoroBar() {
     <div
       className="animate-slide-bar fixed bottom-16 sm:bottom-0 left-0 right-0 z-30"
       style={{
-        background: 'rgba(48,62,77,0.82)',
+        background: 'rgba(14,15,17,0.92)',
         backdropFilter: 'blur(24px) saturate(150%)',
         WebkitBackdropFilter: 'blur(24px) saturate(150%)',
-        borderTop: '1px solid rgba(255,255,255,0.16)',
-        boxShadow: '0 -8px 28px -14px rgba(15,30,46,0.7)',
+        borderTop: '1px solid rgba(255,255,255,0.09)',
+        boxShadow: '0 -10px 30px -14px rgba(0,0,0,0.85)',
       }}
     >
       {/* Progress bar */}
-      <div className="relative h-[3px]" style={{ background: 'rgba(255,255,255,0.14)' }}>
+      <div className="relative h-[3px]" style={{ background: 'rgba(255,255,255,0.08)' }}>
         <div
           className="progress-fill absolute inset-y-0 left-0 rounded-r-full"
           style={{ width: `${progress}%`, background: fillColor, boxShadow: `0 0 10px ${fillColor}` }}
@@ -75,7 +75,7 @@ export default function PomodoroBar() {
               onClick={pauseResume}
               aria-label={isPaused ? 'Devam et' : 'Duraklat'}
               className={iconBtn}
-              style={{ background: 'rgba(255,255,255,0.85)', color: '#21303d' }}
+              style={{ background: 'rgb(34,197,94)', color: '#06210f' }}
             >
               {isPaused ? <PlayIcon /> : <PauseIcon />}
             </button>
@@ -85,7 +85,7 @@ export default function PomodoroBar() {
             <button
               onClick={relaunch}
               className="btn-press h-9 px-4 rounded-xl text-xs font-bold"
-              style={{ background: '#c0432e', color: '#fff5f2' }}
+              style={{ background: '#e15a3c', color: '#fff5f2' }}
             >
               Yeni Oturum
             </button>
@@ -95,8 +95,7 @@ export default function PomodoroBar() {
             <button
               onClick={skipBreak}
               aria-label="Molayı atla"
-              className={iconBtn}
-              style={{ background: 'rgba(255,255,255,0.18)', color: 'rgba(241,245,245,0.7)' }}
+              className={`ctrl ${iconBtn}`}
               title="Molayı atla"
             >
               <SkipIcon />
@@ -107,7 +106,7 @@ export default function PomodoroBar() {
             onClick={stopTimer}
             aria-label="Durdur"
             className={iconBtn}
-            style={{ background: 'rgba(192,67,46,0.9)', color: '#fff5f2' }}
+            style={{ background: 'rgba(225,90,60,0.92)', color: '#fff5f2' }}
             title="Durdur"
           >
             <StopIcon />

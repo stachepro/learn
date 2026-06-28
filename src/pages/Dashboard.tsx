@@ -61,11 +61,11 @@ export default function Dashboard() {
 
         {/* Hero mosaic — frosted glass blocks */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {/* Streak — amber, gentle glow */}
-          <div className="glass g-amber streak-glow col-span-1 p-4" style={{ borderRadius: 24 }}>
+          {/* Streak — green breathing ring glow */}
+          <div className="glass g-lime streak-glow col-span-1 p-4" style={{ borderRadius: 24 }}>
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] ink-60 mb-1">Seri</p>
             <div className="flex items-baseline gap-1">
-              <span className="display text-4xl font-extrabold tnum">{profile.streak}</span>
+              <span key={profile.streak} className="display text-4xl font-extrabold tnum acc animate-value-pop">{profile.streak}</span>
               <span className="text-sm font-semibold ink-60">gün</span>
             </div>
             <p className="text-[11px] mt-1.5 ink-45">En iyi: {profile.longestStreak}</p>
@@ -75,7 +75,7 @@ export default function Dashboard() {
           <div className="glass g-teal col-span-1 p-4" style={{ borderRadius: 24 }}>
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] ink-60 mb-1">Seviye</p>
             <div className="flex items-baseline gap-1 mb-2.5">
-              <span className="display text-4xl font-extrabold tnum">{profile.level}</span>
+              <span key={profile.level} className="display text-4xl font-extrabold tnum animate-value-pop">{profile.level}</span>
             </div>
             <ExpBar totalExp={profile.totalExp} level={profile.level} compact />
           </div>
@@ -86,7 +86,7 @@ export default function Dashboard() {
               {allDone ? 'Tamamlandı 🎉' : 'Bugün'}
             </p>
             <div className="flex items-baseline gap-1 mb-2.5">
-              <span className="display text-4xl font-extrabold tnum">{completed}</span>
+              <span key={completed} className={`display text-4xl font-extrabold tnum animate-value-pop ${allDone ? 'acc' : ''}`}>{completed}</span>
               <span className="text-sm ink-60">/ {total}</span>
             </div>
             {total > 0 ? (
@@ -96,8 +96,8 @@ export default function Dashboard() {
                   style={{
                     width: `${(completed / total) * 100}%`,
                     background: allDone
-                      ? 'linear-gradient(90deg, #2f7d44, #5fb070)'
-                      : 'linear-gradient(90deg, #234a6e, #4179ad)',
+                      ? 'linear-gradient(90deg, #1f9d4d, #45dc7d)'
+                      : 'linear-gradient(90deg, #2563eb, #60a5fa)',
                   }}
                 />
               </div>
@@ -117,7 +117,7 @@ export default function Dashboard() {
               onClick={startFree}
               disabled={freeRunning}
               className="chip btn-press flex items-center gap-1.5 text-xs px-3.5 py-2"
-              style={freeRunning ? { background: 'rgba(192,67,46,0.9)', color: '#fff5f2', borderColor: 'transparent' } : undefined}
+              style={freeRunning ? { background: 'rgba(225,90,60,0.92)', color: '#fff5f2', borderColor: 'transparent' } : undefined}
             >
               🧘 {freeRunning ? 'Çalışıyor' : 'Serbest'}
             </button>
@@ -137,14 +137,16 @@ export default function Dashboard() {
             className="glass g-neutral glass-lift btn-press w-full p-10 text-center"
             style={{ borderRadius: 24 }}
           >
-            <div className="glass g-amber w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl font-bold">+</div>
+            <div className="glass g-lime w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl font-bold acc ring-pulse">+</div>
             <p className="display text-base font-bold">İlk alışkanlığını ekle</p>
             <p className="text-xs mt-1 ink-60">Her gün küçük adımlar büyük değişimler yaratır</p>
           </button>
         ) : (
           <div className="space-y-2.5">
-            {habitEntries.map(({ habit, log }) => (
-              <HabitRow key={habit.id} habit={habit} log={log} />
+            {habitEntries.map(({ habit, log }, i) => (
+              <div key={habit.id} className="animate-pop" style={{ animationDelay: `${Math.min(i * 60, 360)}ms` }}>
+                <HabitRow habit={habit} log={log} />
+              </div>
             ))}
           </div>
         )}
@@ -152,7 +154,7 @@ export default function Dashboard() {
         {/* Daily stats */}
         {habits.length > 0 && (
           <div className="glass g-neutral" style={{ borderRadius: 24 }}>
-            <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgba(33,48,61,0.12)' }}>
+            <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
               Günlük İstatistikler
             </p>
             <div className="grid grid-cols-3">
@@ -162,7 +164,7 @@ export default function Dashboard() {
                 label="Dünkü"
                 value={vsYesterday === null ? '--' : `${vsYesterday >= 0 ? '+' : ''}${vsYesterday}%`}
                 border
-                color={vsYesterday === null ? undefined : vsYesterday >= 0 ? '#2f7d44' : '#c0432e'}
+                color={vsYesterday === null ? undefined : vsYesterday >= 0 ? '#34c759' : '#e15a3c'}
               />
             </div>
           </div>
@@ -179,7 +181,7 @@ export default function Dashboard() {
 
 function StatCell({ label, value, color, border }: { label: string; value: string; color?: string; border?: boolean }) {
   return (
-    <div className="px-5 py-4" style={border ? { borderLeft: '1px solid rgba(33,48,61,0.12)' } : undefined}>
+    <div className="px-5 py-4" style={border ? { borderLeft: '1px solid rgba(255,255,255,0.08)' } : undefined}>
       <p className="text-[10px] mb-1 font-semibold uppercase tracking-wider ink-45">{label}</p>
       <p className="display text-xl font-bold tnum" style={color ? { color } : undefined}>{value}</p>
     </div>

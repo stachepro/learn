@@ -61,22 +61,21 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0"
-        style={{ background: 'rgba(28,40,52,0.55)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+        className="absolute inset-0 animate-fade-in"
+        style={{ background: 'rgba(0,0,0,0.66)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
       />
 
-      {/* Modal card — frosted neutral tile */}
+      {/* Modal card — dark obsidian tile */}
       <div className="glass g-neutral relative w-full max-w-md animate-fade-up" style={{ borderRadius: 28 }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(33,48,61,0.12)' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <h2 className="display text-lg font-bold">
             {editHabit ? 'Alışkanlığı Düzenle' : 'Yeni Alışkanlık'}
           </h2>
           <button
             onClick={onClose}
             aria-label="Kapat"
-            className="btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm"
-            style={{ background: 'rgba(255,255,255,0.32)', color: '#21303d' }}
+            className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm"
           >
             ✕
           </button>
@@ -100,7 +99,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     className="btn-press h-1.5 rounded-full transition-all"
                     style={{
                       width: i === emojiPage ? 22 : 6,
-                      background: i === emojiPage ? '#2f7d70' : 'rgba(33,48,61,0.25)',
+                      background: i === emojiPage ? 'rgb(34,197,94)' : 'rgba(255,255,255,0.18)',
                     }}
                   />
                 ))}
@@ -115,7 +114,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     type="button"
                     onClick={() => setEmoji(e)}
                     className="btn-press w-8 h-8 flex items-center justify-center text-[18px] rounded-xl transition-all"
-                    style={emoji === e ? { background: 'rgba(255,255,255,0.6)', boxShadow: '0 0 0 1px rgba(47,125,112,0.6)' } : undefined}
+                    style={emoji === e ? { background: 'rgba(34,197,94,0.22)', boxShadow: '0 0 0 1.5px rgba(34,197,94,0.7)' } : undefined}
                   >
                     {e}
                   </button>
@@ -153,9 +152,9 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     onClick={() => setCategoryId(cat.id)}
                     className="btn-press flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all text-left"
                     style={{
-                      background: sel ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.24)',
-                      boxShadow: sel ? `inset 0 0 0 2px ${c.text}` : 'none',
-                      color: sel ? c.text : 'rgba(33,48,61,0.55)',
+                      background: sel ? `${c.text}22` : 'rgba(255,255,255,0.05)',
+                      boxShadow: sel ? `inset 0 0 0 1.5px ${c.text}` : 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+                      color: sel ? c.text : 'rgba(232,237,238,0.6)',
                     }}
                   >
                     <span>{cat.emoji}</span>
@@ -167,7 +166,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 type="button"
                 onClick={() => setShowNewCat(true)}
                 className="btn-press flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all"
-                style={{ border: '1px dashed rgba(33,48,61,0.3)', color: 'rgba(33,48,61,0.5)' }}
+                style={{ border: '1px dashed rgba(255,255,255,0.22)', color: 'rgba(232,237,238,0.5)' }}
               >
                 + Yeni
               </button>

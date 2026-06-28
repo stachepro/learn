@@ -47,10 +47,10 @@ export default function History() {
 
   const selectedLog = selectedDay ? logs[selectedDay] : null
 
-  const navBtn = 'btn-press w-9 h-9 rounded-xl flex items-center justify-center text-lg'
+  const navBtn = 'ctrl btn-press w-9 h-9 rounded-xl flex items-center justify-center text-lg'
 
   return (
-    <div className={`max-w-3xl mx-auto px-4 py-6 pb-32 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
+    <div className={`max-w-3xl mx-auto px-4 py-6 pb-40 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
       <div>
         <h1 className="display text-3xl font-extrabold" style={{ color: '#f1f5f5' }}>Geçmiş</h1>
         <p className="text-sm mt-1" style={{ color: 'rgba(241,245,245,0.55)' }}>Alışkanlık geçmişin</p>
@@ -58,14 +58,13 @@ export default function History() {
 
       {/* Calendar */}
       <div className="glass g-neutral" style={{ borderRadius: 24 }}>
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(33,48,61,0.12)' }}>
-          <button onClick={prevMonth} aria-label="Önceki ay" className={navBtn} style={{ background: 'rgba(255,255,255,0.28)', color: '#21303d' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <button onClick={prevMonth} aria-label="Önceki ay" className={navBtn}>
             ←
           </button>
           <span className="display text-base font-bold">{trMonthName(viewMonth)} {viewYear}</span>
           <button onClick={nextMonth} disabled={isAtMaxMonth} aria-label="Sonraki ay"
-            className={`${navBtn} disabled:opacity-25`}
-            style={{ background: 'rgba(255,255,255,0.28)', color: '#21303d' }}>
+            className={`${navBtn} disabled:opacity-25`}>
             →
           </button>
         </div>
@@ -96,19 +95,19 @@ export default function History() {
                 className="btn-press aspect-square flex items-center justify-center rounded-xl text-xs tnum transition-all disabled:cursor-default"
                 style={{
                   background: isSelected
-                    ? '#2f7d44'
+                    ? 'rgb(34,197,94)'
                     : activity
-                      ? 'rgba(63,154,85,0.30)'
+                      ? 'rgba(34,197,94,0.22)'
                       : isToday
-                        ? 'rgba(255,255,255,0.45)'
+                        ? 'rgba(255,255,255,0.06)'
                         : 'transparent',
                   color: isSelected
-                    ? '#f1faf2'
+                    ? '#06210f'
                     : isFuture
-                      ? 'rgba(33,48,61,0.22)'
-                      : '#21303d',
+                      ? 'rgba(232,237,238,0.2)'
+                      : '#e8edee',
                   fontWeight: (activity || isToday || isSelected) ? 700 : 500,
-                  boxShadow: isToday && !isSelected ? 'inset 0 0 0 2px rgba(33,48,61,0.4)' : 'none',
+                  boxShadow: isToday && !isSelected ? 'inset 0 0 0 2px rgba(34,197,94,0.7)' : 'none',
                 }}
               >
                 {day}
@@ -121,7 +120,7 @@ export default function History() {
       {/* Day detail */}
       {selectedDay && (
         <div className="glass g-neutral animate-fade-in" style={{ borderRadius: 24 }}>
-          <div className="px-5 py-3.5" style={{ borderBottom: '1px solid rgba(33,48,61,0.12)' }}>
+          <div className="px-5 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
             <p className="display text-sm font-bold">
               {new Date(selectedDay + 'T12:00:00').toLocaleDateString('tr-TR', {
                 weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -138,7 +137,7 @@ export default function History() {
                   <div
                     key={habitId}
                     className="flex items-start gap-3 px-5 py-3.5"
-                    style={{ borderBottom: idx < arr.length - 1 ? '1px solid rgba(33,48,61,0.08)' : 'none' }}
+                    style={{ borderBottom: idx < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
                   >
                     <span className="text-xl mt-0.5 flex-shrink-0">{habit?.emoji ?? '⭐'}</span>
                     <div className="flex-1 min-w-0">
@@ -152,7 +151,7 @@ export default function History() {
                         </p>
                         {h.boostMode && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold"
-                            style={{ background: 'rgba(215,132,42,0.92)', color: '#4a2806' }}>
+                            style={{ background: 'rgba(245,158,11,0.92)', color: '#2a1804' }}>
                             BOOST
                           </span>
                         )}
@@ -171,7 +170,7 @@ export default function History() {
                     </div>
                     <div
                       className="w-2.5 h-2.5 rounded-full mt-2 flex-shrink-0"
-                      style={{ background: h.completed ? '#2f7d44' : 'rgba(33,48,61,0.18)' }}
+                      style={{ background: h.completed ? 'rgb(34,197,94)' : 'rgba(255,255,255,0.14)' }}
                     />
                   </div>
                 )
@@ -200,8 +199,8 @@ export default function History() {
                 onClick={() => setSelectedDay(key === selectedDay ? null : key)}
                 className="btn-press w-full flex items-center justify-between px-5 py-3 text-left soft-trans"
                 style={{
-                  background: isSelected ? 'rgba(63,154,85,0.16)' : 'transparent',
-                  borderBottom: idx < last30.length - 1 ? '1px solid rgba(33,48,61,0.07)' : 'none',
+                  background: isSelected ? 'rgba(34,197,94,0.14)' : 'transparent',
+                  borderBottom: idx < last30.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
                 }}
               >
                 <span className="text-sm w-36 text-left font-medium" style={{ opacity: isSelected ? 1 : 0.7 }}>
@@ -209,7 +208,7 @@ export default function History() {
                 </span>
                 {done > 0 ? (
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold" style={{ color: '#2f7d44' }}>
+                    <span className="text-xs font-bold" style={{ color: '#34c759' }}>
                       {done}/{tot} alışkanlık
                     </span>
                     {work > 0 && <span className="text-xs ink-45">{formatMinutes(work)}</span>}

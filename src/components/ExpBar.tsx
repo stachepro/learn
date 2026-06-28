@@ -13,7 +13,7 @@ export default function ExpBar({ totalExp, level, compact }: Props) {
     <div className="well rounded-full overflow-hidden" style={{ height: h }}>
       <div
         className="h-full rounded-full progress-fill"
-        style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #2f7d70, #5fb0a0)' }}
+        style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #1f9d4d, #45dc7d)', boxShadow: '0 0 12px rgba(34,197,94,0.6)' }}
       />
     </div>
   )

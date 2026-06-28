@@ -45,7 +45,7 @@ export default function Profile() {
   }
 
   return (
-    <div className={`max-w-3xl mx-auto px-4 py-6 pb-32 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
+    <div className={`max-w-3xl mx-auto px-4 py-6 pb-40 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
 
       {/* Profile card */}
       <div className="glass g-neutral p-5" style={{ borderRadius: 24 }}>
@@ -75,7 +75,7 @@ export default function Profile() {
               </div>
             )}
             <div className="flex items-center gap-2.5 flex-wrap text-xs mb-3 ink-60">
-              <span><span className="font-bold" style={{ color: '#c0432e' }}>{profile.streak}</span> gün seri</span>
+              <span><span className="font-bold acc">{profile.streak}</span> gün seri</span>
               <span>·</span>
               <span>En iyi <span className="font-bold">{profile.longestStreak}</span> gün</span>
               <span>·</span>
@@ -88,7 +88,7 @@ export default function Profile() {
               </div>
               <div className="well rounded-full overflow-hidden" style={{ height: 7 }}>
                 <div className="h-full rounded-full progress-fill"
-                  style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #2f7d70, #5fb0a0)' }} />
+                  style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #1f9d4d, #45dc7d)', boxShadow: '0 0 12px rgba(34,197,94,0.6)' }} />
               </div>
               <p className="text-[11px] ink-45 tnum">Toplam {profile.totalExp} EXP</p>
             </div>
@@ -125,7 +125,7 @@ export default function Profile() {
                 style={{ borderRadius: 18, opacity: earned ? 1 : 0.62 }}
               >
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                  style={{ background: 'rgba(255,255,255,0.4)' }}>
+                  style={{ background: earned ? 'rgba(34,197,94,0.18)' : 'rgba(255,255,255,0.06)' }}>
                   {earned ? '🏅' : '🔒'}
                 </div>
                 <div>
@@ -141,7 +141,7 @@ export default function Profile() {
 
       {/* Pomodoro settings */}
       <div className="glass g-neutral" style={{ borderRadius: 24 }}>
-        <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgba(33,48,61,0.12)' }}>
+        <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           🍅 Pomodoro Ayarları
         </p>
         <div className="p-5 space-y-5">
@@ -161,7 +161,7 @@ export default function Profile() {
           <button
             onClick={handleSavePomo}
             className="btn-ink btn-press px-5 py-2.5 text-sm"
-            style={saved ? { background: 'linear-gradient(160deg, #2f7d44, #3f9a55)' } : undefined}
+            style={saved ? { background: 'linear-gradient(160deg, #1f9d4d, #45dc7d)' } : undefined}
           >
             {saved ? '✓ Kaydedildi' : 'Kaydet'}
           </button>

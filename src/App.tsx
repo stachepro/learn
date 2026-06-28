@@ -11,37 +11,31 @@ import Profile from './pages/Profile'
 function Layout() {
   return (
     <div className="min-h-screen relative">
-      {/* Ambient blurred glass blobs — echo the tile palette behind the slate ground */}
+      {/* Ambient drifting glow blobs — faint green atmosphere over near-black */}
       <div className="ambient">
-        {/* Amber — top right */}
+        {/* Green — top right (hero accent) */}
         <div className="ambient-blob" style={{
-          top: '-8%', right: '-6%', width: 560, height: 560,
-          background: 'radial-gradient(circle, rgba(224,150,60,0.30) 0%, transparent 68%)',
+          top: '-10%', right: '-8%', width: 580, height: 580,
+          background: 'radial-gradient(circle, rgba(34,197,94,0.22) 0%, transparent 66%)',
           animation: 'blob-drift-1 17s ease-in-out infinite',
         }} />
         {/* Teal — top left */}
         <div className="ambient-blob" style={{
-          top: '4%', left: '-10%', width: 520, height: 520,
-          background: 'radial-gradient(circle, rgba(120,170,162,0.30) 0%, transparent 68%)',
+          top: '6%', left: '-12%', width: 500, height: 500,
+          background: 'radial-gradient(circle, rgba(45,212,191,0.14) 0%, transparent 68%)',
           animation: 'blob-drift-2 21s ease-in-out infinite 1s',
         }} />
-        {/* Sky blue — bottom right */}
+        {/* Deep green — bottom right */}
         <div className="ambient-blob" style={{
-          bottom: '2%', right: '-12%', width: 600, height: 600,
-          background: 'radial-gradient(circle, rgba(95,150,200,0.26) 0%, transparent 68%)',
+          bottom: '0%', right: '-14%', width: 620, height: 620,
+          background: 'radial-gradient(circle, rgba(22,163,74,0.16) 0%, transparent 68%)',
           animation: 'blob-drift-3 24s ease-in-out infinite',
         }} />
-        {/* Lime — bottom left */}
+        {/* Cool indigo — bottom left (subtle contrast) */}
         <div className="ambient-blob" style={{
-          bottom: '12%', left: '-8%', width: 440, height: 440,
-          background: 'radial-gradient(circle, rgba(160,185,90,0.24) 0%, transparent 66%)',
+          bottom: '14%', left: '-10%', width: 440, height: 440,
+          background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 66%)',
           animation: 'blob-drift-1 19s ease-in-out infinite 3s',
-        }} />
-        {/* Cream — center */}
-        <div className="ambient-blob" style={{
-          top: '40%', left: '36%', width: 400, height: 400,
-          background: 'radial-gradient(circle, rgba(220,205,140,0.20) 0%, transparent 66%)',
-          animation: 'blob-drift-2 27s ease-in-out infinite 5s',
         }} />
       </div>
 

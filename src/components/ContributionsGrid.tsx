@@ -1,14 +1,14 @@
 import { useApp } from '../context/AppContext'
 import { dateStr, getDaysInMonth, getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS } from '../utils/date'
 
-// Frosted green scale that reads on the milky neutral tile
+// Green scale that reads on the dark obsidian tile
 function completionColor(count: number): string {
-  if (count === 0) return 'rgba(18,40,58,0.10)'
-  if (count === 1) return 'rgba(95,150,110,0.45)'
-  if (count === 2) return 'rgba(80,150,95,0.62)'
-  if (count === 3) return 'rgba(63,154,85,0.80)'
-  if (count === 4) return 'rgba(50,150,75,0.92)'
-  return 'rgba(40,140,65,1)'
+  if (count === 0) return 'rgba(255,255,255,0.05)'
+  if (count === 1) return 'rgba(34,197,94,0.30)'
+  if (count === 2) return 'rgba(34,197,94,0.48)'
+  if (count === 3) return 'rgba(34,197,94,0.68)'
+  if (count === 4) return 'rgba(34,197,94,0.86)'
+  return 'rgb(34,197,94)'
 }
 
 export default function ContributionsGrid() {
@@ -70,8 +70,8 @@ export default function ContributionsGrid() {
               key={day}
               className="contrib-cell aspect-square rounded-lg flex items-center justify-center relative"
               style={{
-                background: isFuture ? 'rgba(18,40,58,0.05)' : completionColor(count),
-                boxShadow: isToday ? '0 0 0 2px rgba(33,48,61,0.55)' : 'inset 0 0 0 1px rgba(255,255,255,0.18)',
+                background: isFuture ? 'rgba(255,255,255,0.03)' : completionColor(count),
+                boxShadow: isToday ? '0 0 0 2px rgb(34,197,94)' : 'inset 0 0 0 1px rgba(255,255,255,0.06)',
                 opacity: isFuture ? 0.5 : 1,
               }}
               title={`${day} ${trMonthName(month)}: ${count} tamamlandı`}
@@ -79,13 +79,13 @@ export default function ContributionsGrid() {
               {!isFuture && count > 0 && (
                 <span
                   className="text-[10px] font-bold leading-none select-none tnum"
-                  style={{ color: count >= 3 ? '#f1faf2' : '#1c3a26' }}
+                  style={{ color: count >= 3 ? '#06210f' : '#bdf0cd' }}
                 >
                   {count}
                 </span>
               )}
               {isToday && count === 0 && (
-                <span className="w-1 h-1 rounded-full absolute" style={{ background: 'rgba(33,48,61,0.6)' }} />
+                <span className="w-1 h-1 rounded-full absolute" style={{ background: 'rgb(34,197,94)' }} />
               )}
             </div>
           )
@@ -99,7 +99,7 @@ export default function ContributionsGrid() {
           <div
             key={n}
             className="w-3 h-3 rounded-[5px]"
-            style={{ background: completionColor(n), boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.18)' }}
+            style={{ background: completionColor(n), boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}
           />
         ))}
         <span className="text-[10px] ink-45">Çok</span>

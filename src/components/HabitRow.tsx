@@ -17,6 +17,7 @@ export default function HabitRow({ habit, log }: Props) {
   const [noteOpen, setNoteOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [checkAnim, setCheckAnim] = useState(false)
+  const [flash, setFlash] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
   const noteRef = useRef<HTMLTextAreaElement>(null)
   const delTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -29,8 +30,13 @@ export default function HabitRow({ habit, log }: Props) {
   const boostActive = timerRunning && isBoostSession && activeHabitId === habit.id
 
   const handleCheck = () => {
+    const willComplete = !log.completed
     setCheckAnim(true)
-    setTimeout(() => setCheckAnim(false), 320)
+    setTimeout(() => setCheckAnim(false), 340)
+    if (willComplete) {
+      setFlash(true)
+      setTimeout(() => setFlash(false), 560)
+    }
     toggleHabitComplete(habit.id)
   }
 
@@ -52,35 +58,42 @@ export default function HabitRow({ habit, log }: Props) {
   const boostOn = log.boostMode
 
   // small frosted control buttons share this look
-  const ctrlBtn = 'btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm'
+  const ctrlBtn = 'ctrl btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm'
 
   return (
     <>
       {editing && <AddHabitModal onClose={() => setEditing(false)} editHabit={habit} />}
 
-      <div className={`glass soft-trans ${log.completed ? 'g-lime' : 'g-neutral'}`} style={{ borderRadius: 22 }}>
+      <div
+        className={`glass soft-trans ${log.completed ? 'g-lime' : 'g-neutral'} ${flash ? 'animate-done-flash' : ''}`}
+        style={{ borderRadius: 22 }}
+      >
         {/* Category color seam on the left edge */}
         <div
-          className="absolute left-0 top-0 bottom-0 w-1.5 z-[1]"
-          style={{ background: log.completed ? '#3f9a55' : catColors.text, opacity: log.completed ? 1 : 0.85 }}
+          className="absolute left-0 top-0 bottom-0 w-1.5 z-[1] soft-trans"
+          style={{
+            background: log.completed ? 'rgb(34,197,94)' : catColors.text,
+            opacity: log.completed ? 1 : 0.85,
+            boxShadow: log.completed ? '0 0 14px rgba(34,197,94,0.7)' : 'none',
+          }}
         />
 
-        {/* Main row */}
-        <div className="flex items-center gap-2.5 pl-4 pr-3 py-3">
+        {/* Main row — wraps controls onto their own line on mobile */}
+        <div className="flex flex-wrap items-center gap-2.5 pl-4 pr-3 py-3">
           {/* Checkbox */}
           <button
             onClick={handleCheck}
             aria-label={log.completed ? 'Tamamlandı olarak işaretle' : 'Tamamlandı işaretini kaldır'}
             className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center soft-trans ${checkAnim ? 'animate-check' : ''}`}
             style={{
-              background: log.completed ? '#2f7d44' : 'rgba(255,255,255,0.32)',
-              border: `2px solid ${log.completed ? '#2f7d44' : 'rgba(33,48,61,0.28)'}`,
-              boxShadow: log.completed ? '0 4px 10px -3px rgba(47,125,68,0.7)' : 'inset 0 1px 2px rgba(12,30,46,0.18)',
+              background: log.completed ? 'rgb(34,197,94)' : 'rgba(255,255,255,0.06)',
+              border: `2px solid ${log.completed ? 'rgb(34,197,94)' : 'rgba(255,255,255,0.22)'}`,
+              boxShadow: log.completed ? '0 4px 14px -3px rgba(34,197,94,0.7)' : 'inset 0 1px 2px rgba(0,0,0,0.4)',
             }}
           >
             {log.completed && (
               <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                <path d="M1 4.5L4 7.5L10 1.5" stroke="#eef7f0" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M1 4.5L4 7.5L10 1.5" stroke="#06210f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             )}
           </button>
@@ -88,13 +101,13 @@ export default function HabitRow({ habit, log }: Props) {
           {/* Emoji */}
           <span className="text-xl flex-shrink-0 w-7 text-center leading-none">{habit.emoji}</span>
 
-          {/* Name + category */}
-          <div className="flex-1 min-w-0">
+          {/* Name + category — gets the full first line on mobile */}
+          <div className="flex-1 min-w-0" style={{ flexBasis: '40%' }}>
             <p
-              className="text-sm font-semibold truncate leading-tight soft-trans"
+              className="text-sm font-semibold leading-snug break-words sm:truncate soft-trans"
               style={{
                 textDecoration: log.completed ? 'line-through' : 'none',
-                opacity: log.completed ? 0.55 : 1,
+                opacity: log.completed ? 0.6 : 1,
               }}
             >
               {habit.name}
@@ -106,8 +119,8 @@ export default function HabitRow({ habit, log }: Props) {
             )}
           </div>
 
-          {/* Right controls */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Right controls — full row on mobile, inline on desktop */}
+          <div className="flex items-center gap-1.5 flex-shrink-0 w-full sm:w-auto justify-end">
             {/* Pomodoro stats (desktop) */}
             <span className="text-[11px] hidden sm:inline-block w-[88px] text-right ink-45">
               {pomCount > 0 ? `🍅${pomCount} · ${formatMinutes(workMin)}` : ''}
@@ -121,17 +134,17 @@ export default function HabitRow({ habit, log }: Props) {
               style={{
                 width: 54,
                 background: boostLocked
-                  ? 'rgba(255,255,255,0.18)'
+                  ? 'rgba(255,255,255,0.05)'
                   : boostOn
-                    ? 'rgba(215,132,42,0.92)'
-                    : 'rgba(255,255,255,0.30)',
-                border: `1px solid ${boostOn && !boostLocked ? 'rgba(215,132,42,0.5)' : 'rgba(255,255,255,0.4)'}`,
+                    ? 'rgba(245,158,11,0.92)'
+                    : 'rgba(255,255,255,0.06)',
+                border: `1px solid ${boostOn && !boostLocked ? 'rgba(245,158,11,0.55)' : 'rgba(255,255,255,0.1)'}`,
                 color: boostLocked
-                  ? 'rgba(33,48,61,0.30)'
+                  ? 'rgba(232,237,238,0.28)'
                   : boostOn
-                    ? '#4a2806'
-                    : 'rgba(33,48,61,0.55)',
-                boxShadow: boostOn && !boostLocked ? '0 4px 12px -4px rgba(215,132,42,0.8)' : 'none',
+                    ? '#2a1804'
+                    : 'rgba(232,237,238,0.6)',
+                boxShadow: boostOn && !boostLocked ? '0 4px 14px -4px rgba(245,158,11,0.8)' : 'none',
                 cursor: boostLocked ? 'not-allowed' : 'pointer',
               }}
               title={boostLocked ? 'Bu gün boost kullanıldı ✓' : boostOn ? 'Boost aktif (×1.5 süre + ×1.5 XP)' : 'Boost aç'}
@@ -143,10 +156,10 @@ export default function HabitRow({ habit, log }: Props) {
             <button
               onClick={handleNoteToggle}
               aria-label="Not"
-              className={ctrlBtn}
+              className={`btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm soft-trans ${noteOpen || log.notes ? '' : 'ctrl'}`}
               style={noteOpen || log.notes
-                ? { background: 'rgba(255,255,255,0.55)', color: '#21303d' }
-                : { background: 'rgba(255,255,255,0.22)', color: 'rgba(33,48,61,0.5)' }}
+                ? { background: 'rgba(34,197,94,0.18)', color: '#6ee79f', border: '1px solid rgba(34,197,94,0.35)' }
+                : undefined}
             >
               ✎
             </button>
@@ -156,7 +169,6 @@ export default function HabitRow({ habit, log }: Props) {
               onClick={() => setEditing(true)}
               aria-label="Düzenle"
               className={ctrlBtn}
-              style={{ background: 'rgba(255,255,255,0.22)', color: 'rgba(33,48,61,0.5)' }}
             >
               ⊙
             </button>
@@ -165,10 +177,10 @@ export default function HabitRow({ habit, log }: Props) {
             <button
               onClick={handleDeleteClick}
               aria-label="Sil"
-              className={ctrlBtn}
+              className={`btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm soft-trans ${confirmDel ? '' : 'ctrl'}`}
               style={confirmDel
-                ? { background: 'rgba(192,67,46,0.92)', color: '#fff5f2' }
-                : { background: 'rgba(255,255,255,0.22)', color: 'rgba(192,67,46,0.75)' }}
+                ? { background: 'rgba(225,90,60,0.92)', color: '#fff5f2' }
+                : { color: 'rgba(239,122,90,0.8)' }}
               title={confirmDel ? 'Emin misin? Tekrar tıkla' : 'Sil'}
             >
               {confirmDel ? '!' : '✕'}
@@ -182,12 +194,14 @@ export default function HabitRow({ habit, log }: Props) {
               style={{
                 width: 74,
                 background: timerRunning
-                  ? boostActive ? 'rgba(215,132,42,0.92)' : 'rgba(192,67,46,0.92)'
-                  : 'rgba(33,48,61,0.88)',
+                  ? boostActive ? 'rgba(245,158,11,0.92)' : 'rgba(225,90,60,0.92)'
+                  : 'linear-gradient(160deg, #2fd06a, #1f9d4d)',
                 color: timerRunning
-                  ? boostActive ? '#4a2806' : '#fff5f2'
-                  : '#eef4f4',
-                boxShadow: '0 6px 14px -6px rgba(15,30,46,0.6)',
+                  ? boostActive ? '#2a1804' : '#fff5f2'
+                  : '#06210f',
+                boxShadow: timerRunning
+                  ? '0 6px 16px -6px rgba(0,0,0,0.6)'
+                  : '0 6px 16px -6px rgba(34,197,94,0.6)',
               }}
             >
               {timerRunning ? (boostActive ? '⚡Aktif' : '🍅Aktif') : '🍅 Başlat'}
@@ -204,7 +218,7 @@ export default function HabitRow({ habit, log }: Props) {
 
         {/* Note — animated */}
         <div style={{ maxHeight: noteOpen ? '120px' : 0, overflow: 'hidden', transition: 'max-height 0.28s cubic-bezier(0.16,1,0.3,1)' }}>
-          <div className="px-4 pb-3 pt-2" style={{ borderTop: '1px solid rgba(33,48,61,0.12)' }}>
+          <div className="px-4 pb-3 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             <textarea
               ref={noteRef}
               value={log.notes}

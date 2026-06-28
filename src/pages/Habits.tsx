@@ -33,7 +33,7 @@ export default function Habits() {
       {showAdd && <AddHabitModal onClose={() => setShowAdd(false)} />}
       {editHabit && <AddHabitModal onClose={() => setEditHabit(null)} editHabit={editHabit} />}
 
-      <div className={`max-w-3xl mx-auto px-4 py-6 pb-32 sm:pb-8 space-y-6 ${mounted ? 'page-enter' : 'opacity-0'}`}>
+      <div className={`max-w-3xl mx-auto px-4 py-6 pb-40 sm:pb-8 space-y-6 ${mounted ? 'page-enter' : 'opacity-0'}`}>
         {/* Header */}
         <div className="flex items-end justify-between">
           <div>
@@ -60,12 +60,12 @@ export default function Habits() {
           </button>
         ) : (
           <div className="space-y-2.5">
-            {habits.map((h) => {
+            {habits.map((h, i) => {
               const cat = categories.find((c) => c.id === h.categoryId)
               const colors = getCategoryColor(cat?.color ?? '#6b7280')
               const isDel = confirmDelete === h.id
               return (
-                <div key={h.id} className="glass g-neutral flex items-center gap-3 pl-4 pr-4 py-3.5" style={{ borderRadius: 20 }}>
+                <div key={h.id} className="glass g-neutral flex items-center gap-3 pl-4 pr-4 py-3.5 animate-pop" style={{ borderRadius: 20, animationDelay: `${Math.min(i * 50, 300)}ms` }}>
                   <div
                     className="absolute left-0 top-0 bottom-0 w-1.5 z-[1]"
                     style={{ background: colors.text, opacity: 0.85 }}
@@ -97,8 +97,8 @@ export default function Habits() {
                       onClick={() => handleDelete(h.id)}
                       className="btn-press text-xs px-3 py-1.5 rounded-full font-semibold soft-trans"
                       style={isDel
-                        ? { background: 'rgba(192,67,46,0.92)', color: '#fff5f2' }
-                        : { background: 'rgba(255,255,255,0.24)', color: 'rgba(192,67,46,0.8)' }}
+                        ? { background: 'rgba(225,90,60,0.92)', color: '#fff5f2' }
+                        : { background: 'rgba(255,255,255,0.06)', color: 'rgba(239,122,90,0.85)', border: '1px solid rgba(255,255,255,0.08)' }}
                     >
                       {isDel ? 'Eminim →' : 'Sil'}
                     </button>
@@ -125,7 +125,7 @@ export default function Habits() {
                     <button
                       onClick={() => deleteCustomCategory(cat.id)}
                       className="chip btn-press text-xs px-3 py-1.5"
-                      style={{ color: 'rgba(192,67,46,0.8)' }}
+                      style={{ color: 'rgba(239,122,90,0.85)' }}
                     >
                       Sil
                     </button>
