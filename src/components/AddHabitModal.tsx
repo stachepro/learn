@@ -68,11 +68,16 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
       <div
         className="relative w-full max-w-md rounded-3xl animate-fade-up overflow-hidden"
         style={{
-          background: 'rgba(18,18,32,0.92)',
-          backdropFilter: 'blur(32px)',
-          WebkitBackdropFilter: 'blur(32px)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          boxShadow: '0 32px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.1)',
+          background: 'rgba(8, 20, 78, 0.90)',
+          backdropFilter: 'blur(36px) saturate(200%)',
+          WebkitBackdropFilter: 'blur(36px) saturate(200%)',
+          border: '1px solid rgba(70,135,255,0.32)',
+          boxShadow: [
+            '0 32px 80px rgba(0,8,70,0.65)',
+            '0 8px 24px rgba(0,15,90,0.45)',
+            'inset 0 2px 0 rgba(130,190,255,0.25)',
+            'inset 0 -2px 0 rgba(0,0,70,0.5)',
+          ].join(', '),
         }}
       >
         {/* Header */}

@@ -60,16 +60,16 @@ export default function HabitRow({ habit, log }: Props) {
         className="habit-row-inner rounded-2xl overflow-hidden"
         style={{
           background: log.completed
-            ? 'rgba(34,197,94,0.06)'
-            : 'rgba(255,255,255,0.032)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: `1px solid ${log.completed ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.08)'}`,
+            ? 'rgba(5, 55, 35, 0.58)'
+            : 'rgba(10, 28, 92, 0.52)',
+          backdropFilter: 'blur(28px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+          border: `1px solid ${log.completed ? 'rgba(34,197,94,0.28)' : 'rgba(70,135,255,0.28)'}`,
           borderLeftWidth: 3,
           borderLeftColor: log.completed ? '#22c55e' : catColors.border,
           boxShadow: log.completed
-            ? '0 0 20px rgba(34,197,94,0.08)'
-            : '0 2px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
+            ? '0 16px 45px rgba(0,40,20,0.5), inset 0 2px 0 rgba(60,220,100,0.18), inset 0 -2px 0 rgba(0,30,15,0.42)'
+            : '0 16px 45px rgba(0,8,70,0.5), inset 0 2px 0 rgba(120,185,255,0.2), inset 0 -2px 0 rgba(0,0,65,0.42)',
         }}
       >
         {/* Main row */}

@@ -47,11 +47,16 @@ export default function Profile() {
   }
 
   const glass = {
-    background: 'rgba(255,255,255,0.032)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)',
+    background: 'rgba(10, 28, 92, 0.55)',
+    backdropFilter: 'blur(28px) saturate(190%)',
+    WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+    border: '1px solid rgba(70, 135, 255, 0.28)',
+    boxShadow: [
+      '0 20px 55px rgba(0,8,70,0.55)',
+      '0 6px 18px rgba(0,15,90,0.35)',
+      'inset 0 2px 0 rgba(120,185,255,0.22)',
+      'inset 0 -2px 0 rgba(0,0,65,0.45)',
+    ].join(', '),
   }
 
   return (
@@ -143,12 +148,14 @@ export default function Profile() {
                 key={badge.id}
                 className="flex items-start gap-3 rounded-2xl px-4 py-3.5 transition-all"
                 style={{
-                  background: earned ? 'rgba(16,185,129,0.09)' : 'rgba(255,255,255,0.025)',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  border: `1px solid ${earned ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.07)'}`,
-                  opacity: earned ? 1 : 0.45,
-                  boxShadow: earned ? '0 0 16px rgba(16,185,129,0.12)' : 'none',
+                  background: earned ? 'rgba(5,55,40,0.58)' : 'rgba(8,22,75,0.45)',
+                  backdropFilter: 'blur(24px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                  border: `1px solid ${earned ? 'rgba(16,185,129,0.30)' : 'rgba(50,90,200,0.22)'}`,
+                  opacity: earned ? 1 : 0.5,
+                  boxShadow: earned
+                    ? '0 16px 45px rgba(0,40,20,0.5), inset 0 2px 0 rgba(60,220,150,0.18)'
+                    : '0 12px 35px rgba(0,8,70,0.45), inset 0 2px 0 rgba(80,140,255,0.1)',
                 }}
               >
                 <div
@@ -209,10 +216,11 @@ function StatCard({ label, value, emoji, color }: { label: string; value: string
     <div
       className="rounded-2xl p-4"
       style={{
-        background: 'rgba(255,255,255,0.028)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(10, 28, 92, 0.52)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+        border: '1px solid rgba(70, 135, 255, 0.25)',
+        boxShadow: '0 14px 40px rgba(0,8,70,0.48), inset 0 2px 0 rgba(120,185,255,0.18), inset 0 -1px 0 rgba(0,0,65,0.38)',
       }}
     >
       <div className="flex items-start justify-between mb-2">

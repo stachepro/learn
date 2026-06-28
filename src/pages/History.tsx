@@ -48,11 +48,16 @@ export default function History() {
   const selectedLog = selectedDay ? logs[selectedDay] : null
 
   const glass = {
-    background: 'rgba(255,255,255,0.032)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)',
+    background: 'rgba(10, 28, 92, 0.52)',
+    backdropFilter: 'blur(28px) saturate(190%)',
+    WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+    border: '1px solid rgba(70, 135, 255, 0.28)',
+    boxShadow: [
+      '0 20px 55px rgba(0,8,70,0.55)',
+      '0 6px 18px rgba(0,15,90,0.35)',
+      'inset 0 2px 0 rgba(120,185,255,0.22)',
+      'inset 0 -2px 0 rgba(0,0,65,0.45)',
+    ].join(', '),
   }
 
   return (

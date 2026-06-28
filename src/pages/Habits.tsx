@@ -5,11 +5,16 @@ import AddHabitModal from '../components/AddHabitModal'
 import type { Habit } from '../types'
 
 const glassCard = {
-  background: 'rgba(255,255,255,0.032)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  boxShadow: '0 2px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)',
+  background: 'rgba(10, 28, 92, 0.52)',
+  backdropFilter: 'blur(28px) saturate(190%)',
+  WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+  border: '1px solid rgba(70, 135, 255, 0.28)',
+  boxShadow: [
+    '0 16px 45px rgba(0,8,70,0.5)',
+    '0 4px 14px rgba(0,15,90,0.3)',
+    'inset 0 2px 0 rgba(120,185,255,0.2)',
+    'inset 0 -2px 0 rgba(0,0,65,0.42)',
+  ].join(', '),
 }
 
 export default function Habits() {

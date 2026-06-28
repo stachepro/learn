@@ -19,10 +19,11 @@ export default function Nav() {
       <nav
         className="sticky top-0 z-40"
         style={{
-          background: 'rgba(7,7,15,0.75)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(4, 10, 48, 0.85)',
+          backdropFilter: 'blur(28px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+          borderBottom: '1px solid rgba(60,110,255,0.22)',
+          boxShadow: '0 4px 24px rgba(0,8,70,0.45), inset 0 -1px 0 rgba(40,90,255,0.12)',
         }}
       >
         <div className="max-w-3xl mx-auto px-4 flex items-center justify-between h-14">
@@ -31,8 +32,8 @@ export default function Nav() {
             <div
               className="w-7 h-7 rounded-xl flex items-center justify-center"
               style={{
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                boxShadow: '0 0 12px rgba(99,102,241,0.5)',
+                background: 'linear-gradient(135deg, #2563eb, #10b981)',
+                boxShadow: '0 0 14px rgba(37,99,235,0.55)',
               }}
             >
               <span className="text-white text-xs font-black">L</span>
@@ -79,9 +80,10 @@ export default function Nav() {
                 border: '1px solid rgba(239,68,68,0.3)',
                 color: '#fca5a5',
               } : {
-                background: 'rgba(99,102,241,0.1)',
-                border: '1px solid rgba(99,102,241,0.25)',
-                color: '#a5b4fc',
+                background: 'rgba(37,99,235,0.2)',
+                border: '1px solid rgba(96,165,250,0.35)',
+                color: '#93c5fd',
+                boxShadow: 'inset 0 1px 0 rgba(150,210,255,0.15)',
               }}
             >
               {timerActive && <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />}
@@ -96,10 +98,11 @@ export default function Nav() {
       <div
         className="sm:hidden fixed bottom-0 left-0 right-0 z-40 flex"
         style={{
-          background: 'rgba(7,7,15,0.9)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderTop: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(3, 8, 44, 0.92)',
+          backdropFilter: 'blur(28px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+          borderTop: '1px solid rgba(60,110,255,0.22)',
+          boxShadow: '0 -4px 24px rgba(0,8,70,0.45), inset 0 1px 0 rgba(40,90,255,0.12)',
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >

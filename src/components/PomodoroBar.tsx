@@ -29,10 +29,11 @@ export default function PomodoroBar() {
     <div
       className="animate-slide-bar fixed bottom-14 sm:bottom-0 left-0 right-0 z-30"
       style={{
-        background: 'rgba(8,8,18,0.92)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderTop: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(3, 8, 44, 0.93)',
+        backdropFilter: 'blur(32px) saturate(190%)',
+        WebkitBackdropFilter: 'blur(32px) saturate(190%)',
+        borderTop: '1px solid rgba(60,110,255,0.25)',
+        boxShadow: '0 -8px 32px rgba(0,8,70,0.5), inset 0 1px 0 rgba(80,150,255,0.15)',
       }}
     >
       {/* Progress bar */}
@@ -73,7 +74,7 @@ export default function PomodoroBar() {
             <button
               onClick={pauseResume}
               className="btn-press w-9 h-9 rounded-xl flex items-center justify-center transition-all"
-              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+              style={{ background: 'rgba(20,50,140,0.55)', border: '1px solid rgba(70,135,255,0.28)', boxShadow: 'inset 0 1px 0 rgba(120,185,255,0.18)' }}
             >
               {isPaused ? <PlayIcon /> : <PauseIcon />}
             </button>
