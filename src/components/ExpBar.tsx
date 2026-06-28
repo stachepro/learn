@@ -9,18 +9,22 @@ interface Props {
 export default function ExpBar({ totalExp, level, compact }: Props) {
   const { current, needed, percentage } = expProgressInCurrentLevel(totalExp)
 
+  const Bar = ({ h }: { h: number }) => (
+    <div className="well rounded-full overflow-hidden" style={{ height: h }}>
+      <div
+        className="h-full rounded-full progress-fill"
+        style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #2f7d70, #5fb0a0)' }}
+      />
+    </div>
+  )
+
   if (compact) {
     return (
-      <div className="space-y-1">
-        <div className="h-1.5 bg-surface3 rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #818cf8, #8b5cf6)' }}
-          />
-        </div>
-        <div className="flex justify-between text-[11px] text-subtle">
+      <div className="space-y-1.5">
+        <Bar h={6} />
+        <div className="flex justify-between text-[11px] ink-60 font-medium">
           <span>Seviye {level}</span>
-          <span>{current}/{needed} EXP</span>
+          <span className="tnum">{current}/{needed} EXP</span>
         </div>
       </div>
     )
@@ -28,16 +32,11 @@ export default function ExpBar({ totalExp, level, compact }: Props) {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs">
-        <span style={{ color: '#818cf8' }} className="font-semibold">Seviye {level}</span>
-        <span className="text-subtle">{current} / {needed} EXP</span>
+      <div className="flex items-center justify-between text-xs font-medium">
+        <span className="font-semibold">Seviye {level}</span>
+        <span className="ink-60 tnum">{current} / {needed} EXP</span>
       </div>
-      <div className="h-2 bg-surface3 rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #818cf8, #8b5cf6)' }}
-        />
-      </div>
+      <Bar h={8} />
     </div>
   )
 }

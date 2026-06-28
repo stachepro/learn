@@ -9,61 +9,69 @@ function fmtFocus(sec: number): string {
   return `${h}sa ${m % 60}d`
 }
 
+const links = [
+  { to: '/', label: 'Bugün' },
+  { to: '/habits', label: 'Alışkanlıklar' },
+  { to: '/history', label: 'Geçmiş' },
+  { to: '/profile', label: 'Profil' },
+]
+
+const mobileLinks = [
+  { to: '/', label: 'Bugün' },
+  { to: '/habits', label: 'Alışkanlık' },
+  { to: '/history', label: 'Geçmiş' },
+  { to: '/profile', label: 'Profil' },
+]
+
 export default function Nav() {
   const { phase, activeHabitId, showBar, todayFocusSeconds } = usePomodoro()
   const timerActive = phase !== 'idle' && activeHabitId !== null
 
   return (
     <>
-      {/* Top nav */}
+      {/* Top nav — frosted rail */}
       <nav
         className="sticky top-0 z-40"
         style={{
-          background: 'rgba(4, 10, 48, 0.85)',
-          backdropFilter: 'blur(28px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
-          borderBottom: '1px solid rgba(60,110,255,0.22)',
-          boxShadow: '0 4px 24px rgba(0,8,70,0.45), inset 0 -1px 0 rgba(40,90,255,0.12)',
+          background: 'rgba(78,98,116,0.55)',
+          backdropFilter: 'blur(20px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(140%)',
+          borderBottom: '1px solid rgba(255,255,255,0.18)',
+          boxShadow: '0 6px 22px -12px rgba(15,30,46,0.5)',
         }}
       >
-        <div className="max-w-3xl mx-auto px-4 flex items-center justify-between h-14">
-          {/* Logo */}
+        <div className="max-w-3xl mx-auto px-4 flex items-center justify-between h-16">
+          {/* Logo — a little glass tile */}
           <div className="flex items-center gap-2.5">
-            <div
-              className="w-7 h-7 rounded-xl flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, #2563eb, #10b981)',
-                boxShadow: '0 0 14px rgba(37,99,235,0.55)',
-              }}
-            >
-              <span className="text-white text-xs font-black">L</span>
+            <div className="glass g-amber w-9 h-9 rounded-2xl flex items-center justify-center">
+              <span className="display text-[17px] font-extrabold" style={{ color: '#40240a' }}>L</span>
             </div>
-            <span className="font-bold text-txt text-[15px] tracking-tight">Luupi</span>
+            <span className="display font-extrabold text-[19px] tracking-tight" style={{ color: '#f1f5f5' }}>
+              Luupi
+            </span>
           </div>
 
           {/* Desktop links */}
-          <div className="hidden sm:flex items-center gap-0.5">
-            {[
-              { to: '/', label: 'Bugün' },
-              { to: '/habits', label: 'Alışkanlıklar' },
-              { to: '/history', label: 'Geçmiş' },
-              { to: '/profile', label: 'Profil' },
-            ].map(({ to, label }) => (
+          <div className="hidden sm:flex items-center gap-1">
+            {links.map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={to === '/'}
                 className={({ isActive }) =>
-                  `btn-press px-3.5 py-1.5 text-sm rounded-xl transition-all ${
-                    isActive
-                      ? 'text-txt font-semibold'
-                      : 'text-subtle hover:text-txt'
+                  `btn-press px-3.5 py-1.5 text-sm rounded-full transition-all ${
+                    isActive ? 'font-semibold' : 'font-medium'
                   }`
                 }
-                style={({ isActive }) => isActive ? {
-                  background: 'rgba(255,255,255,0.08)',
-                  backdropFilter: 'blur(8px)',
-                } : {}}
+                style={({ isActive }) =>
+                  isActive
+                    ? {
+                        background: 'rgba(255,255,255,0.85)',
+                        color: '#21303d',
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
+                      }
+                    : { color: 'rgba(241,245,245,0.72)' }
+                }
               >
                 {label}
               </NavLink>
@@ -71,59 +79,58 @@ export default function Nav() {
           </div>
 
           {/* Focus time badge */}
-          {todayFocusSeconds > 0 && (
+          {todayFocusSeconds > 0 ? (
             <button
               onClick={timerActive ? showBar : undefined}
-              className="btn-press flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
-              style={timerActive ? {
-                background: 'rgba(239,68,68,0.12)',
-                border: '1px solid rgba(239,68,68,0.3)',
-                color: '#fca5a5',
-              } : {
-                background: 'rgba(37,99,235,0.2)',
-                border: '1px solid rgba(96,165,250,0.35)',
-                color: '#93c5fd',
-                boxShadow: 'inset 0 1px 0 rgba(150,210,255,0.15)',
-              }}
+              className="btn-press flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-full"
+              style={
+                timerActive
+                  ? { background: 'rgba(192,67,46,0.9)', color: '#fff5f2', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)' }
+                  : { background: 'rgba(255,255,255,0.85)', color: '#21303d', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' }
+              }
             >
-              {timerActive && <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />}
+              {timerActive && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
               Odak {fmtFocus(todayFocusSeconds)}
             </button>
+          ) : (
+            <div className="w-16 hidden sm:block" />
           )}
-          {!todayFocusSeconds && <div className="w-20 hidden sm:block" />}
         </div>
       </nav>
 
-      {/* Mobile bottom tab bar */}
+      {/* Mobile bottom tab bar — frosted */}
       <div
         className="sm:hidden fixed bottom-0 left-0 right-0 z-40 flex"
         style={{
-          background: 'rgba(3, 8, 44, 0.92)',
-          backdropFilter: 'blur(28px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
-          borderTop: '1px solid rgba(60,110,255,0.22)',
-          boxShadow: '0 -4px 24px rgba(0,8,70,0.45), inset 0 1px 0 rgba(40,90,255,0.12)',
+          background: 'rgba(56,72,88,0.78)',
+          backdropFilter: 'blur(22px) saturate(150%)',
+          WebkitBackdropFilter: 'blur(22px) saturate(150%)',
+          borderTop: '1px solid rgba(255,255,255,0.16)',
+          boxShadow: '0 -6px 22px -12px rgba(15,30,46,0.6)',
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
-        {[
-          { to: '/', icon: '◈', label: 'Bugün' },
-          { to: '/habits', icon: '✦', label: 'Alışkanlık' },
-          { to: '/history', icon: '◉', label: 'Geçmiş' },
-          { to: '/profile', icon: '◎', label: 'Profil' },
-        ].map(({ to, icon, label }) => (
+        {mobileLinks.map(({ to, label }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
-            className={({ isActive }) =>
-              `btn-press flex-1 flex flex-col items-center justify-center py-2.5 gap-1 transition-colors ${
-                isActive ? 'text-accent' : 'text-subtle'
-              }`
-            }
+            className="btn-press flex-1 flex flex-col items-center justify-center py-2.5 gap-1.5"
           >
-            <span className="text-base leading-none">{icon}</span>
-            <span className="text-[9px] leading-none tracking-wide">{label}</span>
+            {({ isActive }) => (
+              <>
+                <span
+                  className="w-7 h-1.5 rounded-full transition-all"
+                  style={{ background: isActive ? '#e6dd9c' : 'rgba(241,245,245,0.28)' }}
+                />
+                <span
+                  className="text-[10px] font-semibold tracking-wide transition-colors"
+                  style={{ color: isActive ? '#f1f5f5' : 'rgba(241,245,245,0.5)' }}
+                >
+                  {label}
+                </span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>

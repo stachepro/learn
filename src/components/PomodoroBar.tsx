@@ -18,29 +18,32 @@ export default function PomodoroBar() {
   const isDone = phase === 'break-done'
 
   const progress = totalSeconds > 0 ? ((totalSeconds - secondsLeft) / totalSeconds) * 100 : 0
-  const fillColor = isWork ? '#ef4444' : '#22c55e'
+  const fillColor = isWork ? '#c0432e' : '#2f7d44'
+  const labelColor = isWork ? '#e08a6a' : '#5fb070'
 
   const relaunch = () => {
     if (isFree) startFree()
     else if (activeHabitId) startPomodoro(activeHabitId)
   }
 
+  const iconBtn = 'btn-press w-9 h-9 rounded-xl flex items-center justify-center'
+
   return (
     <div
-      className="animate-slide-bar fixed bottom-14 sm:bottom-0 left-0 right-0 z-30"
+      className="animate-slide-bar fixed bottom-16 sm:bottom-0 left-0 right-0 z-30"
       style={{
-        background: 'rgba(3, 8, 44, 0.93)',
-        backdropFilter: 'blur(32px) saturate(190%)',
-        WebkitBackdropFilter: 'blur(32px) saturate(190%)',
-        borderTop: '1px solid rgba(60,110,255,0.25)',
-        boxShadow: '0 -8px 32px rgba(0,8,70,0.5), inset 0 1px 0 rgba(80,150,255,0.15)',
+        background: 'rgba(48,62,77,0.82)',
+        backdropFilter: 'blur(24px) saturate(150%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(150%)',
+        borderTop: '1px solid rgba(255,255,255,0.16)',
+        boxShadow: '0 -8px 28px -14px rgba(15,30,46,0.7)',
       }}
     >
       {/* Progress bar */}
-      <div className="relative h-[3px]" style={{ background: 'rgba(255,255,255,0.07)' }}>
+      <div className="relative h-[3px]" style={{ background: 'rgba(255,255,255,0.14)' }}>
         <div
-          className="pomo-progress-fill absolute inset-y-0 left-0 rounded-r-full"
-          style={{ width: `${progress}%`, background: fillColor, boxShadow: `0 0 8px ${fillColor}80` }}
+          className="progress-fill absolute inset-y-0 left-0 rounded-r-full"
+          style={{ width: `${progress}%`, background: fillColor, boxShadow: `0 0 10px ${fillColor}` }}
         />
       </div>
 
@@ -51,20 +54,17 @@ export default function PomodoroBar() {
             {isFree ? '🧘' : (habit?.emoji ?? '🍅')}
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-txt truncate leading-tight">
+            <p className="text-sm font-semibold truncate leading-tight" style={{ color: '#f1f5f5' }}>
               {isFree ? 'Serbest Çalışma' : (habit?.name ?? '')}
             </p>
-            <p
-              className="text-[10px] font-bold uppercase tracking-widest leading-tight mt-0.5"
-              style={{ color: fillColor }}
-            >
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] leading-tight mt-0.5" style={{ color: labelColor }}>
               {isDone ? 'Mola Bitti' : isWork ? 'Odak' : 'Mola'} · {sessionCount} tamamlandı
             </p>
           </div>
         </div>
 
         {/* Center: time */}
-        <div className="flex-shrink-0 tabular-nums text-2xl font-mono font-bold" style={{ color: isDone ? fillColor : '#e8e8f4' }}>
+        <div className="flex-shrink-0 tnum text-2xl font-mono font-bold" style={{ color: isDone ? labelColor : '#f1f5f5' }}>
           {isDone ? '✓' : formatSeconds(secondsLeft)}
         </div>
 
@@ -73,8 +73,9 @@ export default function PomodoroBar() {
           {(isWork || isBreak) && (
             <button
               onClick={pauseResume}
-              className="btn-press w-9 h-9 rounded-xl flex items-center justify-center transition-all"
-              style={{ background: 'rgba(20,50,140,0.55)', border: '1px solid rgba(70,135,255,0.28)', boxShadow: 'inset 0 1px 0 rgba(120,185,255,0.18)' }}
+              aria-label={isPaused ? 'Devam et' : 'Duraklat'}
+              className={iconBtn}
+              style={{ background: 'rgba(255,255,255,0.85)', color: '#21303d' }}
             >
               {isPaused ? <PlayIcon /> : <PauseIcon />}
             </button>
@@ -84,7 +85,7 @@ export default function PomodoroBar() {
             <button
               onClick={relaunch}
               className="btn-press h-9 px-4 rounded-xl text-xs font-bold"
-              style={{ background: 'rgba(239,68,68,0.2)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.35)' }}
+              style={{ background: '#c0432e', color: '#fff5f2' }}
             >
               Yeni Oturum
             </button>
@@ -93,8 +94,9 @@ export default function PomodoroBar() {
           {(isBreak || isDone) && (
             <button
               onClick={skipBreak}
-              className="btn-press w-9 h-9 rounded-xl flex items-center justify-center transition-all"
-              style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}
+              aria-label="Molayı atla"
+              className={iconBtn}
+              style={{ background: 'rgba(255,255,255,0.18)', color: 'rgba(241,245,245,0.7)' }}
               title="Molayı atla"
             >
               <SkipIcon />
@@ -103,10 +105,9 @@ export default function PomodoroBar() {
 
           <button
             onClick={stopTimer}
-            className="btn-press w-9 h-9 rounded-xl flex items-center justify-center transition-all"
-            style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(239,68,68,0.4)' }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(239,68,68,0.4)')}
+            aria-label="Durdur"
+            className={iconBtn}
+            style={{ background: 'rgba(192,67,46,0.9)', color: '#fff5f2' }}
             title="Durdur"
           >
             <StopIcon />
@@ -118,12 +119,12 @@ export default function PomodoroBar() {
 }
 
 const PlayIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style={{ color: 'rgba(255,255,255,0.7)' }}>
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
     <path d="M4 2.5l10 5.5-10 5.5V2.5z" />
   </svg>
 )
 const PauseIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style={{ color: 'rgba(255,255,255,0.7)' }}>
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
     <rect x="3" y="2" width="4" height="12" rx="1" />
     <rect x="9" y="2" width="4" height="12" rx="1" />
   </svg>

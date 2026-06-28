@@ -1,21 +1,14 @@
 import { useApp } from '../context/AppContext'
 import { dateStr, getDaysInMonth, getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS } from '../utils/date'
 
+// Frosted green scale that reads on the milky neutral tile
 function completionColor(count: number): string {
-  if (count === 0) return '#16162a'
-  if (count === 1) return '#133a22'
-  if (count === 2) return '#1a5c33'
-  if (count === 3) return '#228248'
-  if (count === 4) return '#2aaa5c'
-  return '#32d46e'
-}
-
-function completionBorder(count: number): string {
-  if (count === 0) return '#1e1e32'
-  if (count === 1) return '#1e5230'
-  if (count === 2) return '#226640'
-  if (count === 3) return '#2a9050'
-  return '#30bb62'
+  if (count === 0) return 'rgba(18,40,58,0.10)'
+  if (count === 1) return 'rgba(95,150,110,0.45)'
+  if (count === 2) return 'rgba(80,150,95,0.62)'
+  if (count === 3) return 'rgba(63,154,85,0.80)'
+  if (count === 4) return 'rgba(50,150,75,0.92)'
+  return 'rgba(40,140,65,1)'
 }
 
 export default function ContributionsGrid() {
@@ -42,10 +35,10 @@ export default function ContributionsGrid() {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-semibold text-subtle uppercase tracking-widest">
+        <p className="display text-sm font-bold">
           {trMonthName(month)} Aktivitesi
         </p>
-        <p className="text-[11px] text-muted">
+        <p className="text-[11px] ink-60 tnum">
           {totalActive} / {daysInMonth} gün aktif
         </p>
       </div>
@@ -53,7 +46,7 @@ export default function ContributionsGrid() {
       {/* Day-of-week headers */}
       <div className="grid grid-cols-7 gap-1 mb-1">
         {TR_DAY_SHORTS.map((d) => (
-          <div key={d} className="text-center text-[9px] text-muted py-0.5 font-medium">
+          <div key={d} className="text-center text-[9px] ink-45 py-0.5 font-semibold">
             {d}
           </div>
         ))}
@@ -61,12 +54,10 @@ export default function ContributionsGrid() {
 
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-1">
-        {/* Empty cells before month starts */}
         {Array.from({ length: firstDay }).map((_, i) => (
           <div key={`e${i}`} className="aspect-square" />
         ))}
 
-        {/* Day cells */}
         {Array.from({ length: daysInMonth }).map((_, i) => {
           const day = i + 1
           const key = dateStr(new Date(year, month, day))
@@ -77,26 +68,24 @@ export default function ContributionsGrid() {
           return (
             <div
               key={day}
-              className="contrib-cell aspect-square rounded-md flex items-center justify-center relative"
+              className="contrib-cell aspect-square rounded-lg flex items-center justify-center relative"
               style={{
-                background: isFuture ? '#0e0e1a' : completionColor(count),
-                border: `1px solid ${isFuture ? '#16162a' : completionBorder(count)}`,
-                outline: isToday ? '2px solid #8b5cf660' : undefined,
-                outlineOffset: isToday ? '1px' : undefined,
-                opacity: isFuture ? 0.3 : 1,
+                background: isFuture ? 'rgba(18,40,58,0.05)' : completionColor(count),
+                boxShadow: isToday ? '0 0 0 2px rgba(33,48,61,0.55)' : 'inset 0 0 0 1px rgba(255,255,255,0.18)',
+                opacity: isFuture ? 0.5 : 1,
               }}
               title={`${day} ${trMonthName(month)}: ${count} tamamlandı`}
             >
               {!isFuture && count > 0 && (
                 <span
-                  className="text-[10px] font-bold leading-none select-none"
-                  style={{ color: count >= 3 ? '#e0ffe8' : '#a0ddb0' }}
+                  className="text-[10px] font-bold leading-none select-none tnum"
+                  style={{ color: count >= 3 ? '#f1faf2' : '#1c3a26' }}
                 >
                   {count}
                 </span>
               )}
               {isToday && count === 0 && (
-                <span className="w-1 h-1 rounded-full bg-accent/60 absolute" />
+                <span className="w-1 h-1 rounded-full absolute" style={{ background: 'rgba(33,48,61,0.6)' }} />
               )}
             </div>
           )
@@ -104,16 +93,16 @@ export default function ContributionsGrid() {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-end gap-1.5 mt-2">
-        <span className="text-[10px] text-muted">Az</span>
+      <div className="flex items-center justify-end gap-1.5 mt-3">
+        <span className="text-[10px] ink-45">Az</span>
         {[0, 1, 2, 3, 4, 5].map((n) => (
           <div
             key={n}
-            className="w-3 h-3 rounded-sm"
-            style={{ background: completionColor(n), border: `1px solid ${completionBorder(n)}` }}
+            className="w-3 h-3 rounded-[5px]"
+            style={{ background: completionColor(n), boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.18)' }}
           />
         ))}
-        <span className="text-[10px] text-muted">Çok</span>
+        <span className="text-[10px] ink-45">Çok</span>
       </div>
     </div>
   )

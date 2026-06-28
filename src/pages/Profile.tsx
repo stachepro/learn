@@ -4,8 +4,6 @@ import { ALL_BADGES } from '../utils/badges'
 import { formatMinutes } from '../utils/date'
 import { expProgressInCurrentLevel } from '../utils/exp'
 
-const g = (bg: string, border: string, color: string) => ({ background: bg, border: `1px solid ${border}`, color })
-
 export default function Profile() {
   const { profile, logs, freeSessions, updateUsername, pomodoroSettings, updatePomodoroSettings } = useApp()
   const [editingName, setEditingName] = useState(false)
@@ -46,35 +44,14 @@ export default function Profile() {
     setTimeout(() => setSaved(false), 2000)
   }
 
-  const glass = {
-    background: 'rgba(10, 28, 92, 0.55)',
-    backdropFilter: 'blur(28px) saturate(190%)',
-    WebkitBackdropFilter: 'blur(28px) saturate(190%)',
-    border: '1px solid rgba(70, 135, 255, 0.28)',
-    boxShadow: [
-      '0 20px 55px rgba(0,8,70,0.55)',
-      '0 6px 18px rgba(0,15,90,0.35)',
-      'inset 0 2px 0 rgba(120,185,255,0.22)',
-      'inset 0 -2px 0 rgba(0,0,65,0.45)',
-    ].join(', '),
-  }
-
   return (
     <div className={`max-w-3xl mx-auto px-4 py-6 pb-32 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
 
       {/* Profile card */}
-      <div className="rounded-3xl p-5" style={glass}>
+      <div className="glass g-neutral p-5" style={{ borderRadius: 24 }}>
         <div className="flex items-start gap-4">
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black flex-shrink-0"
-            style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.15))',
-              border: '1px solid rgba(16,185,129,0.3)',
-              color: '#34d399',
-              boxShadow: '0 0 20px rgba(16,185,129,0.2)',
-            }}
-          >
-            {profile.username.charAt(0).toUpperCase()}
+          <div className="glass g-teal w-16 h-16 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
+            <span className="display font-extrabold">{profile.username.charAt(0).toUpperCase()}</span>
           </div>
           <div className="flex-1 min-w-0">
             {editingName ? (
@@ -84,38 +61,36 @@ export default function Profile() {
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleNameSave(); if (e.key === 'Escape') { setNameInput(profile.username); setEditingName(false) } }}
-                  className="glass-input text-lg font-bold flex-1"
+                  className="frost-input text-lg font-bold flex-1"
                 />
-                <button onClick={handleNameSave} className="btn-press text-xs px-3 py-1.5 rounded-xl font-semibold" style={{ background: 'rgba(34,197,94,0.15)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }}>Kaydet</button>
+                <button onClick={handleNameSave} className="btn-ink btn-press text-xs px-3 py-2">Kaydet</button>
               </div>
             ) : (
               <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-xl font-bold text-txt">{profile.username}</h1>
+                <h1 className="display text-2xl font-extrabold">{profile.username}</h1>
                 <button onClick={() => { setNameInput(profile.username); setEditingName(true) }}
-                  className="text-xs transition-colors" style={{ color: 'rgba(255,255,255,0.25)' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.25)')}>
+                  className="chip btn-press text-[11px] px-2.5 py-1">
                   Düzenle
                 </button>
               </div>
             )}
-            <div className="flex items-center gap-2.5 flex-wrap text-xs mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              <span><span className="font-bold" style={{ color: '#fb923c' }}>{profile.streak}</span> gün seri</span>
+            <div className="flex items-center gap-2.5 flex-wrap text-xs mb-3 ink-60">
+              <span><span className="font-bold" style={{ color: '#c0432e' }}>{profile.streak}</span> gün seri</span>
               <span>·</span>
-              <span>En iyi <span className="font-semibold text-txt">{profile.longestStreak}</span> gün</span>
+              <span>En iyi <span className="font-bold">{profile.longestStreak}</span> gün</span>
               <span>·</span>
               <span>{profile.badges.length}/{ALL_BADGES.length} rozet</span>
             </div>
             <div className="space-y-1.5">
-              <div className="flex justify-between text-xs">
-                <span className="font-bold" style={{ color: '#34d399' }}>Seviye {profile.level}</span>
-                <span style={{ color: 'rgba(255,255,255,0.35)' }}>{current}/{needed} EXP</span>
+              <div className="flex justify-between text-xs font-medium">
+                <span className="font-bold">Seviye {profile.level}</span>
+                <span className="ink-60 tnum">{current}/{needed} EXP</span>
               </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                <div className="h-full rounded-full pomo-progress-fill"
-                  style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #10b981, #34d399)', boxShadow: '0 0 8px rgba(16,185,129,0.4)' }} />
+              <div className="well rounded-full overflow-hidden" style={{ height: 7 }}>
+                <div className="h-full rounded-full progress-fill"
+                  style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #2f7d70, #5fb0a0)' }} />
               </div>
-              <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.2)' }}>Toplam {profile.totalExp} EXP</p>
+              <p className="text-[11px] ink-45 tnum">Toplam {profile.totalExp} EXP</p>
             </div>
           </div>
         </div>
@@ -123,51 +98,40 @@ export default function Profile() {
 
       {/* Stats */}
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>Tüm Zamanlar</p>
+        <p className="display text-sm font-bold mb-3" style={{ color: '#f1f5f5' }}>Tüm Zamanlar</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <StatCard label="Tamamlanan" value={String(totalCompleted)} emoji="✅" color="#4ade80" />
-          <StatCard label="Pomodoro" value={String(totalPomodoros)} emoji="🍅" color="#f87171" />
-          <StatCard label="Toplam Çalışma" value={formatMinutes(totalWorkMin)} emoji="⏱" color="#34d399" />
-          <StatCard label="Boost" value={String(totalBoostUsed)} emoji="⚡" color="#fde047" />
-          <StatCard label="Serbest Çalışma" value={formatMinutes(freeMin)} emoji="🧘" color="#34d399" />
-          <StatCard label="Günlük Ort." value={formatMinutes(avgDaily)} emoji="📊" color="#67e8f9" />
-          <StatCard label="En İyi Gün" value={formatMinutes(bestDay)} emoji="🏆" color="#fb923c" />
+          <StatCard variant="g-lime" label="Tamamlanan" value={String(totalCompleted)} emoji="✅" />
+          <StatCard variant="g-rust" label="Pomodoro" value={String(totalPomodoros)} emoji="🍅" />
+          <StatCard variant="g-teal" label="Toplam Çalışma" value={formatMinutes(totalWorkMin)} emoji="⏱" />
+          <StatCard variant="g-cream" label="Boost" value={String(totalBoostUsed)} emoji="⚡" />
+          <StatCard variant="g-teal" label="Serbest Çalışma" value={formatMinutes(freeMin)} emoji="🧘" />
+          <StatCard variant="g-sky" label="Günlük Ort." value={formatMinutes(avgDaily)} emoji="📊" />
+          <StatCard variant="g-amber" label="En İyi Gün" value={formatMinutes(bestDay)} emoji="🏆" />
         </div>
       </div>
 
       {/* Badges */}
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
-          Rozetler <span style={{ color: 'rgba(255,255,255,0.2)' }}>({profile.badges.length}/{ALL_BADGES.length})</span>
+        <p className="display text-sm font-bold mb-3" style={{ color: '#f1f5f5' }}>
+          Rozetler <span style={{ color: 'rgba(241,245,245,0.5)' }}>({profile.badges.length}/{ALL_BADGES.length})</span>
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {ALL_BADGES.map((badge) => {
             const earned = profile.badges.includes(badge.id)
             return (
               <div
                 key={badge.id}
-                className="flex items-start gap-3 rounded-2xl px-4 py-3.5 transition-all"
-                style={{
-                  background: earned ? 'rgba(5,55,40,0.58)' : 'rgba(8,22,75,0.45)',
-                  backdropFilter: 'blur(24px) saturate(180%)',
-                  WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-                  border: `1px solid ${earned ? 'rgba(16,185,129,0.30)' : 'rgba(50,90,200,0.22)'}`,
-                  opacity: earned ? 1 : 0.5,
-                  boxShadow: earned
-                    ? '0 16px 45px rgba(0,40,20,0.5), inset 0 2px 0 rgba(60,220,150,0.18)'
-                    : '0 12px 35px rgba(0,8,70,0.45), inset 0 2px 0 rgba(80,140,255,0.1)',
-                }}
+                className={`glass ${earned ? 'g-lime' : 'g-neutral'} flex items-start gap-3 px-4 py-3.5`}
+                style={{ borderRadius: 18, opacity: earned ? 1 : 0.62 }}
               >
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                  style={{ background: earned ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)' }}
-                >
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                  style={{ background: 'rgba(255,255,255,0.4)' }}>
                   {earned ? '🏅' : '🔒'}
                 </div>
                 <div>
-                  <p className={`text-sm font-semibold ${earned ? 'text-txt' : 'text-subtle'}`}>{badge.name}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{badge.description}</p>
-                  {!earned && <p className="text-[11px] mt-1 italic" style={{ color: 'rgba(255,255,255,0.2)' }}>{badge.condition}</p>}
+                  <p className="text-sm font-bold">{badge.name}</p>
+                  <p className="text-xs mt-0.5 ink-60">{badge.description}</p>
+                  {!earned && <p className="text-[11px] mt-1 italic ink-45">{badge.condition}</p>}
                 </div>
               </div>
             )
@@ -176,9 +140,8 @@ export default function Profile() {
       </div>
 
       {/* Pomodoro settings */}
-      <div className="rounded-3xl overflow-hidden" style={glass}>
-        <p className="text-[10px] font-bold uppercase tracking-widest px-5 py-3.5"
-          style={{ color: 'rgba(255,255,255,0.3)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="glass g-neutral" style={{ borderRadius: 24 }}>
+        <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgba(33,48,61,0.12)' }}>
           🍅 Pomodoro Ayarları
         </p>
         <div className="p-5 space-y-5">
@@ -188,8 +151,8 @@ export default function Profile() {
           ].map(({ label, value, set, min, max, step }) => (
             <div key={label} className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span style={{ color: 'rgba(255,255,255,0.45)' }}>{label}</span>
-                <span className="font-semibold text-txt">{value} dakika</span>
+                <span className="ink-60 font-medium">{label}</span>
+                <span className="font-bold tnum">{value} dakika</span>
               </div>
               <input type="range" min={min} max={max} step={step} value={value}
                 onChange={(e) => set(Number(e.target.value))} className="w-full" />
@@ -197,11 +160,8 @@ export default function Profile() {
           ))}
           <button
             onClick={handleSavePomo}
-            className="pill-btn btn-press px-5 py-2.5 text-sm font-semibold transition-all"
-            style={saved
-              ? g('rgba(34,197,94,0.15)', 'rgba(34,197,94,0.35)', '#4ade80')
-              : { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: 'white', boxShadow: '0 4px 16px rgba(16,185,129,0.35)' }
-            }
+            className="btn-ink btn-press px-5 py-2.5 text-sm"
+            style={saved ? { background: 'linear-gradient(160deg, #2f7d44, #3f9a55)' } : undefined}
           >
             {saved ? '✓ Kaydedildi' : 'Kaydet'}
           </button>
@@ -211,23 +171,14 @@ export default function Profile() {
   )
 }
 
-function StatCard({ label, value, emoji, color }: { label: string; value: string; emoji: string; color: string }) {
+function StatCard({ label, value, emoji, variant }: { label: string; value: string; emoji: string; variant: string }) {
   return (
-    <div
-      className="rounded-2xl p-4"
-      style={{
-        background: 'rgba(10, 28, 92, 0.52)',
-        backdropFilter: 'blur(24px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-        border: '1px solid rgba(70, 135, 255, 0.25)',
-        boxShadow: '0 14px 40px rgba(0,8,70,0.48), inset 0 2px 0 rgba(120,185,255,0.18), inset 0 -1px 0 rgba(0,0,65,0.38)',
-      }}
-    >
+    <div className={`glass ${variant} p-4`} style={{ borderRadius: 20 }}>
       <div className="flex items-start justify-between mb-2">
         <span className="text-xl">{emoji}</span>
-        <span className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.3)' }}>{label}</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider ink-60">{label}</span>
       </div>
-      <p className="text-2xl font-bold" style={{ color }}>{value}</p>
+      <p className="display text-2xl font-extrabold tnum">{value}</p>
     </div>
   )
 }

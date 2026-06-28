@@ -47,43 +47,25 @@ export default function History() {
 
   const selectedLog = selectedDay ? logs[selectedDay] : null
 
-  const glass = {
-    background: 'rgba(10, 28, 92, 0.52)',
-    backdropFilter: 'blur(28px) saturate(190%)',
-    WebkitBackdropFilter: 'blur(28px) saturate(190%)',
-    border: '1px solid rgba(70, 135, 255, 0.28)',
-    boxShadow: [
-      '0 20px 55px rgba(0,8,70,0.55)',
-      '0 6px 18px rgba(0,15,90,0.35)',
-      'inset 0 2px 0 rgba(120,185,255,0.22)',
-      'inset 0 -2px 0 rgba(0,0,65,0.45)',
-    ].join(', '),
-  }
+  const navBtn = 'btn-press w-9 h-9 rounded-xl flex items-center justify-center text-lg'
 
   return (
     <div className={`max-w-3xl mx-auto px-4 py-6 pb-32 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
       <div>
-        <h1 className="text-2xl font-bold text-txt">Geçmiş</h1>
-        <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Alışkanlık geçmişin</p>
+        <h1 className="display text-3xl font-extrabold" style={{ color: '#f1f5f5' }}>Geçmiş</h1>
+        <p className="text-sm mt-1" style={{ color: 'rgba(241,245,245,0.55)' }}>Alışkanlık geçmişin</p>
       </div>
 
       {/* Calendar */}
-      <div className="rounded-3xl overflow-hidden" style={glass}>
-        {/* Month nav */}
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <button onClick={prevMonth}
-            className="btn-press w-9 h-9 rounded-xl flex items-center justify-center transition-all text-lg"
-            style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.8)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>
+      <div className="glass g-neutral" style={{ borderRadius: 24 }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(33,48,61,0.12)' }}>
+          <button onClick={prevMonth} aria-label="Önceki ay" className={navBtn} style={{ background: 'rgba(255,255,255,0.28)', color: '#21303d' }}>
             ←
           </button>
-          <span className="text-sm font-bold text-txt">{trMonthName(viewMonth)} {viewYear}</span>
-          <button onClick={nextMonth} disabled={isAtMaxMonth}
-            className="btn-press w-9 h-9 rounded-xl flex items-center justify-center transition-all text-lg disabled:opacity-20"
-            style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}
-            onMouseEnter={(e) => { if (!isAtMaxMonth) e.currentTarget.style.color = 'rgba(255,255,255,0.8)' }}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>
+          <span className="display text-base font-bold">{trMonthName(viewMonth)} {viewYear}</span>
+          <button onClick={nextMonth} disabled={isAtMaxMonth} aria-label="Sonraki ay"
+            className={`${navBtn} disabled:opacity-25`}
+            style={{ background: 'rgba(255,255,255,0.28)', color: '#21303d' }}>
             →
           </button>
         </div>
@@ -91,8 +73,7 @@ export default function History() {
         {/* Day headers */}
         <div className="grid grid-cols-7 px-2 pt-3 pb-1">
           {TR_DAY_SHORTS.map((d) => (
-            <div key={d} className="text-center text-[11px] font-bold uppercase tracking-wider py-1"
-              style={{ color: 'rgba(255,255,255,0.2)' }}>{d}</div>
+            <div key={d} className="text-center text-[11px] font-bold uppercase tracking-wider py-1 ink-45">{d}</div>
           ))}
         </div>
 
@@ -112,31 +93,22 @@ export default function History() {
                 key={day}
                 onClick={() => !isFuture && setSelectedDay(isSelected ? null : key)}
                 disabled={isFuture}
-                className="btn-press aspect-square flex items-center justify-center rounded-xl text-xs transition-all disabled:cursor-default"
+                className="btn-press aspect-square flex items-center justify-center rounded-xl text-xs tnum transition-all disabled:cursor-default"
                 style={{
                   background: isSelected
-                    ? '#22c55e'
+                    ? '#2f7d44'
                     : activity
-                      ? 'rgba(34,197,94,0.12)'
+                      ? 'rgba(63,154,85,0.30)'
                       : isToday
-                        ? 'rgba(139,92,246,0.12)'
+                        ? 'rgba(255,255,255,0.45)'
                         : 'transparent',
                   color: isSelected
-                    ? '#07070f'
-                    : activity
-                      ? '#4ade80'
-                      : isToday
-                        ? '#a5b4fc'
-                        : isFuture
-                          ? 'rgba(255,255,255,0.1)'
-                          : 'rgba(255,255,255,0.4)',
-                  fontWeight: (activity || isToday || isSelected) ? 700 : 400,
-                  border: isToday && !isSelected
-                    ? '1px solid rgba(139,92,246,0.4)'
-                    : isSelected
-                      ? '1px solid rgba(34,197,94,0.5)'
-                      : '1px solid transparent',
-                  boxShadow: isSelected ? '0 0 12px rgba(34,197,94,0.3)' : 'none',
+                    ? '#f1faf2'
+                    : isFuture
+                      ? 'rgba(33,48,61,0.22)'
+                      : '#21303d',
+                  fontWeight: (activity || isToday || isSelected) ? 700 : 500,
+                  boxShadow: isToday && !isSelected ? 'inset 0 0 0 2px rgba(33,48,61,0.4)' : 'none',
                 }}
               >
                 {day}
@@ -148,9 +120,9 @@ export default function History() {
 
       {/* Day detail */}
       {selectedDay && (
-        <div className="rounded-3xl overflow-hidden animate-fade-in" style={glass}>
-          <div className="px-5 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            <p className="text-sm font-semibold text-txt">
+        <div className="glass g-neutral animate-fade-in" style={{ borderRadius: 24 }}>
+          <div className="px-5 py-3.5" style={{ borderBottom: '1px solid rgba(33,48,61,0.12)' }}>
+            <p className="display text-sm font-bold">
               {new Date(selectedDay + 'T12:00:00').toLocaleDateString('tr-TR', {
                 weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
               })}
@@ -166,63 +138,55 @@ export default function History() {
                   <div
                     key={habitId}
                     className="flex items-start gap-3 px-5 py-3.5"
-                    style={{ borderBottom: idx < arr.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}
+                    style={{ borderBottom: idx < arr.length - 1 ? '1px solid rgba(33,48,61,0.08)' : 'none' }}
                   >
                     <span className="text-xl mt-0.5 flex-shrink-0">{habit?.emoji ?? '⭐'}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-semibold"
                           style={{
-                            color: h.completed ? '#e8e8f4' : 'rgba(255,255,255,0.3)',
+                            opacity: h.completed ? 1 : 0.5,
                             textDecoration: h.completed ? 'none' : 'line-through',
                           }}>
                           {habit?.name ?? 'Silinmiş alışkanlık'}
                         </p>
                         {h.boostMode && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold"
-                            style={{ background: 'rgba(234,179,8,0.15)', color: '#fde047' }}>
+                            style={{ background: 'rgba(215,132,42,0.92)', color: '#4a2806' }}>
                             BOOST
                           </span>
                         )}
                       </div>
                       {cat && (
-                        <p className="text-[11px] mt-0.5 font-medium" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                          {cat.emoji} {cat.name}
-                        </p>
+                        <p className="text-[11px] mt-0.5 font-medium ink-60">{cat.emoji} {cat.name}</p>
                       )}
                       {h.pomodoroSessions.length > 0 && (
-                        <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        <p className="text-[11px] mt-1 ink-45">
                           🍅 {h.pomodoroSessions.length} pomodoro · {formatMinutes(workMin)}
                         </p>
                       )}
                       {h.notes && (
-                        <p className="text-xs mt-1 italic" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                          "{h.notes}"
-                        </p>
+                        <p className="text-xs mt-1 italic ink-60">"{h.notes}"</p>
                       )}
                     </div>
                     <div
-                      className="w-2 h-2 rounded-full mt-2 flex-shrink-0"
-                      style={{ background: h.completed ? '#22c55e' : 'rgba(255,255,255,0.15)', boxShadow: h.completed ? '0 0 6px rgba(34,197,94,0.5)' : 'none' }}
+                      className="w-2.5 h-2.5 rounded-full mt-2 flex-shrink-0"
+                      style={{ background: h.completed ? '#2f7d44' : 'rgba(33,48,61,0.18)' }}
                     />
                   </div>
                 )
               })}
             </div>
           ) : (
-            <p className="px-5 py-10 text-sm text-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
-              Bu gün için kayıt yok
-            </p>
+            <p className="px-5 py-10 text-sm text-center ink-45">Bu gün için kayıt yok</p>
           )}
         </div>
       )}
 
       {/* Last 30 days */}
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
-          Son 30 Gün
-        </p>
-        <div className="rounded-3xl overflow-hidden" style={glass}>
+        <p className="display text-sm font-bold mb-3" style={{ color: '#f1f5f5' }}>Son 30 Gün</p>
+        <div className="glass g-neutral" style={{ borderRadius: 24 }}>
           {last30.map(({ key, label }, idx) => {
             const log = logs[key]
             const done = log ? Object.values(log.habits).filter((h) => h.completed).length : 0
@@ -234,30 +198,24 @@ export default function History() {
               <button
                 key={key}
                 onClick={() => setSelectedDay(key === selectedDay ? null : key)}
-                className="btn-press w-full flex items-center justify-between px-5 py-3 text-left transition-all"
+                className="btn-press w-full flex items-center justify-between px-5 py-3 text-left soft-trans"
                 style={{
-                  background: isSelected ? 'rgba(34,197,94,0.06)' : 'transparent',
-                  borderBottom: idx < last30.length - 1 ? '1px solid rgba(255,255,255,0.045)' : 'none',
+                  background: isSelected ? 'rgba(63,154,85,0.16)' : 'transparent',
+                  borderBottom: idx < last30.length - 1 ? '1px solid rgba(33,48,61,0.07)' : 'none',
                 }}
-                onMouseEnter={(e) => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.025)' }}
-                onMouseLeave={(e) => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >
-                <span className="text-sm w-36 text-left" style={{ color: isSelected ? '#e8e8f4' : 'rgba(255,255,255,0.4)' }}>
+                <span className="text-sm w-36 text-left font-medium" style={{ opacity: isSelected ? 1 : 0.7 }}>
                   {label}
                 </span>
                 {done > 0 ? (
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-semibold" style={{ color: '#4ade80' }}>
+                    <span className="text-xs font-bold" style={{ color: '#2f7d44' }}>
                       {done}/{tot} alışkanlık
                     </span>
-                    {work > 0 && (
-                      <span className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                        {formatMinutes(work)}
-                      </span>
-                    )}
+                    {work > 0 && <span className="text-xs ink-45">{formatMinutes(work)}</span>}
                   </div>
                 ) : (
-                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>Aktivite yok</span>
+                  <span className="text-xs ink-35">Aktivite yok</span>
                 )}
               </button>
             )
