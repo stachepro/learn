@@ -140,8 +140,6 @@ export default function JustStart() {
     saveStats(n.today, n.allTime)
   }
 
-  const activeMinutes = active !== null ? STEPS[active] : null
-
   return (
     <div className="max-w-sm mx-auto px-4 pt-6 pb-40">
 
