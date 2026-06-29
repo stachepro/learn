@@ -27,6 +27,7 @@ interface PomodoroContextValue {
   startFree: () => void
   pauseResume: () => void
   skipBreak: () => void
+  finishEarly: () => void
   stopTimer: () => void
   showBar: () => void
   hideBar: () => void
@@ -197,6 +198,12 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     isBoostRef.current = boost
   }, [activeHabitId])
 
+  const finishEarly = useCallback(() => {
+    if (phase !== 'work' || !activeHabitId) return
+    clearTick()
+    finishWork(activeHabitId)
+  }, [phase, activeHabitId, finishWork])
+
   const stopTimer = useCallback(() => {
     clearTick()
     setPhase('idle'); setSecondsLeft(0); setTotalSeconds(0)
@@ -210,7 +217,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
       activeHabitId, phase, secondsLeft, totalSeconds, sessionCount,
       isVisible, isPaused, todayFocusSeconds, isFree, isBoostSession, isExtraSession,
       soundEnabled,
-      startPomodoro, startFree, pauseResume, skipBreak, stopTimer, toggleSound,
+      startPomodoro, startFree, pauseResume, skipBreak, finishEarly, stopTimer, toggleSound,
       showBar: () => setIsVisible(true),
       hideBar: () => setIsVisible(false),
       displayTime: formatSeconds(secondsLeft),

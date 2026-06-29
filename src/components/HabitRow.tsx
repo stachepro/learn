@@ -21,6 +21,7 @@ export default function HabitRow({ habit, log }: Props) {
   const [checkAnim, setCheckAnim] = useState(false)
   const [flash, setFlash] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
+  const [confirmPomodoro, setConfirmPomodoro] = useState(false)
   const noteRef = useRef<HTMLTextAreaElement>(null)
   const delTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -131,22 +132,42 @@ export default function HabitRow({ habit, log }: Props) {
             </button>
           ) : (
             <button
-              onClick={checkboxLocked ? undefined : handleCheck}
-              aria-label={log.completed ? 'Tamamlandı olarak işaretle' : 'Tamamlandı işaretini kaldır'}
-              title={checkboxLocked ? `Önce ${pomGoal} pomodoro tamamla` : undefined}
-              className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center soft-trans ${checkAnim ? 'animate-check' : ''}`}
+              onClick={checkboxLocked ? () => setConfirmPomodoro((v) => !v) : handleCheck}
+              aria-label={log.completed ? 'Tamamlandı işaretini kaldır' : checkboxLocked ? 'Pomodoro olmadan tamamla' : 'Bitir'}
+              className={`flex-shrink-0 h-7 px-2.5 rounded-xl flex items-center justify-center gap-1 text-[11px] font-bold soft-trans ${checkAnim ? 'animate-check' : ''}`}
               style={{
-                background: log.completed ? 'rgb(34,197,94)' : checkboxLocked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
-                border: `2px solid ${log.completed ? 'rgb(34,197,94)' : checkboxLocked ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.22)'}`,
-                boxShadow: log.completed ? '0 4px 14px -3px rgba(34,197,94,0.7)' : 'inset 0 1px 2px rgba(0,0,0,0.4)',
-                cursor: checkboxLocked ? 'not-allowed' : 'pointer',
-                opacity: checkboxLocked ? 0.4 : 1,
+                background: log.completed
+                  ? 'rgba(34,197,94,0.18)'
+                  : checkboxLocked
+                    ? confirmPomodoro ? 'rgba(225,90,60,0.18)' : 'rgba(225,90,60,0.08)'
+                    : 'rgba(34,197,94,0.14)',
+                border: `1.5px solid ${
+                  log.completed ? 'rgba(34,197,94,0.55)'
+                  : checkboxLocked ? (confirmPomodoro ? 'rgba(225,90,60,0.7)' : 'rgba(225,90,60,0.32)')
+                  : 'rgba(34,197,94,0.38)'
+                }`,
+                color: log.completed
+                  ? '#6ee79f'
+                  : checkboxLocked ? 'rgba(240,138,106,0.85)' : '#6ee79f',
+                cursor: 'pointer',
               }}
             >
-              {log.completed && (
-                <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                  <path d="M1 4.5L4 7.5L10 1.5" stroke="#06210f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+              {log.completed ? (
+                <>
+                  <svg width="10" height="8" viewBox="0 0 11 9" fill="none">
+                    <path d="M1 4.5L4 7.5L10 1.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Bitti
+                </>
+              ) : checkboxLocked ? (
+                <>🍅 Bitir</>
+              ) : (
+                <>
+                  <svg width="10" height="8" viewBox="0 0 11 9" fill="none">
+                    <path d="M1 4.5L4 7.5L10 1.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Bitir
+                </>
               )}
             </button>
           )}
@@ -323,6 +344,30 @@ export default function HabitRow({ habit, log }: Props) {
             )}
           </div>
         )}
+
+        {/* Pomodoro override confirmation — animated */}
+        <div style={{ maxHeight: confirmPomodoro ? '160px' : 0, overflow: 'hidden', transition: 'max-height 0.25s cubic-bezier(0.16,1,0.3,1)' }}>
+          <div className="px-4 pb-4 pt-3 space-y-3" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-sm leading-snug" style={{ color: 'rgba(241,245,245,0.72)' }}>
+              Bu görev Pomodoro ile tamamlanmak üzere ayarlandı. Yine de şimdi bitirmek istiyor musun?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { handleCheck(); setConfirmPomodoro(false) }}
+                className="btn-press flex-1 py-2 rounded-xl text-sm font-semibold"
+                style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
+              >
+                Evet, Bitir
+              </button>
+              <button
+                onClick={() => setConfirmPomodoro(false)}
+                className="ctrl btn-press flex-1 py-2 rounded-xl text-sm"
+              >
+                Hayır
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* Note — animated */}
         <div style={{ maxHeight: noteOpen ? '120px' : 0, overflow: 'hidden', transition: 'max-height 0.28s cubic-bezier(0.16,1,0.3,1)' }}>

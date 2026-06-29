@@ -24,6 +24,7 @@ interface AppContextValue {
   editHabit: (id: string, name: string, emoji: string, categoryId: string, mode?: CompletionMode, goal?: number, schedule?: ScheduleOptions) => void
   incrementCompletion: (habitId: string) => void
   toggleHabitComplete: (habitId: string) => void
+  addJustStartXP: (amount: number) => void
   setHabitBoostMode: (habitId: string, on: boolean) => void
   setHabitNote: (habitId: string, note: string) => void
   addPomodoroSession: (session: PomodoroSession, xpAmount?: number, isBoost?: boolean, autoComplete?: boolean) => void
@@ -52,8 +53,8 @@ function migrateHabitLog(raw: Partial<HabitLog>): HabitLog {
   }
 }
 
-function recalcExp(logs: DailyLogs): number {
-  let total = 0
+function recalcExp(logs: DailyLogs, justStartXP = 0): number {
+  let total = justStartXP
   for (const day of Object.values(logs))
     for (const h of Object.values(day.habits)) {
       const hl = migrateHabitLog(h)
@@ -97,11 +98,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   const syncProfile = (newLogs: DailyLogs, base: UserProfile): UserProfile => {
-    const totalExp = recalcExp(newLogs)
+    const totalExp = recalcExp(newLogs, base.justStartXP ?? 0)
     const p = { ...base, totalExp, level: getLevelFromExp(totalExp) }
     p.badges = checkBadges(p, newLogs)
     return p
   }
+
+  const addJustStartXP = useCallback((amount: number) => {
+    const updated = { ...profile, justStartXP: (profile.justStartXP ?? 0) + amount }
+    saveProfile(syncProfile(logs, updated))
+  }, [profile, logs])
 
   const addHabit = useCallback((name: string, emoji: string, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions) => {
     const today = todayStr()
@@ -268,7 +274,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{
       habits, logs, profile, pomodoroSettings, categories, todayLog, freeSessions,
       addHabit, deleteHabit, editHabit,
-      toggleHabitComplete, incrementCompletion, setHabitBoostMode, setHabitNote,
+      toggleHabitComplete, incrementCompletion, setHabitBoostMode, setHabitNote, addJustStartXP,
       addPomodoroSession, addFreeSession,
       updateUsername, updatePomodoroSettings,
       addCustomCategory, deleteCustomCategory,

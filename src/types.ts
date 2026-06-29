@@ -75,6 +75,7 @@ export interface UserProfile {
   streak: number
   longestStreak: number
   totalExp: number
+  justStartXP?: number
   level: number
   badges: string[]
   lastActiveDate: string

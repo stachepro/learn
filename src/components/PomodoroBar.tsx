@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { usePomodoro } from '../context/PomodoroContext'
 import { useApp } from '../context/AppContext'
 import { formatSeconds } from '../utils/date'
@@ -7,8 +8,13 @@ export default function PomodoroBar() {
     activeHabitId, phase, secondsLeft, totalSeconds, sessionCount,
     isVisible, isPaused, isFree, soundEnabled,
     pauseResume, skipBreak, stopTimer, startPomodoro, startFree, toggleSound,
+    finishEarly,
   } = usePomodoro()
   const { habits } = useApp()
+  const [confirmEarly, setConfirmEarly] = useState(false)
+
+  // Reset confirmation when phase changes
+  useEffect(() => { setConfirmEarly(false) }, [phase])
 
   const isActive = phase !== 'idle' && activeHabitId !== null
   if (!isActive || !isVisible) return null
@@ -71,56 +77,97 @@ export default function PomodoroBar() {
 
         {/* Controls */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          {(isWork || isBreak) && (
-            <button
-              onClick={pauseResume}
-              aria-label={isPaused ? 'Devam et' : 'Duraklat'}
-              className={iconBtn}
-              style={{ background: 'rgb(34,197,94)', color: '#06210f' }}
-            >
-              {isPaused ? <PlayIcon /> : <PauseIcon />}
-            </button>
+          {confirmEarly ? (
+            <>
+              <span className="text-xs font-semibold hidden sm:block" style={{ color: 'rgba(241,245,245,0.55)' }}>
+                Emin misin?
+              </span>
+              <button
+                onClick={() => { finishEarly(); setConfirmEarly(false) }}
+                className="btn-press h-9 px-3 rounded-xl text-xs font-bold"
+                style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
+              >
+                Evet, Tamamla
+              </button>
+              <button
+                onClick={() => setConfirmEarly(false)}
+                className={`ctrl ${iconBtn}`}
+                aria-label="Devam et"
+                title="Hayır, devam et"
+              >
+                <XIcon />
+              </button>
+            </>
+          ) : (
+            <>
+              {(isWork || isBreak) && (
+                <button
+                  onClick={pauseResume}
+                  aria-label={isPaused ? 'Devam et' : 'Duraklat'}
+                  className={iconBtn}
+                  style={{ background: 'rgb(34,197,94)', color: '#06210f' }}
+                >
+                  {isPaused ? <PlayIcon /> : <PauseIcon />}
+                </button>
+              )}
+
+              {isWork && (
+                <button
+                  onClick={() => setConfirmEarly(true)}
+                  aria-label="Erken Bitir"
+                  title="Erken Bitir"
+                  className={iconBtn}
+                  style={{
+                    background: 'rgba(34,197,94,0.14)',
+                    color: '#6ee79f',
+                    boxShadow: 'inset 0 0 0 1px rgba(34,197,94,0.35)',
+                  }}
+                >
+                  <CheckIcon />
+                </button>
+              )}
+
+              {isDone && (
+                <button
+                  onClick={relaunch}
+                  className="btn-press h-9 px-4 rounded-xl text-xs font-bold"
+                  style={{ background: '#e15a3c', color: '#fff5f2' }}
+                >
+                  Yeni Oturum
+                </button>
+              )}
+
+              {(isBreak || isDone) && (
+                <button
+                  onClick={skipBreak}
+                  aria-label="Molayı atla"
+                  className={`ctrl ${iconBtn}`}
+                  title="Molayı atla"
+                >
+                  <SkipIcon />
+                </button>
+              )}
+
+              <button
+                onClick={toggleSound}
+                aria-label={soundEnabled ? 'Sesi kapat' : 'Sesi aç'}
+                className={`ctrl ${iconBtn}`}
+                title={soundEnabled ? 'Sesi kapat' : 'Sesi aç'}
+              >
+                {soundEnabled ? <BellIcon /> : <BellOffIcon />}
+              </button>
+
+              <button
+                onClick={stopTimer}
+                aria-label="Durdur"
+                className={iconBtn}
+                style={{ background: 'rgba(225,90,60,0.92)', color: '#fff5f2' }}
+                title="Durdur"
+              >
+                <StopIcon />
+              </button>
+            </>
           )}
-
-          {isDone && (
-            <button
-              onClick={relaunch}
-              className="btn-press h-9 px-4 rounded-xl text-xs font-bold"
-              style={{ background: '#e15a3c', color: '#fff5f2' }}
-            >
-              Yeni Oturum
-            </button>
-          )}
-
-          {(isBreak || isDone) && (
-            <button
-              onClick={skipBreak}
-              aria-label="Molayı atla"
-              className={`ctrl ${iconBtn}`}
-              title="Molayı atla"
-            >
-              <SkipIcon />
-            </button>
-          )}
-
-          <button
-            onClick={toggleSound}
-            aria-label={soundEnabled ? 'Sesi kapat' : 'Sesi aç'}
-            className={`ctrl ${iconBtn}`}
-            title={soundEnabled ? 'Sesi kapat' : 'Sesi aç'}
-          >
-            {soundEnabled ? <BellIcon /> : <BellOffIcon />}
-          </button>
-
-          <button
-            onClick={stopTimer}
-            aria-label="Durdur"
-            className={iconBtn}
-            style={{ background: 'rgba(225,90,60,0.92)', color: '#fff5f2' }}
-            title="Durdur"
-          >
-            <StopIcon />
-          </button>
         </div>
       </div>
     </div>
@@ -136,6 +183,17 @@ const PauseIcon = () => (
   <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
     <rect x="3" y="2" width="4" height="12" rx="1" />
     <rect x="9" y="2" width="4" height="12" rx="1" />
+  </svg>
+)
+const CheckIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="2 8 6.5 12.5 14 4" />
+  </svg>
+)
+const XIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <line x1="3" y1="3" x2="13" y2="13" />
+    <line x1="13" y1="3" x2="3" y2="13" />
   </svg>
 )
 const SkipIcon = () => (

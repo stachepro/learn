@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { usePomodoro } from '../context/PomodoroContext'
@@ -104,16 +104,17 @@ const mobileItems = [
 /* ── Hub modal ── */
 function HubModal({ onClose }: { onClose: () => void }) {
   const [exiting, setExiting] = useState(false)
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [])
+  const navigate = useNavigate()
 
   const handleClose = () => {
     if (exiting) return
     setExiting(true)
     setTimeout(onClose, 210)
+  }
+
+  const goTo = (path: string) => {
+    handleClose()
+    setTimeout(() => navigate(path), 50)
   }
 
   useEffect(() => {
@@ -124,7 +125,7 @@ function HubModal({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[60] flex flex-col ${exiting ? 'animate-hub-close' : 'animate-hub-open'}`}
+      className={`fixed top-16 inset-x-0 bottom-[4.5rem] sm:bottom-0 z-[35] flex flex-col ${exiting ? 'animate-hub-close' : 'animate-hub-open'}`}
       style={{
         background: 'rgba(12,13,15,0.97)',
         backdropFilter: 'blur(24px) saturate(150%)',
@@ -133,12 +134,8 @@ function HubModal({ onClose }: { onClose: () => void }) {
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between px-5"
-        style={{
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
-          paddingTop: 'max(20px, env(safe-area-inset-top))',
-          paddingBottom: 16,
-        }}
+        className="flex items-center justify-between px-5 py-4"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
       >
         <div>
           <h2 className="display text-xl font-bold" style={{ color: '#f1f5f5' }}>Hub</h2>
@@ -152,10 +149,23 @@ function HubModal({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
-      {/* 2×3 placeholder grid */}
       <div className="flex-1 p-5 overflow-y-auto">
         <div className="grid grid-cols-2 gap-3">
-          {Array.from({ length: 6 }, (_, i) => (
+          {/* Just Start tile */}
+          <button
+            onClick={() => goTo('/just-start')}
+            className="btn-press glass g-neutral flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40, border: '1.5px solid rgba(225,90,60,0.28)' }}
+          >
+            <span className="text-3xl leading-none">⚡</span>
+            <div className="text-center">
+              <p className="text-sm font-bold" style={{ color: '#f1f5f5' }}>Just Start</p>
+              <p className="text-[10px] mt-0.5" style={{ color: 'rgba(241,245,245,0.4)' }}>1→115 dk</p>
+            </div>
+          </button>
+
+          {/* Placeholders */}
+          {Array.from({ length: 5 }, (_, i) => (
             <div
               key={i}
               className="glass g-neutral flex flex-col items-center justify-center gap-3 rounded-2xl"
@@ -213,6 +223,7 @@ export default function Nav() {
                 key={to}
                 to={to}
                 end={to === '/'}
+                onClick={() => setShowHub(false)}
                 className={({ isActive }) =>
                   `btn-press px-3.5 py-1.5 text-sm rounded-full transition-all ${isActive ? 'font-semibold' : 'font-medium'}`
                 }
@@ -227,12 +238,16 @@ export default function Nav() {
             ))}
 
             <button
-              onClick={() => setShowHub(true)}
+              onClick={() => setShowHub(v => !v)}
               title="Hub"
               className="btn-press w-8 h-8 rounded-full flex items-center justify-center mx-0.5"
               style={{
-                background: 'linear-gradient(135deg, rgba(34,197,94,0.85), rgba(22,163,74,0.78))',
-                boxShadow: '0 0 14px rgba(34,197,94,0.3)',
+                background: showHub
+                  ? 'linear-gradient(135deg, rgba(34,197,94,1), rgba(22,163,74,0.95))'
+                  : 'linear-gradient(135deg, rgba(34,197,94,0.85), rgba(22,163,74,0.78))',
+                boxShadow: showHub
+                  ? '0 0 20px rgba(34,197,94,0.55)'
+                  : '0 0 14px rgba(34,197,94,0.3)',
               }}
             >
               <IconLayoutGrid size={15} strokeWidth={2} color="#fff" />
@@ -243,6 +258,7 @@ export default function Nav() {
                 key={to}
                 to={to}
                 end={to === '/'}
+                onClick={() => setShowHub(false)}
                 className={({ isActive }) =>
                   `btn-press px-3.5 py-1.5 text-sm rounded-full transition-all ${isActive ? 'font-semibold' : 'font-medium'}`
                 }
@@ -296,6 +312,7 @@ export default function Nav() {
             key={to}
             to={to}
             end={to === '/'}
+            onClick={() => setShowHub(false)}
             className="btn-press flex-1 flex flex-col items-center justify-center py-1.5 gap-1 rounded-2xl"
           >
             {({ isActive }) => (
@@ -319,11 +336,15 @@ export default function Nav() {
         {/* Hub button — center accent */}
         <div className="flex-1 flex items-center justify-center" style={{ paddingBottom: 2 }}>
           <button
-            onClick={() => setShowHub(true)}
+            onClick={() => setShowHub(v => !v)}
             className="btn-press w-12 h-12 rounded-full flex items-center justify-center"
             style={{
-              background: 'linear-gradient(135deg, rgba(34,197,94,0.95), rgba(22,163,74,0.88))',
-              boxShadow: '0 0 22px rgba(34,197,94,0.45), 0 4px 14px rgba(0,0,0,0.45)',
+              background: showHub
+                ? 'linear-gradient(135deg, rgba(34,197,94,1), rgba(22,163,74,0.95))'
+                : 'linear-gradient(135deg, rgba(34,197,94,0.95), rgba(22,163,74,0.88))',
+              boxShadow: showHub
+                ? '0 0 28px rgba(34,197,94,0.7), 0 4px 14px rgba(0,0,0,0.45)'
+                : '0 0 22px rgba(34,197,94,0.45), 0 4px 14px rgba(0,0,0,0.45)',
             }}
           >
             <IconLayoutGrid size={20} strokeWidth={2} color="#fff" />
@@ -336,6 +357,7 @@ export default function Nav() {
             key={to}
             to={to}
             end={to === '/'}
+            onClick={() => setShowHub(false)}
             className="btn-press flex-1 flex flex-col items-center justify-center py-1.5 gap-1 rounded-2xl"
           >
             {({ isActive }) => (
