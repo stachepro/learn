@@ -26,6 +26,8 @@ export const EMOJI_LIST = [
   '😴','💤','🌙','🛌','🌌','🔥','✨','🦁','🐯','🦅',
 ]
 
+export const POMODORO_CATEGORY_IDS = new Set(['egitim', 'zihin', 'uretkenlik', 'yaraticilik'])
+
 export function getCategoryColor(color: string): {
   bg: string
   text: string

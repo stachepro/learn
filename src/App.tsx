@@ -1,12 +1,34 @@
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom'
+import { useRef } from 'react'
 import { AppProvider } from './context/AppContext'
 import { PomodoroProvider } from './context/PomodoroContext'
 import Nav from './components/Nav'
 import PomodoroBar from './components/PomodoroBar'
+import PomodoroAmbience from './components/PomodoroAmbience'
 import Dashboard from './pages/Dashboard'
 import Habits from './pages/Habits'
 import History from './pages/History'
 import Profile from './pages/Profile'
+
+const ROUTE_ORDER = ['/', '/habits', '/history', '/profile']
+
+function AnimatedOutlet() {
+  const location = useLocation()
+  const dirRef = useRef({ prevPath: location.pathname, cls: 'page-slide-right' })
+
+  if (dirRef.current.prevPath !== location.pathname) {
+    const prevIdx = ROUTE_ORDER.indexOf(dirRef.current.prevPath)
+    const nextIdx = ROUTE_ORDER.indexOf(location.pathname)
+    dirRef.current.cls = nextIdx >= prevIdx ? 'page-slide-right' : 'page-slide-left'
+    dirRef.current.prevPath = location.pathname
+  }
+
+  return (
+    <main key={location.key} className={dirRef.current.cls}>
+      <Outlet />
+    </main>
+  )
+}
 
 function Layout() {
   return (
@@ -39,9 +61,10 @@ function Layout() {
         }} />
       </div>
 
+      <PomodoroAmbience />
       <div className="relative z-10">
         <Nav />
-        <main><Outlet /></main>
+        <AnimatedOutlet />
         <PomodoroBar />
       </div>
     </div>

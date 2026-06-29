@@ -5,7 +5,8 @@ import { formatSeconds } from '../utils/date'
 export default function PomodoroBar() {
   const {
     activeHabitId, phase, secondsLeft, totalSeconds, sessionCount,
-    isVisible, isPaused, isFree, pauseResume, skipBreak, stopTimer, startPomodoro, startFree,
+    isVisible, isPaused, isFree, soundEnabled,
+    pauseResume, skipBreak, stopTimer, startPomodoro, startFree, toggleSound,
   } = usePomodoro()
   const { habits } = useApp()
 
@@ -30,7 +31,7 @@ export default function PomodoroBar() {
 
   return (
     <div
-      className="animate-slide-bar fixed bottom-16 sm:bottom-0 left-0 right-0 z-30"
+      className="animate-slide-bar fixed bottom-20 sm:bottom-0 left-0 right-0 z-30"
       style={{
         background: 'rgba(14,15,17,0.92)',
         backdropFilter: 'blur(24px) saturate(150%)',
@@ -103,6 +104,15 @@ export default function PomodoroBar() {
           )}
 
           <button
+            onClick={toggleSound}
+            aria-label={soundEnabled ? 'Sesi kapat' : 'Sesi aç'}
+            className={`ctrl ${iconBtn}`}
+            title={soundEnabled ? 'Sesi kapat' : 'Sesi aç'}
+          >
+            {soundEnabled ? <BellIcon /> : <BellOffIcon />}
+          </button>
+
+          <button
             onClick={stopTimer}
             aria-label="Durdur"
             className={iconBtn}
@@ -136,5 +146,16 @@ const SkipIcon = () => (
 const StopIcon = () => (
   <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
     <rect x="2" y="2" width="12" height="12" rx="2" />
+  </svg>
+)
+const BellIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+    <path d="M8 1a1 1 0 0 1 1 1v.5A4.5 4.5 0 0 1 12.5 7v2.5l1 1.5H2.5l1-1.5V7A4.5 4.5 0 0 1 7 2.5V2a1 1 0 0 1 1-1zm0 13a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2z" />
+  </svg>
+)
+const BellOffIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" opacity="0.45">
+    <path d="M8 1a1 1 0 0 1 1 1v.5A4.5 4.5 0 0 1 12.5 7v2.5l1 1.5H2.5l1-1.5V7A4.5 4.5 0 0 1 7 2.5V2a1 1 0 0 1 1-1zm0 13a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2z" />
+    <line x1="1" y1="1" x2="15" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
 )

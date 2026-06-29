@@ -7,8 +7,9 @@ import { checkBadges } from '../utils/badges'
 import { todayStr, yesterdayStr } from '../utils/date'
 import type {
   Habit, DailyLogs, DayLog, HabitLog, UserProfile,
-  PomodoroSession, PomodoroSettings, Category,
+  PomodoroSession, PomodoroSettings, Category, CompletionMode, ScheduleOptions,
 } from '../types'
+import { getHabitGoal } from '../types'
 
 interface AppContextValue {
   habits: Habit[]
@@ -18,13 +19,14 @@ interface AppContextValue {
   categories: Category[]
   todayLog: DayLog
   freeSessions: PomodoroSession[]
-  addHabit: (name: string, emoji: string, categoryId: string) => void
+  addHabit: (name: string, emoji: string, categoryId: string, mode?: CompletionMode, goal?: number, schedule?: ScheduleOptions) => void
   deleteHabit: (id: string) => void
-  editHabit: (id: string, name: string, emoji: string, categoryId: string) => void
+  editHabit: (id: string, name: string, emoji: string, categoryId: string, mode?: CompletionMode, goal?: number, schedule?: ScheduleOptions) => void
+  incrementCompletion: (habitId: string) => void
   toggleHabitComplete: (habitId: string) => void
   setHabitBoostMode: (habitId: string, on: boolean) => void
   setHabitNote: (habitId: string, note: string) => void
-  addPomodoroSession: (session: PomodoroSession, xpAmount?: number) => void
+  addPomodoroSession: (session: PomodoroSession, xpAmount?: number, isBoost?: boolean, autoComplete?: boolean) => void
   addFreeSession: (session: PomodoroSession) => void
   updateUsername: (name: string) => void
   updatePomodoroSettings: (settings: PomodoroSettings) => void
@@ -35,7 +37,7 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null)
 
 function defaultHabitLog(): HabitLog {
-  return { completed: false, boostMode: false, boostUsed: false, notes: '', pomodoroSessions: [] }
+  return { completed: false, boostMode: false, boostUsed: false, notes: '', pomodoroSessions: [], completionCount: 0 }
 }
 
 function migrateHabitLog(raw: Partial<HabitLog>): HabitLog {
@@ -46,6 +48,7 @@ function migrateHabitLog(raw: Partial<HabitLog>): HabitLog {
     notes: raw.notes ?? '',
     pomodoroSessions: raw.pomodoroSessions ?? [],
     completedAt: raw.completedAt,
+    completionCount: raw.completionCount ?? 0,
   }
 }
 
@@ -100,8 +103,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return p
   }
 
-  const addHabit = useCallback((name: string, emoji: string, categoryId: string) => {
-    const h: Habit = { id: crypto.randomUUID(), name: name.trim(), emoji, categoryId, createdAt: new Date().toISOString() }
+  const addHabit = useCallback((name: string, emoji: string, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions) => {
+    const today = todayStr()
+    const h: Habit = {
+      id: crypto.randomUUID(), name: name.trim(), emoji, categoryId,
+      createdAt: new Date().toISOString(),
+      createdDate: today,
+      completionMode: mode,
+      ...(mode !== 'single' && goal ? { completionGoal: goal } : {}),
+      ...(schedule?.recurrence ? { recurrence: schedule.recurrence } : {}),
+      ...(schedule?.recurrenceDays?.length ? { recurrenceDays: schedule.recurrenceDays } : {}),
+      ...(schedule?.timeWindow ? { timeWindow: schedule.timeWindow } : {}),
+    }
     saveHabits([...habits, h])
   }, [habits])
 
@@ -109,8 +122,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveHabits(habits.filter((h) => h.id !== id))
   }, [habits])
 
-  const editHabit = useCallback((id: string, name: string, emoji: string, categoryId: string) => {
-    saveHabits(habits.map((h) => h.id === id ? { ...h, name: name.trim(), emoji, categoryId } : h))
+  const editHabit = useCallback((id: string, name: string, emoji: string, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions) => {
+    saveHabits(habits.map((h) => h.id === id ? {
+      ...h, name: name.trim(), emoji, categoryId,
+      completionMode: mode,
+      completionGoal: mode !== 'single' && goal ? goal : undefined,
+      pomodoroEnabled: mode === 'pomodoro',
+      pomodoroGoal: mode === 'pomodoro' ? goal : undefined,
+      recurrence: schedule?.recurrence ?? h.recurrence,
+      recurrenceDays: schedule?.recurrenceDays ?? h.recurrenceDays,
+      timeWindow: schedule?.timeWindow !== undefined ? schedule.timeWindow : h.timeWindow,
+    } : h))
   }, [habits])
 
   const toggleHabitComplete = useCallback((habitId: string) => {
@@ -138,6 +160,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveProfile(syncProfile(newLogs, p))
   }, [logs, profile, today])
 
+  const incrementCompletion = useCallback((habitId: string) => {
+    const habit = habits.find((h) => h.id === habitId)
+    if (!habit) return
+    const goal = getHabitGoal(habit)
+    const currentDay: DayLog = logs[today] ?? { date: today, habits: {} }
+    const currentHL = migrateHabitLog(currentDay.habits[habitId] ?? {})
+    const newCount = (currentHL.completionCount ?? 0) + 1
+    const nowCompleted = !currentHL.completed && newCount >= goal
+    const newLogs = patchDayHabitLog(habitId, logs, {
+      completionCount: newCount,
+      ...(nowCompleted ? { completed: true, completedAt: new Date().toISOString() } : {}),
+    })
+    saveLogs(newLogs)
+    let p = { ...profile }
+    if (nowCompleted) {
+      const yesterday = yesterdayStr()
+      if (p.lastActiveDate !== today) {
+        if (p.lastActiveDate === yesterday || !p.lastActiveDate) {
+          p.streak = (p.streak || 0) + 1
+          if (p.streak > p.longestStreak) p.longestStreak = p.streak
+        } else {
+          p.streak = 1
+          if (1 > p.longestStreak) p.longestStreak = 1
+        }
+        p.lastActiveDate = today
+      }
+      saveProfile(syncProfile(newLogs, p))
+    } else {
+      saveProfile(p)
+    }
+  }, [habits, logs, profile, today])
+
   const setHabitBoostMode = useCallback((habitId: string, on: boolean) => {
     const newLogs = patchDayHabitLog(habitId, logs, { boostMode: on })
     saveLogs(newLogs)
@@ -147,30 +201,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveLogs(patchDayHabitLog(habitId, logs, { notes: note }))
   }, [logs])
 
-  // xpAmount: 10 = normal, 15 = boost success. Sets boostUsed=true if xpAmount > 10.
-  const addPomodoroSession = useCallback((session: PomodoroSession, xpAmount: number = 10) => {
+  // xpAmount: 10=normal, 15=boost or extra. isBoost=true sets boostUsed. autoComplete=true marks habit done.
+  const addPomodoroSession = useCallback((session: PomodoroSession, xpAmount: number = 10, isBoost: boolean = false, autoComplete: boolean = false) => {
     const currentDay: DayLog = logs[today] ?? { date: today, habits: {} }
     const currentHL: HabitLog = migrateHabitLog(currentDay.habits[session.habitId] ?? {})
-    const isBoostSuccess = xpAmount > 10
+    const newHL: HabitLog = {
+      ...currentHL,
+      pomodoroSessions: [...currentHL.pomodoroSessions, { ...session, xp: xpAmount }],
+      ...(isBoost ? { boostUsed: true } : {}),
+      ...(autoComplete ? { completed: true, completedAt: new Date().toISOString() } : {}),
+    }
     const newLogs: DailyLogs = {
       ...logs,
-      [today]: {
-        ...currentDay,
-        habits: {
-          ...currentDay.habits,
-          [session.habitId]: {
-            ...currentHL,
-            pomodoroSessions: [...currentHL.pomodoroSessions, { ...session, xp: xpAmount }],
-            ...(isBoostSuccess ? { boostUsed: true } : {}),
-          },
-        },
-      },
+      [today]: { ...currentDay, habits: { ...currentDay.habits, [session.habitId]: newHL } },
     }
     saveLogs(newLogs)
-    const p = { ...profile, totalExp: profile.totalExp + xpAmount }
-    p.level = getLevelFromExp(p.totalExp)
-    p.badges = checkBadges(p, newLogs)
-    saveProfile(p)
+    let p = { ...profile }
+    if (autoComplete) {
+      const yesterday = yesterdayStr()
+      if (p.lastActiveDate !== today) {
+        if (p.lastActiveDate === yesterday || !p.lastActiveDate) {
+          p.streak = (p.streak || 0) + 1
+          if (p.streak > p.longestStreak) p.longestStreak = p.streak
+        } else {
+          p.streak = 1
+          if (1 > p.longestStreak) p.longestStreak = 1
+        }
+        p.lastActiveDate = today
+      }
+      saveProfile(syncProfile(newLogs, p))
+    } else {
+      const newExp = p.totalExp + xpAmount
+      p = { ...p, totalExp: newExp, level: getLevelFromExp(newExp) }
+      p.badges = checkBadges(p, newLogs)
+      saveProfile(p)
+    }
   }, [logs, profile, today])
 
   const addFreeSession = useCallback((session: PomodoroSession) => {
@@ -203,7 +268,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{
       habits, logs, profile, pomodoroSettings, categories, todayLog, freeSessions,
       addHabit, deleteHabit, editHabit,
-      toggleHabitComplete, setHabitBoostMode, setHabitNote,
+      toggleHabitComplete, incrementCompletion, setHabitBoostMode, setHabitNote,
       addPomodoroSession, addFreeSession,
       updateUsername, updatePomodoroSettings,
       addCustomCategory, deleteCustomCategory,

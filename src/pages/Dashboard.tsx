@@ -6,6 +6,7 @@ import ExpBar from '../components/ExpBar'
 import AddHabitModal from '../components/AddHabitModal'
 import ContributionsGrid from '../components/ContributionsGrid'
 import { formatDisplayDate, formatMinutes, yesterdayStr } from '../utils/date'
+import { isHabitScheduledFor, getWindowStatus } from '../utils/habitSchedule'
 import type { HabitLog } from '../types'
 
 function emptyLog(): HabitLog {
@@ -17,14 +18,35 @@ export default function Dashboard() {
   const { startFree, phase, isFree } = usePomodoro()
   const [showAdd, setShowAdd] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [now, setNow] = useState(() => new Date())
   const yesterday = yesterdayStr()
 
   useEffect(() => { setMounted(true) }, [])
 
-  const habitEntries = habits.map((h) => ({ habit: h, log: todayLog.habits[h.id] ?? emptyLog() }))
-  const completed = habitEntries.filter(({ log }) => log.completed).length
-  const total = habits.length
-  const allDone = total > 0 && completed === total
+  // Update `now` every minute so time-window expiry is reflected in real time
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  const todayDateStr = now.toISOString().slice(0, 10)
+
+  // Only habits scheduled for today
+  const scheduledHabits = habits.filter((h) => isHabitScheduledFor(h, todayDateStr))
+  const allEntries = scheduledHabits.map((h) => ({ habit: h, log: todayLog.habits[h.id] ?? emptyLog() }))
+
+  // Active: completed OR time window not yet expired
+  const habitEntries = allEntries.filter(({ habit, log }) =>
+    log.completed || getWindowStatus(habit, now) !== 'expired'
+  )
+  // Missed: window expired and not completed
+  const missedEntries = allEntries.filter(({ habit, log }) =>
+    !log.completed && getWindowStatus(habit, now) === 'expired'
+  )
+
+  const completed = allEntries.filter(({ log }) => log.completed).length
+  const total = scheduledHabits.length
+  const allDone = total > 0 && completed === total && missedEntries.length === 0
 
   const todayWork = habitEntries.reduce(
     (acc, { log }) => acc + log.pomodoroSessions.reduce((s, p) => s + p.workDuration, 0), 0)
@@ -141,6 +163,11 @@ export default function Dashboard() {
             <p className="display text-base font-bold">İlk alışkanlığını ekle</p>
             <p className="text-xs mt-1 ink-60">Her gün küçük adımlar büyük değişimler yaratır</p>
           </button>
+        ) : habitEntries.length === 0 && missedEntries.length === 0 ? (
+          <div className="glass g-neutral p-6 text-center" style={{ borderRadius: 24 }}>
+            <p className="text-2xl mb-2">📅</p>
+            <p className="text-sm font-semibold ink-60">Bugün için planlanmış alışkanlık yok</p>
+          </div>
         ) : (
           <div className="space-y-2.5">
             {habitEntries.map(({ habit, log }, i) => (
@@ -148,6 +175,32 @@ export default function Dashboard() {
                 <HabitRow habit={habit} log={log} />
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Missed habits section */}
+        {missedEntries.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 pt-1">
+              <span className="text-base">⏰</span>
+              <h2 className="display text-base font-bold" style={{ color: 'rgba(245,158,11,0.9)' }}>
+                Yapılmamış Alışkanlıklar
+              </h2>
+              <span
+                className="text-xs font-bold px-2 py-0.5 rounded-full"
+                style={{ background: 'rgba(245,158,11,0.15)', color: 'rgba(245,158,11,0.9)', border: '1px solid rgba(245,158,11,0.3)' }}
+              >
+                {missedEntries.length}
+              </span>
+            </div>
+            <p className="text-[11px] ink-45 -mt-1">Pencere kapandı — geç de olsa tamamlayabilirsin</p>
+            <div className="space-y-2.5" style={{ opacity: 0.75 }}>
+              {missedEntries.map(({ habit, log }, i) => (
+                <div key={habit.id} className="animate-pop" style={{ animationDelay: `${Math.min(i * 60, 360)}ms` }}>
+                  <HabitRow habit={habit} log={log} />
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

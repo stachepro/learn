@@ -8,6 +8,7 @@ const KEYS = {
   POMODORO_SETTINGS: 'luupi_pomodoro_settings',
   CATEGORIES: 'luupi_categories',
   FREE_SESSIONS: 'luupi_free_sessions',
+  SOUND_ENABLED: 'luupi_sound_enabled',
 } as const
 
 function read<T>(key: string, fallback: T): T {
@@ -22,7 +23,21 @@ function write<T>(key: string, value: T): void {
 }
 
 function migrateHabit(h: Partial<Habit> & { id: string; name: string; createdAt: string }): Habit {
-  return { id: h.id, name: h.name, emoji: h.emoji ?? '⭐', categoryId: h.categoryId ?? 'diger', createdAt: h.createdAt }
+  return {
+    id: h.id,
+    name: h.name,
+    createdAt: h.createdAt,
+    emoji: h.emoji ?? '⭐',
+    categoryId: h.categoryId ?? 'diger',
+    ...(h.completionMode != null && { completionMode: h.completionMode }),
+    ...(h.completionGoal != null && { completionGoal: h.completionGoal }),
+    ...(h.pomodoroEnabled != null && { pomodoroEnabled: h.pomodoroEnabled }),
+    ...(h.pomodoroGoal != null && { pomodoroGoal: h.pomodoroGoal }),
+    ...(h.recurrence != null && { recurrence: h.recurrence }),
+    ...(h.recurrenceDays != null && { recurrenceDays: h.recurrenceDays }),
+    ...(h.timeWindow != null && { timeWindow: h.timeWindow }),
+    ...(h.createdDate != null && { createdDate: h.createdDate }),
+  }
 }
 
 export const storage = {
@@ -65,5 +80,12 @@ export const storage = {
   addFreeSession: (session: PomodoroSession) => {
     const existing = read<PomodoroSession[]>(KEYS.FREE_SESSIONS, [])
     write(KEYS.FREE_SESSIONS, [...existing, session])
+  },
+
+  getSoundEnabled: (): boolean => {
+    try { return localStorage.getItem(KEYS.SOUND_ENABLED) !== 'false' } catch { return true }
+  },
+  setSoundEnabled: (on: boolean): void => {
+    try { localStorage.setItem(KEYS.SOUND_ENABLED, on ? 'true' : 'false') } catch { /* ignore */ }
   },
 }

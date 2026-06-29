@@ -4,6 +4,8 @@ import {
 import { useApp } from './AppContext'
 import { todayStr, formatSeconds } from '../utils/date'
 import { playBell } from '../utils/sound'
+import { getHabitMode, getHabitGoal } from '../types'
+import { storage } from '../utils/storage'
 
 export const FREE_ID = '__free__'
 type TimerPhase = 'idle' | 'work' | 'break' | 'break-done'
@@ -19,6 +21,8 @@ interface PomodoroContextValue {
   todayFocusSeconds: number
   isFree: boolean
   isBoostSession: boolean
+  isExtraSession: boolean
+  soundEnabled: boolean
   startPomodoro: (habitId: string) => void
   startFree: () => void
   pauseResume: () => void
@@ -26,13 +30,14 @@ interface PomodoroContextValue {
   stopTimer: () => void
   showBar: () => void
   hideBar: () => void
+  toggleSound: () => void
   displayTime: string
 }
 
 const PomodoroContext = createContext<PomodoroContextValue | null>(null)
 
 export function PomodoroProvider({ children }: { children: ReactNode }) {
-  const { pomodoroSettings, addPomodoroSession, addFreeSession, logs, freeSessions, todayLog } = useApp()
+  const { pomodoroSettings, addPomodoroSession, addFreeSession, logs, freeSessions, todayLog, habits } = useApp()
   const [activeHabitId, setActiveHabitId] = useState<string | null>(null)
   const [phase, setPhase] = useState<TimerPhase>('idle')
   const [secondsLeft, setSecondsLeft] = useState(0)
@@ -41,16 +46,22 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   const [isVisible, setIsVisible] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [isBoostSession, setIsBoostSession] = useState(false)
+  const [isExtraSession, setIsExtraSession] = useState(false)
+  const [soundEnabled, setSoundEnabled] = useState(() => storage.getSoundEnabled())
 
   const settingsRef = useRef(pomodoroSettings)
   const isBoostRef = useRef(false)
+  const soundEnabledRef = useRef(soundEnabled)
   const todayLogRef = useRef(todayLog)
+  const habitsRef = useRef(habits)
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const today = todayStr()
 
   useEffect(() => { settingsRef.current = pomodoroSettings }, [pomodoroSettings])
   useEffect(() => { todayLogRef.current = todayLog }, [todayLog])
   useEffect(() => { isBoostRef.current = isBoostSession }, [isBoostSession])
+  useEffect(() => { habitsRef.current = habits }, [habits])
+  useEffect(() => { soundEnabledRef.current = soundEnabled }, [soundEnabled])
 
   const isFree = activeHabitId === FREE_ID
 
@@ -75,10 +86,8 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   }
 
   const finishWork = useCallback((habitId: string) => {
-    playBell()
+    if (soundEnabledRef.current) playBell()
     const boost = isBoostRef.current
-    // Boost success: 1.5× XP (15). Normal: 10. Store actual workDuration (base, not boosted time)
-    const xpAmount = boost ? 15 : 10
     const workDuration = settingsRef.current.workDuration
     const session = {
       id: crypto.randomUUID(),
@@ -88,8 +97,24 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
       breakDuration: settingsRef.current.breakDuration,
       timestamp: new Date().toISOString(),
     }
-    if (habitId === FREE_ID) addFreeSession(session)
-    else addPomodoroSession(session, xpAmount)
+
+    if (habitId === FREE_ID) {
+      addFreeSession(session)
+    } else {
+      const habit = habitsRef.current.find((h) => h.id === habitId)
+      const sessionsDone = todayLogRef.current.habits[habitId]?.pomodoroSessions.length ?? 0
+      const pomGoal = habit ? getHabitGoal(habit) : 0
+      const isGoalMode = habit ? getHabitMode(habit) === 'pomodoro' && pomGoal > 0 : false
+      const isExtra = isGoalMode && sessionsDone >= pomGoal
+      const autoComplete = isGoalMode
+        && !todayLogRef.current.habits[habitId]?.completed
+        && sessionsDone + 1 === pomGoal
+
+      // Extra sessions = 1.5× base (15 XP). Boost sessions = 1.5× base (15 XP). Both independent.
+      const xpAmount = isExtra ? 15 : boost ? 15 : 10
+      addPomodoroSession(session, xpAmount, boost && !isExtra, autoComplete)
+      setIsExtraSession(isExtra)
+    }
 
     setSessionCount((c) => c + 1)
     const breakSecs = settingsRef.current.breakDuration * 60
@@ -97,13 +122,12 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     setSecondsLeft(breakSecs)
     setTotalSeconds(breakSecs)
     setIsPaused(false)
-    // Reset boost after success
     setIsBoostSession(false)
     isBoostRef.current = false
   }, [addPomodoroSession, addFreeSession])
 
   const finishBreak = useCallback(() => {
-    playBell()
+    if (soundEnabledRef.current) playBell()
     setPhase('break-done')
   }, [])
 
@@ -150,6 +174,15 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   const startFree = useCallback(() => launch(FREE_ID), [launch])
   const pauseResume = useCallback(() => setIsPaused((p) => !p), [])
 
+  const toggleSound = useCallback(() => {
+    setSoundEnabled((prev) => {
+      const next = !prev
+      soundEnabledRef.current = next
+      storage.setSoundEnabled(next)
+      return next
+    })
+  }, [])
+
   const skipBreak = useCallback(() => {
     clearTick()
     // Re-check boost status (may have changed since previous session used it)
@@ -168,14 +201,16 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     clearTick()
     setPhase('idle'); setSecondsLeft(0); setTotalSeconds(0)
     setActiveHabitId(null); setSessionCount(0); setIsPaused(false)
-    setIsVisible(false); setIsBoostSession(false); isBoostRef.current = false
+    setIsVisible(false); setIsBoostSession(false); setIsExtraSession(false)
+    isBoostRef.current = false
   }, [])
 
   return (
     <PomodoroContext.Provider value={{
       activeHabitId, phase, secondsLeft, totalSeconds, sessionCount,
-      isVisible, isPaused, todayFocusSeconds, isFree, isBoostSession,
-      startPomodoro, startFree, pauseResume, skipBreak, stopTimer,
+      isVisible, isPaused, todayFocusSeconds, isFree, isBoostSession, isExtraSession,
+      soundEnabled,
+      startPomodoro, startFree, pauseResume, skipBreak, stopTimer, toggleSound,
       showBar: () => setIsVisible(true),
       hideBar: () => setIsVisible(false),
       displayTime: formatSeconds(secondsLeft),

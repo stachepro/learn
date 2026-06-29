@@ -11,10 +11,13 @@
 
 html { scroll-behavior: smooth; }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   min-height: 100svh;
-  overflow-x: hidden;
   color: #e8edee;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -265,6 +268,65 @@ input[type="range"] { accent-color: rgb(var(--acc)); }
 .contrib-cell { transition: transform 0.15s ease, box-shadow 0.15s ease; }
 .contrib-cell:hover { transform: scale(1.18); z-index: 2; box-shadow: 0 0 0 2px rgba(var(--acc),0.5); }
 .soft-trans { transition: background 0.3s ease, border-color 0.3s ease, color 0.25s ease, box-shadow 0.3s ease, opacity 0.25s ease; }
+
+/* ── Page slide transitions (direction-aware) ── */
+@keyframes page-slide-from-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes page-slide-from-left {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.page-slide-right { animation: page-slide-from-right 0.24s cubic-bezier(0.16,1,0.3,1) backwards; }
+.page-slide-left  { animation: page-slide-from-left  0.24s cubic-bezier(0.16,1,0.3,1) backwards; }
+
+/* ── Modal / sheet exit animations ── */
+@keyframes fade-out  { from { opacity: 1; } to { opacity: 0; } }
+@keyframes fade-down { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.97); } }
+.animate-fade-out  { animation: fade-out  0.17s ease-in both; }
+.animate-fade-down { animation: fade-down 0.17s cubic-bezier(0.4,0,1,1) both; }
+
+/* ── Hub modal sheet animations ── */
+@keyframes hub-sheet-open  { from { opacity: 0; transform: translateY(-28px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes hub-sheet-close { from { opacity: 1; transform: translateY(0); }     to { opacity: 0; transform: translateY(36px); } }
+.animate-hub-open  { animation: hub-sheet-open  0.26s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-hub-close { animation: hub-sheet-close 0.2s  cubic-bezier(0.4,0,1,1)   both; }
+
+/* ── Pomodoro active screen ambience ── */
+@keyframes pom-glow-pulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+@keyframes pom-from-top {
+  0%   { transform: translateY(0);    opacity: 0; }
+  18%  { opacity: 0.9; }
+  100% { transform: translateY(90px); opacity: 0; }
+}
+@keyframes pom-from-bottom {
+  0%   { transform: translateY(0);     opacity: 0; }
+  18%  { opacity: 0.9; }
+  100% { transform: translateY(-90px); opacity: 0; }
+}
+@keyframes pom-from-left {
+  0%   { transform: translateX(0);    opacity: 0; }
+  18%  { opacity: 0.9; }
+  100% { transform: translateX(90px); opacity: 0; }
+}
+@keyframes pom-from-right {
+  0%   { transform: translateX(0);     opacity: 0; }
+  18%  { opacity: 0.9; }
+  100% { transform: translateX(-90px); opacity: 0; }
+}
+
+.pom-edge-glow {
+  animation: pom-glow-pulse 4s ease-in-out infinite;
+  box-shadow:
+    inset 0  80px 100px -30px rgba(34, 197, 94, 0.22),
+    inset 0 -80px 100px -30px rgba(34, 197, 94, 0.18),
+    inset  90px 0  100px -30px rgba(34, 197, 94, 0.14),
+    inset -90px 0  100px -30px rgba(34, 197, 94, 0.14);
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }

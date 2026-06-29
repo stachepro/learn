@@ -1,10 +1,12 @@
 import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useApp } from '../context/AppContext'
 import { usePomodoro } from '../context/PomodoroContext'
-import { getCategoryColor } from '../utils/categories'
+import { getCategoryColor, POMODORO_CATEGORY_IDS } from '../utils/categories'
 import { formatMinutes } from '../utils/date'
 import AddHabitModal from './AddHabitModal'
 import type { Habit, HabitLog } from '../types'
+import { getHabitMode, getHabitGoal } from '../types'
 
 interface Props {
   habit: Habit
@@ -12,8 +14,8 @@ interface Props {
 }
 
 export default function HabitRow({ habit, log }: Props) {
-  const { toggleHabitComplete, setHabitBoostMode, setHabitNote, deleteHabit, categories } = useApp()
-  const { startPomodoro, activeHabitId, phase, isBoostSession } = usePomodoro()
+  const { toggleHabitComplete, incrementCompletion, setHabitBoostMode, setHabitNote, deleteHabit, categories } = useApp()
+  const { startPomodoro, activeHabitId, phase, isBoostSession, isExtraSession } = usePomodoro()
   const [noteOpen, setNoteOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [checkAnim, setCheckAnim] = useState(false)
@@ -28,6 +30,27 @@ export default function HabitRow({ habit, log }: Props) {
   const pomCount = log.pomodoroSessions.length
   const timerRunning = activeHabitId === habit.id && (phase === 'work' || phase === 'break')
   const boostActive = timerRunning && isBoostSession && activeHabitId === habit.id
+  const extraActive = timerRunning && isExtraSession && activeHabitId === habit.id
+
+  // Completion mode
+  const habitMode = getHabitMode(habit)
+  const habitGoal = getHabitGoal(habit)
+  const isMultiMode = habitMode === 'multi'
+  const isPomodoroMode = habitMode === 'pomodoro'
+
+  // Pomodoro UI visibility (only for pomodoro mode habits in supporting categories)
+  const catSupportsPomodoro = POMODORO_CATEGORY_IDS.has(habit.categoryId)
+  const showPomodoroUI = isPomodoroMode && catSupportsPomodoro
+  const isGoalMode = isPomodoroMode && habitGoal > 0
+  const pomGoal = isGoalMode ? habitGoal : 0
+  const extraCount = isGoalMode ? Math.max(0, pomCount - pomGoal) : 0
+  const goalMet = isGoalMode && pomCount >= pomGoal
+  const checkboxLocked = isGoalMode && !log.completed && !goalMet
+
+  // Multi mode
+  const completionCount = log.completionCount ?? 0
+  const multiGoalMet = isMultiMode && completionCount >= habitGoal
+  const multiAtMax = isMultiMode && completionCount >= habitGoal * 2
 
   const handleCheck = () => {
     const willComplete = !log.completed
@@ -54,7 +77,9 @@ export default function HabitRow({ habit, log }: Props) {
     }
   }
 
-  const boostLocked = log.boostUsed
+  const boostUsedLocked = log.boostUsed
+  const boostTimerLocked = timerRunning    // freeze boost while Pomodoro is active
+  const boostLocked = boostUsedLocked || boostTimerLocked
   const boostOn = log.boostMode
 
   // small frosted control buttons share this look
@@ -62,7 +87,10 @@ export default function HabitRow({ habit, log }: Props) {
 
   return (
     <>
-      {editing && <AddHabitModal onClose={() => setEditing(false)} editHabit={habit} />}
+      {editing && createPortal(
+        <AddHabitModal onClose={() => setEditing(false)} editHabit={habit} />,
+        document.body,
+      )}
 
       <div
         className={`glass soft-trans ${log.completed ? 'g-lime' : 'g-neutral'} ${flash ? 'animate-done-flash' : ''}`}
@@ -80,23 +108,48 @@ export default function HabitRow({ habit, log }: Props) {
 
         {/* Main row — wraps controls onto their own line on mobile */}
         <div className="flex flex-wrap items-center gap-2.5 pl-4 pr-3 py-3">
-          {/* Checkbox */}
-          <button
-            onClick={handleCheck}
-            aria-label={log.completed ? 'Tamamlandı olarak işaretle' : 'Tamamlandı işaretini kaldır'}
-            className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center soft-trans ${checkAnim ? 'animate-check' : ''}`}
-            style={{
-              background: log.completed ? 'rgb(34,197,94)' : 'rgba(255,255,255,0.06)',
-              border: `2px solid ${log.completed ? 'rgb(34,197,94)' : 'rgba(255,255,255,0.22)'}`,
-              boxShadow: log.completed ? '0 4px 14px -3px rgba(34,197,94,0.7)' : 'inset 0 1px 2px rgba(0,0,0,0.4)',
-            }}
-          >
-            {log.completed && (
-              <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                <path d="M1 4.5L4 7.5L10 1.5" stroke="#06210f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </button>
+          {/* Checkbox / Multi counter */}
+          {isMultiMode ? (
+            <button
+              onClick={multiAtMax ? undefined : () => incrementCompletion(habit.id)}
+              aria-label={multiAtMax ? 'Günlük maksimuma ulaşıldı' : `Tamamla (${completionCount}/${habitGoal})`}
+              title={multiAtMax ? 'Bu günlük bu kadar yeter, yoruldun 💪' : undefined}
+              className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-bold soft-trans ${checkAnim ? 'animate-check' : ''}`}
+              style={{
+                background: multiAtMax
+                  ? 'rgba(255,255,255,0.04)'
+                  : multiGoalMet
+                    ? 'rgba(34,197,94,0.22)'
+                    : 'rgba(59,130,246,0.16)',
+                border: `2px solid ${multiAtMax ? 'rgba(255,255,255,0.08)' : multiGoalMet ? 'rgba(34,197,94,0.6)' : 'rgba(59,130,246,0.45)'}`,
+                boxShadow: multiGoalMet && !multiAtMax ? '0 4px 14px -3px rgba(34,197,94,0.5)' : 'none',
+                color: multiAtMax ? 'rgba(255,255,255,0.2)' : multiGoalMet ? '#6ee79f' : '#93c5fd',
+                cursor: multiAtMax ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {multiAtMax ? '🔒' : completionCount > 0 ? `${completionCount}` : '+'}
+            </button>
+          ) : (
+            <button
+              onClick={checkboxLocked ? undefined : handleCheck}
+              aria-label={log.completed ? 'Tamamlandı olarak işaretle' : 'Tamamlandı işaretini kaldır'}
+              title={checkboxLocked ? `Önce ${pomGoal} pomodoro tamamla` : undefined}
+              className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center soft-trans ${checkAnim ? 'animate-check' : ''}`}
+              style={{
+                background: log.completed ? 'rgb(34,197,94)' : checkboxLocked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
+                border: `2px solid ${log.completed ? 'rgb(34,197,94)' : checkboxLocked ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.22)'}`,
+                boxShadow: log.completed ? '0 4px 14px -3px rgba(34,197,94,0.7)' : 'inset 0 1px 2px rgba(0,0,0,0.4)',
+                cursor: checkboxLocked ? 'not-allowed' : 'pointer',
+                opacity: checkboxLocked ? 0.4 : 1,
+              }}
+            >
+              {log.completed && (
+                <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                  <path d="M1 4.5L4 7.5L10 1.5" stroke="#06210f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </button>
+          )}
 
           {/* Emoji */}
           <span className="text-xl flex-shrink-0 w-7 text-center leading-none">{habit.emoji}</span>
@@ -121,36 +174,66 @@ export default function HabitRow({ habit, log }: Props) {
 
           {/* Right controls — full row on mobile, inline on desktop */}
           <div className="flex items-center gap-1.5 flex-shrink-0 w-full sm:w-auto justify-end">
-            {/* Pomodoro stats (desktop) */}
-            <span className="text-[11px] hidden sm:inline-block w-[88px] text-right ink-45">
-              {pomCount > 0 ? `🍅${pomCount} · ${formatMinutes(workMin)}` : ''}
+            {/* Stats (desktop) */}
+            <span className="text-[11px] hidden sm:inline-block text-right ink-45" style={{ minWidth: 88 }}>
+              {isMultiMode ? (
+                <span className="flex items-center justify-end gap-1">
+                  <span style={{ color: multiGoalMet ? '#6ee79f' : '#93c5fd' }}>🔁 {completionCount}/{habitGoal}</span>
+                  {completionCount > habitGoal && (
+                    <span style={{ color: '#93c5fd', opacity: 0.7 }}>+{completionCount - habitGoal}</span>
+                  )}
+                </span>
+              ) : isGoalMode && pomCount > 0 ? (
+                <span className="flex items-center justify-end gap-1">
+                  <span>🍅 {Math.min(pomCount, pomGoal)}/{pomGoal}</span>
+                  {extraCount > 0 && <span className="text-[10px] font-bold" style={{ color: '#f08a6a' }}>+{extraCount}</span>}
+                  {extraCount > 0 && <span className="text-[9px] font-bold px-1 rounded" style={{ background: 'rgba(225,90,60,0.2)', color: '#f08a6a' }}>1.5×</span>}
+                </span>
+              ) : pomCount > 0 ? (
+                `🍅${pomCount} · ${formatMinutes(workMin)}`
+              ) : ''}
             </span>
 
-            {/* BOOST */}
-            <button
-              onClick={() => !boostLocked && setHabitBoostMode(habit.id, !boostOn)}
-              disabled={boostLocked}
-              className="btn-press flex-shrink-0 h-7 rounded-full text-[10px] font-bold tracking-wider soft-trans"
-              style={{
-                width: 54,
-                background: boostLocked
-                  ? 'rgba(255,255,255,0.05)'
-                  : boostOn
-                    ? 'rgba(245,158,11,0.92)'
-                    : 'rgba(255,255,255,0.06)',
-                border: `1px solid ${boostOn && !boostLocked ? 'rgba(245,158,11,0.55)' : 'rgba(255,255,255,0.1)'}`,
-                color: boostLocked
-                  ? 'rgba(232,237,238,0.28)'
-                  : boostOn
-                    ? '#2a1804'
-                    : 'rgba(232,237,238,0.6)',
-                boxShadow: boostOn && !boostLocked ? '0 4px 14px -4px rgba(245,158,11,0.8)' : 'none',
-                cursor: boostLocked ? 'not-allowed' : 'pointer',
-              }}
-              title={boostLocked ? 'Bu gün boost kullanıldı ✓' : boostOn ? 'Boost aktif (×1.5 süre + ×1.5 XP)' : 'Boost aç'}
-            >
-              {boostLocked ? '⚡✓' : boostOn ? '⚡ON' : 'BOOST'}
-            </button>
+            {/* BOOST — only when pomodoro UI is shown */}
+            {showPomodoroUI && (
+              <div className="relative flex-shrink-0">
+                <button
+                  onClick={() => !boostLocked && setHabitBoostMode(habit.id, !boostOn)}
+                  disabled={boostLocked}
+                  className="btn-press h-7 rounded-full text-[10px] font-bold tracking-wider soft-trans"
+                  style={{
+                    width: 54,
+                    background: boostUsedLocked
+                      ? 'rgba(255,255,255,0.05)'
+                      : boostOn
+                        ? 'rgba(245,158,11,0.92)'
+                        : 'rgba(255,255,255,0.06)',
+                    border: `1px solid ${boostOn && !boostUsedLocked ? 'rgba(245,158,11,0.55)' : 'rgba(255,255,255,0.1)'}`,
+                    color: boostUsedLocked
+                      ? 'rgba(232,237,238,0.28)'
+                      : boostOn
+                        ? '#2a1804'
+                        : 'rgba(232,237,238,0.6)',
+                    boxShadow: boostOn && !boostUsedLocked ? '0 4px 14px -4px rgba(245,158,11,0.8)' : 'none',
+                    opacity: boostTimerLocked && !boostUsedLocked ? 0.45 : 1,
+                    cursor: boostLocked ? 'not-allowed' : 'pointer',
+                  }}
+                  title={
+                    boostUsedLocked ? 'Bu gün boost kullanıldı ✓'
+                    : boostTimerLocked ? 'Pomodoro çalışırken değiştirilemez 🔒'
+                    : boostOn ? 'Boost aktif (×1.5 süre + ×1.5 XP)'
+                    : 'Boost aç'
+                  }
+                >
+                  {boostUsedLocked ? '⚡✓' : boostOn ? '⚡ON' : 'BOOST'}
+                </button>
+                {/* 1.5× corner badge on boost button */}
+                <span
+                  className="absolute -top-1.5 -right-1.5 text-[8px] font-black px-1 rounded-full leading-tight"
+                  style={{ background: 'rgba(245,158,11,0.9)', color: '#2a1804' }}
+                >1.5×</span>
+              </div>
+            )}
 
             {/* Note */}
             <button
@@ -186,33 +269,58 @@ export default function HabitRow({ habit, log }: Props) {
               {confirmDel ? '!' : '✕'}
             </button>
 
-            {/* Pomodoro start */}
-            <button
-              onClick={() => startPomodoro(habit.id)}
-              disabled={timerRunning}
-              className="btn-press flex-shrink-0 h-7 rounded-full text-[11px] font-bold soft-trans flex items-center justify-center gap-1"
-              style={{
-                width: 74,
-                background: timerRunning
-                  ? boostActive ? 'rgba(245,158,11,0.92)' : 'rgba(225,90,60,0.92)'
-                  : 'linear-gradient(160deg, #2fd06a, #1f9d4d)',
-                color: timerRunning
-                  ? boostActive ? '#2a1804' : '#fff5f2'
-                  : '#06210f',
-                boxShadow: timerRunning
-                  ? '0 6px 16px -6px rgba(0,0,0,0.6)'
-                  : '0 6px 16px -6px rgba(34,197,94,0.6)',
-              }}
-            >
-              {timerRunning ? (boostActive ? '⚡Aktif' : '🍅Aktif') : '🍅 Başlat'}
-            </button>
+            {/* Pomodoro start — only when pomodoro UI is shown */}
+            {showPomodoroUI && (
+              <button
+                onClick={() => startPomodoro(habit.id)}
+                disabled={timerRunning}
+                className="btn-press flex-shrink-0 h-7 rounded-full text-[11px] font-bold soft-trans flex items-center justify-center gap-1"
+                style={{
+                  width: extraActive ? 84 : 74,
+                  background: timerRunning
+                    ? boostActive ? 'rgba(245,158,11,0.92)' : extraActive ? 'rgba(225,90,60,0.75)' : 'rgba(225,90,60,0.92)'
+                    : 'linear-gradient(160deg, #2fd06a, #1f9d4d)',
+                  color: timerRunning
+                    ? boostActive ? '#2a1804' : '#fff5f2'
+                    : '#06210f',
+                  boxShadow: timerRunning
+                    ? '0 6px 16px -6px rgba(0,0,0,0.6)'
+                    : '0 6px 16px -6px rgba(34,197,94,0.6)',
+                }}
+              >
+                {timerRunning
+                  ? boostActive ? '⚡Aktif' : extraActive ? '🍅+1.5×' : '🍅Aktif'
+                  : goalMet ? '🍅 +Ekstra' : '🍅 Başlat'}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Mobile pomodoro stats */}
-        {pomCount > 0 && (
-          <div className="sm:hidden px-4 pb-2.5 flex gap-2 text-[11px] ink-45">
-            <span>🍅 {pomCount}</span><span>·</span><span>{formatMinutes(workMin)}</span>
+        {/* Mobile stats */}
+        {(isMultiMode || pomCount > 0) && (
+          <div className="sm:hidden px-4 pb-2.5 flex gap-2 text-[11px] ink-45 items-center">
+            {isMultiMode ? (
+              <>
+                <span style={{ color: multiGoalMet ? '#6ee79f' : '#93c5fd' }}>🔁 {completionCount}/{habitGoal}</span>
+                {completionCount > habitGoal && (
+                  <><span>·</span><span style={{ color: '#93c5fd', opacity: 0.7 }}>+{completionCount - habitGoal} ekstra</span></>
+                )}
+                {multiAtMax && <span style={{ color: 'rgba(255,255,255,0.35)' }}>· Maks. doldu 💪</span>}
+              </>
+            ) : isGoalMode ? (
+              <>
+                <span>🍅 {Math.min(pomCount, pomGoal)}/{pomGoal}</span>
+                {extraCount > 0 && (
+                  <>
+                    <span>·</span>
+                    <span className="font-bold" style={{ color: '#f08a6a' }}>+{extraCount} ekstra</span>
+                    <span className="text-[9px] font-bold px-1 rounded" style={{ background: 'rgba(225,90,60,0.2)', color: '#f08a6a' }}>1.5×</span>
+                  </>
+                )}
+              </>
+            ) : (
+              <><span>🍅 {pomCount}</span><span>·</span><span>{formatMinutes(workMin)}</span></>
+            )}
           </div>
         )}
 
