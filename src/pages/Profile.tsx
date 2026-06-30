@@ -50,8 +50,14 @@ export default function Profile() {
       {/* Profile card */}
       <div className="glass g-neutral p-5" style={{ borderRadius: 24 }}>
         <div className="flex items-start gap-4">
-          <div className="glass g-teal w-16 h-16 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
-            <span className="display font-extrabold">{profile.username.charAt(0).toUpperCase()}</span>
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+            style={{
+              background: 'linear-gradient(150deg, #fbbf24, #f97316)',
+              boxShadow: '0 10px 24px -8px rgba(249,115,22,0.55), inset 0 1px 0 rgba(255,255,255,0.4)',
+            }}
+          >
+            <span className="display font-black" style={{ color: '#2a1402' }}>{profile.username.charAt(0).toUpperCase()}</span>
           </div>
           <div className="flex-1 min-w-0">
             {editingName ? (
@@ -75,7 +81,7 @@ export default function Profile() {
               </div>
             )}
             <div className="flex items-center gap-2.5 flex-wrap text-xs mb-3 ink-60">
-              <span><span className="font-bold acc">{profile.streak}</span> gün seri</span>
+              <span><span className="font-black energy-text">{profile.streak}</span> gün seri 🔥</span>
               <span>·</span>
               <span>En iyi <span className="font-bold">{profile.longestStreak}</span> gün</span>
               <span>·</span>
@@ -84,13 +90,13 @@ export default function Profile() {
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-medium">
                 <span className="font-bold">Seviye {profile.level}</span>
-                <span className="ink-60 tnum">{current}/{needed} EXP</span>
+                <span className="ink-60 tnum">{current}/{needed} XP</span>
               </div>
-              <div className="well rounded-full overflow-hidden" style={{ height: 7 }}>
-                <div className="h-full rounded-full progress-fill"
-                  style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #1f9d4d, #45dc7d)', boxShadow: '0 0 12px rgba(34,197,94,0.6)' }} />
+              <div className="well rounded-full overflow-hidden" style={{ height: 9 }}>
+                <div className="h-full rounded-full progress-fill energy-fill"
+                  style={{ width: `${percentage}%` }} />
               </div>
-              <p className="text-[11px] ink-45 tnum">Toplam {profile.totalExp} EXP</p>
+              <p className="text-[11px] ink-45 tnum">Toplam {profile.totalExp} XP</p>
             </div>
           </div>
         </div>

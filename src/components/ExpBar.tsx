@@ -12,8 +12,8 @@ export default function ExpBar({ totalExp, level, compact }: Props) {
   const Bar = ({ h }: { h: number }) => (
     <div className="well rounded-full overflow-hidden" style={{ height: h }}>
       <div
-        className="h-full rounded-full progress-fill"
-        style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #1f9d4d, #45dc7d)', boxShadow: '0 0 12px rgba(34,197,94,0.6)' }}
+        className="h-full rounded-full progress-fill energy-fill"
+        style={{ width: `${percentage}%` }}
       />
     </div>
   )
@@ -21,10 +21,10 @@ export default function ExpBar({ totalExp, level, compact }: Props) {
   if (compact) {
     return (
       <div className="space-y-1.5">
-        <Bar h={6} />
+        <Bar h={7} />
         <div className="flex justify-between text-[11px] ink-60 font-medium">
           <span>Seviye {level}</span>
-          <span className="tnum">{current}/{needed} EXP</span>
+          <span className="tnum">{current}/{needed} XP</span>
         </div>
       </div>
     )
@@ -34,9 +34,9 @@ export default function ExpBar({ totalExp, level, compact }: Props) {
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs font-medium">
         <span className="font-semibold">Seviye {level}</span>
-        <span className="ink-60 tnum">{current} / {needed} EXP</span>
+        <span className="ink-60 tnum">{current} / {needed} XP</span>
       </div>
-      <Bar h={8} />
+      <Bar h={9} />
     </div>
   )
 }

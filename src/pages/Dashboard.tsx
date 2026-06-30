@@ -76,50 +76,49 @@ export default function Dashboard() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: 'rgba(241,245,245,0.5)' }}>
             {formatDisplayDate(new Date())}
           </p>
-          <h1 className="display text-3xl font-extrabold mt-1" style={{ color: '#f1f5f5' }}>
-            Merhaba, {profile.username} 👋
+          <h1 className="display text-[28px] sm:text-3xl font-extrabold mt-1 leading-tight" style={{ color: '#f1f5f5' }}>
+            Merhaba, <span className="energy-text">{profile.username}</span>
           </h1>
         </div>
 
-        {/* Hero mosaic — frosted glass blocks */}
+        {/* Hero mosaic — gamified energy blocks */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {/* Streak — green breathing ring glow */}
-          <div className="glass g-lime streak-glow col-span-1 p-4" style={{ borderRadius: 24 }}>
+          {/* Streak — flame hero, amber breathing glow */}
+          <div className="glass g-flame flame-glow tile-press col-span-1 p-4 relative overflow-hidden" style={{ borderRadius: 24 }}>
+            <FlameIcon className="absolute -right-3 -bottom-3 opacity-[0.13]" size={92} />
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] ink-60 mb-1">Seri</p>
             <div className="flex items-baseline gap-1">
-              <span key={profile.streak} className="display text-4xl font-extrabold tnum acc animate-value-pop">{profile.streak}</span>
+              <span key={profile.streak} className="display text-[42px] font-black tnum energy-text leading-none animate-value-pop">{profile.streak}</span>
               <span className="text-sm font-semibold ink-60">gün</span>
             </div>
-            <p className="text-[11px] mt-1.5 ink-45">En iyi: {profile.longestStreak}</p>
+            <p className="text-[11px] mt-2 ink-45">En uzun seri: <span className="font-bold" style={{ color: 'rgba(251,191,36,0.9)' }}>{profile.longestStreak}</span></p>
           </div>
 
-          {/* Level — teal */}
-          <div className="glass g-teal col-span-1 p-4" style={{ borderRadius: 24 }}>
+          {/* Level — green progress */}
+          <div className="glass g-lime tile-press col-span-1 p-4" style={{ borderRadius: 24 }}>
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] ink-60 mb-1">Seviye</p>
             <div className="flex items-baseline gap-1 mb-2.5">
-              <span key={profile.level} className="display text-4xl font-extrabold tnum animate-value-pop">{profile.level}</span>
+              <span key={profile.level} className="display text-[42px] font-black tnum acc-text leading-none animate-value-pop">{profile.level}</span>
             </div>
             <ExpBar totalExp={profile.totalExp} level={profile.level} compact />
           </div>
 
-          {/* Today progress — lime when done, sky otherwise */}
-          <div className={`glass ${allDone ? 'g-lime' : 'g-sky'} col-span-2 sm:col-span-1 p-4 soft-trans`} style={{ borderRadius: 24 }}>
+          {/* Today progress — green when done, neutral otherwise */}
+          <div className={`glass ${allDone ? 'g-lime' : 'g-neutral'} tile-press col-span-2 sm:col-span-1 p-4 soft-trans`} style={{ borderRadius: 24 }}>
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] ink-60 mb-1">
-              {allDone ? 'Tamamlandı 🎉' : 'Bugün'}
+              {allDone ? '🎉 Tamamlandı' : 'Bugün'}
             </p>
             <div className="flex items-baseline gap-1 mb-2.5">
-              <span key={completed} className={`display text-4xl font-extrabold tnum animate-value-pop ${allDone ? 'acc' : ''}`}>{completed}</span>
+              <span key={completed} className={`display text-[42px] font-black tnum leading-none animate-value-pop ${allDone ? 'acc-text' : ''}`} style={!allDone ? { color: '#f1f5f5' } : undefined}>{completed}</span>
               <span className="text-sm ink-60">/ {total}</span>
             </div>
             {total > 0 ? (
-              <div className="well rounded-full overflow-hidden" style={{ height: 7 }}>
+              <div className="well rounded-full overflow-hidden" style={{ height: 8 }}>
                 <div
-                  className="h-full rounded-full progress-fill"
+                  className={`h-full rounded-full progress-fill ${allDone ? 'acc-fill' : ''}`}
                   style={{
                     width: `${(completed / total) * 100}%`,
-                    background: allDone
-                      ? 'linear-gradient(90deg, #1f9d4d, #45dc7d)'
-                      : 'linear-gradient(90deg, #2563eb, #60a5fa)',
+                    ...(allDone ? {} : { background: 'linear-gradient(90deg, #f59e0b, #fb8b3d)', boxShadow: '0 0 10px rgba(245,158,11,0.5)' }),
                   }}
                 />
               </div>
@@ -145,7 +144,7 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => setShowAdd(true)}
-              className="btn-ink btn-press flex items-center gap-1 text-xs px-4 py-2"
+              className="btn-energy btn-press flex items-center gap-1 text-xs px-4 py-2"
             >
               + Ekle
             </button>
@@ -229,6 +228,17 @@ export default function Dashboard() {
         </div>
       </div>
     </>
+  )
+}
+
+function FlameIcon({ size = 24, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <path
+        d="M12 2c.5 3 2.5 4.5 4 6.5C17.5 10.5 18 12.3 18 14a6 6 0 1 1-12 0c0-1.8.7-3.3 1.8-4.5C8.5 8.8 9 7.8 9 6.5c1.2.8 2 2 2.2 3.3C12.2 8.4 12.5 5.7 12 2z"
+        fill="rgb(249,115,22)"
+      />
+    </svg>
   )
 }
 

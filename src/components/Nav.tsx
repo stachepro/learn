@@ -151,16 +151,19 @@ function HubModal({ onClose }: { onClose: () => void }) {
 
       <div className="flex-1 p-5 overflow-y-auto">
         <div className="grid grid-cols-2 gap-3">
-          {/* Just Start tile */}
+          {/* Just Start tile — energetic flagship */}
           <button
             onClick={() => goTo('/just-start')}
-            className="btn-press glass g-neutral flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, border: '1.5px solid rgba(225,90,60,0.28)' }}
+            className="btn-press glass g-flame tile-press flame-glow flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40 }}
           >
-            <span className="text-3xl leading-none">⚡</span>
+            <span
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
+              style={{ background: 'linear-gradient(150deg, #fbbf24, #f97316)', boxShadow: '0 8px 20px -6px rgba(249,115,22,0.6)' }}
+            >⚡</span>
             <div className="text-center">
               <p className="text-sm font-bold" style={{ color: '#f1f5f5' }}>Just Start</p>
-              <p className="text-[10px] mt-0.5" style={{ color: 'rgba(241,245,245,0.4)' }}>1→115 dk</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: 'rgba(251,191,36,0.75)' }}>1→115 dk momentum</p>
             </div>
           </button>
 
