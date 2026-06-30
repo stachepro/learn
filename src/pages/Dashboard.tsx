@@ -6,11 +6,19 @@ import ExpBar from '../components/ExpBar'
 import AddHabitModal from '../components/AddHabitModal'
 import { formatDisplayDate, formatMinutes, yesterdayStr } from '../utils/date'
 import { isHabitScheduledFor, getWindowStatus } from '../utils/habitSchedule'
-import type { HabitLog } from '../types'
+import type { HabitLog, TimeOfDay } from '../types'
+import { getHabitTimeOfDay } from '../types'
 
 function emptyLog(): HabitLog {
   return { completed: false, boostMode: false, boostUsed: false, notes: '', pomodoroSessions: [] }
 }
+
+const TIME_GROUPS: { id: TimeOfDay; label: string; icon: string }[] = [
+  { id: 'morning', label: 'Sabah', icon: '☀️' },
+  { id: 'afternoon', label: 'Öğle', icon: '🌤️' },
+  { id: 'evening', label: 'Akşam', icon: '🌙' },
+  { id: 'any', label: 'Tümü', icon: '🕐' },
+]
 
 export default function Dashboard() {
   const { habits, profile, todayLog, logs, freeSessions } = useApp()
@@ -156,12 +164,32 @@ export default function Dashboard() {
             <p className="text-sm font-semibold ink-60">Bugün için planlanmış alışkanlık yok</p>
           </div>
         ) : (
-          <div className="space-y-2.5">
-            {habitEntries.map(({ habit, log }, i) => (
-              <div key={habit.id} className="animate-pop" style={{ animationDelay: `${Math.min(i * 60, 360)}ms` }}>
-                <HabitRow habit={habit} log={log} />
-              </div>
-            ))}
+          <div className="space-y-5">
+            {TIME_GROUPS.map(({ id, label, icon }) => {
+              const groupEntries = habitEntries.filter(({ habit }) => getHabitTimeOfDay(habit) === id)
+              if (groupEntries.length === 0) return null
+              const remaining = groupEntries.filter(({ log }) => !log.completed).length
+              return (
+                <div key={id} className="space-y-2.5">
+                  <div className="flex items-center gap-2 px-0.5">
+                    <span className="text-sm leading-none">{icon}</span>
+                    <h3 className="display text-sm font-extrabold" style={{ color: '#1a1726' }}>{label}</h3>
+                    {remaining > 0 && (
+                      <span className="text-[11px] font-bold tnum" style={{ color: 'rgba(26,23,38,0.4)' }}>
+                        {remaining}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-2.5">
+                    {groupEntries.map(({ habit, log }, i) => (
+                      <div key={habit.id} className="animate-pop" style={{ animationDelay: `${Math.min(i * 60, 360)}ms` }}>
+                        <HabitRow habit={habit} log={log} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
 

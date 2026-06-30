@@ -121,6 +121,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...(schedule?.recurrenceDays?.length ? { recurrenceDays: schedule.recurrenceDays } : {}),
       ...(schedule?.timeWindow ? { timeWindow: schedule.timeWindow } : {}),
       ...(labelColor ? { labelColor } : {}),
+      timeOfDay: schedule?.timeOfDay ?? 'any',
     }
     saveHabits([...habits, h])
   }, [habits])
@@ -140,6 +141,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       recurrenceDays: schedule?.recurrenceDays ?? h.recurrenceDays,
       timeWindow: schedule?.timeWindow !== undefined ? schedule.timeWindow : h.timeWindow,
       labelColor: labelColor ?? undefined,
+      timeOfDay: schedule?.timeOfDay ?? h.timeOfDay ?? 'any',
     } : h))
   }, [habits])
 

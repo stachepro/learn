@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useApp } from '../context/AppContext'
 import { EMOJI_LIST, getCategoryColor, POMODORO_CATEGORY_IDS } from '../utils/categories'
-import type { Habit, CompletionMode, RecurrenceType } from '../types'
+import type { Habit, CompletionMode, RecurrenceType, TimeOfDay } from '../types'
 import { getHabitMode, getHabitGoal } from '../types'
 import { WEEKDAY_NAMES, WEEKDAY_FULL } from '../utils/habitSchedule'
 
@@ -21,6 +21,13 @@ const LABEL_COLORS = [
   { hex: '#f43f5e', name: 'Kırmızı' },
 ]
 const TOTAL_PAGES = Math.ceil(EMOJI_LIST.length / EMOJIS_PER_PAGE)
+
+const TIME_OF_DAY_OPTS: { id: TimeOfDay; icon: string; label: string }[] = [
+  { id: 'morning', icon: '☀️', label: 'Sabah' },
+  { id: 'afternoon', icon: '🌤️', label: 'Öğle' },
+  { id: 'evening', icon: '🌙', label: 'Akşam' },
+  { id: 'any', icon: '🕐', label: 'Herhangi' },
+]
 
 interface Props {
   onClose: () => void
@@ -54,6 +61,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
   const [windowStart, setWindowStart] = useState(editHabit?.timeWindow?.start ?? '09:00')
   const [windowEnd, setWindowEnd] = useState(editHabit?.timeWindow?.end ?? '22:00')
   const [labelColor, setLabelColor] = useState(editHabit?.labelColor ?? '')
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(editHabit?.timeOfDay ?? 'any')
 
   // The weekday on which a 'weekly' habit will repeat (based on today for new, or createdDate for edit)
   const weeklyDay = editHabit?.createdDate
@@ -103,6 +111,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
       recurrence,
       recurrenceDays: recurrence === 'custom' ? recurrenceDays : undefined,
       timeWindow: useTimeWindow ? { start: windowStart, end: windowEnd } : undefined,
+      timeOfDay,
     }
     if (editHabit) saveEdit(editHabit.id, name, emoji, categoryId, effectiveMode, goal, schedule, labelColor || undefined)
     else addHabit(name, emoji, categoryId, effectiveMode, goal, schedule, labelColor || undefined)
@@ -452,6 +461,31 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Time of day */}
+          <div>
+            <p className={label}>Zaman Dilimi</p>
+            <div className="grid grid-cols-4 gap-2">
+              {TIME_OF_DAY_OPTS.map(({ id, icon, label: tLabel }) => {
+                const sel = timeOfDay === id
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setTimeOfDay(id)}
+                    className="btn-press flex flex-col items-center gap-1 py-2.5 px-1 rounded-2xl text-center transition-all"
+                    style={{
+                      background: sel ? 'rgba(245,158,11,0.16)' : 'rgba(26,23,38,0.04)',
+                      border: `1.5px solid ${sel ? 'rgba(245,158,11,0.6)' : 'rgba(26,23,38,0.08)'}`,
+                    }}
+                  >
+                    <span className="text-lg leading-none">{icon}</span>
+                    <span className="text-[11px] font-bold" style={{ color: sel ? '#b45309' : 'rgba(26,23,38,0.6)' }}>{tLabel}</span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {/* Label color */}

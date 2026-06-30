@@ -8,11 +8,13 @@ export interface Category {
 
 export type CompletionMode = 'single' | 'multi' | 'pomodoro'
 export type RecurrenceType = 'once' | 'daily' | 'weekly' | 'custom'
+export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'any'
 
 export interface ScheduleOptions {
   recurrence?: RecurrenceType
   recurrenceDays?: number[]              // 0=Sun…6=Sat; used when recurrence='custom'
   timeWindow?: { start: string; end: string }  // "HH:MM" local time
+  timeOfDay?: TimeOfDay                  // coarse day part — independent of timeWindow
 }
 
 export interface Habit {
@@ -32,12 +34,17 @@ export interface Habit {
   recurrence?: RecurrenceType        // undefined = 'daily' (backward compat)
   recurrenceDays?: number[]
   timeWindow?: { start: string; end: string }
+  timeOfDay?: TimeOfDay              // morning / afternoon / evening / any (default any)
 }
 
 export function getHabitMode(habit: Habit): CompletionMode {
   if (habit.completionMode) return habit.completionMode
   if (habit.pomodoroEnabled) return 'pomodoro'
   return 'single'
+}
+
+export function getHabitTimeOfDay(habit: Habit): TimeOfDay {
+  return habit.timeOfDay ?? 'any'
 }
 
 export function getHabitGoal(habit: Habit): number {
