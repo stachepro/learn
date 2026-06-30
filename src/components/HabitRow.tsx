@@ -185,7 +185,13 @@ export default function HabitRow({ habit, log }: Props) {
 
       <div
         className={`glass soft-trans ${log.completed ? 'g-lime' : 'g-neutral'} ${flash ? 'animate-done-flash' : ''}`}
-        style={{ borderRadius: 22 }}
+        style={{
+          borderRadius: 22,
+          ...(habit.labelColor && !log.completed ? {
+            outline: `1.5px solid ${hexToRgba(habit.labelColor, 0.7)}`,
+            boxShadow: `0 0 10px ${hexToRgba(habit.labelColor, 0.18)}`,
+          } : {}),
+        }}
       >
         {/* Category color seam on the left edge */}
         <div
@@ -196,19 +202,6 @@ export default function HabitRow({ habit, log }: Props) {
             boxShadow: log.completed ? '0 0 14px rgba(34,197,94,0.7)' : 'none',
           }}
         />
-
-        {/* Label color radial glow */}
-        {habit.labelColor && (
-          <div
-            className="pointer-events-none"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: `radial-gradient(ellipse at 50% 50%, ${hexToRgba(habit.labelColor, 0.35)} 0%, transparent 68%)`,
-              borderRadius: 22,
-            }}
-          />
-        )}
 
         {/* ── Shared: checkbox + emoji + name always in one line ── */}
         <div className="flex items-center gap-2.5 pl-4 pr-3 py-3">
