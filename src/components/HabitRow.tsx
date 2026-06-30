@@ -1,5 +1,13 @@
 import { useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
+
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
 import { useApp } from '../context/AppContext'
 import { usePomodoro } from '../context/PomodoroContext'
 import { getCategoryColor, POMODORO_CATEGORY_IDS } from '../utils/categories'
@@ -7,6 +15,88 @@ import { formatMinutes } from '../utils/date'
 import AddHabitModal from './AddHabitModal'
 import type { Habit, HabitLog } from '../types'
 import { getHabitMode, getHabitGoal } from '../types'
+
+/* ── Shared sub-components (used in both desktop & mobile rows) ── */
+
+function BoostButton({ boostUsedLocked, boostTimerLocked, boostLocked, boostOn, habit, setHabitBoostMode }: {
+  boostUsedLocked: boolean; boostTimerLocked: boolean; boostLocked: boolean; boostOn: boolean
+  habit: Habit; setHabitBoostMode: (id: string, on: boolean) => void
+}) {
+  return (
+    <div className="relative flex-shrink-0">
+      <button
+        onClick={() => !boostLocked && setHabitBoostMode(habit.id, !boostOn)}
+        disabled={boostLocked}
+        className="btn-press h-7 rounded-full text-[10px] font-bold tracking-wider soft-trans"
+        style={{
+          width: 54,
+          background: boostUsedLocked ? 'rgba(255,255,255,0.05)' : boostOn ? 'rgba(245,158,11,0.92)' : 'rgba(255,255,255,0.06)',
+          border: `1px solid ${boostOn && !boostUsedLocked ? 'rgba(245,158,11,0.55)' : 'rgba(255,255,255,0.1)'}`,
+          color: boostUsedLocked ? 'rgba(232,237,238,0.28)' : boostOn ? '#2a1804' : 'rgba(232,237,238,0.6)',
+          boxShadow: boostOn && !boostUsedLocked ? '0 4px 14px -4px rgba(245,158,11,0.8)' : 'none',
+          opacity: boostTimerLocked && !boostUsedLocked ? 0.45 : 1,
+          cursor: boostLocked ? 'not-allowed' : 'pointer',
+        }}
+        title={
+          boostUsedLocked ? 'Bu gün boost kullanıldı ✓'
+          : boostTimerLocked ? 'Pomodoro çalışırken değiştirilemez 🔒'
+          : boostOn ? 'Boost aktif (×1.5 süre + ×1.5 XP)'
+          : 'Boost aç'
+        }
+      >
+        {boostUsedLocked ? '⚡✓' : boostOn ? '⚡ON' : 'BOOST'}
+      </button>
+      <span className="absolute -top-1.5 -right-1.5 text-[8px] font-black px-1 rounded-full leading-tight"
+        style={{ background: 'rgba(245,158,11,0.9)', color: '#2a1804' }}>1.5×</span>
+    </div>
+  )
+}
+
+function NoteBtn({ noteOpen, hasNote, onClick }: { noteOpen: boolean; hasNote: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Not"
+      className={`btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm soft-trans ${noteOpen || hasNote ? '' : 'ctrl'}`}
+      style={noteOpen || hasNote ? { background: 'rgba(34,197,94,0.18)', color: '#6ee79f', border: '1px solid rgba(34,197,94,0.35)' } : undefined}
+    >✎</button>
+  )
+}
+
+function DeleteBtn({ confirmDel, onClick }: { confirmDel: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Sil"
+      className={`btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm soft-trans ${confirmDel ? '' : 'ctrl'}`}
+      style={confirmDel ? { background: 'rgba(225,90,60,0.92)', color: '#fff5f2' } : { color: 'rgba(239,122,90,0.8)' }}
+      title={confirmDel ? 'Emin misin? Tekrar tıkla' : 'Sil'}
+    >{confirmDel ? '!' : '✕'}</button>
+  )
+}
+
+function PomodoroBtn({ timerRunning, boostActive, extraActive, goalMet, habit, startPomodoro }: {
+  timerRunning: boolean; boostActive: boolean; extraActive: boolean; goalMet: boolean
+  habit: Habit; startPomodoro: (id: string) => void
+}) {
+  return (
+    <button
+      onClick={() => startPomodoro(habit.id)}
+      disabled={timerRunning}
+      className="btn-press flex-shrink-0 h-7 rounded-full text-[11px] font-bold soft-trans flex items-center justify-center gap-1"
+      style={{
+        width: extraActive ? 84 : 74,
+        background: timerRunning
+          ? boostActive ? 'rgba(245,158,11,0.92)' : extraActive ? 'rgba(225,90,60,0.75)' : 'rgba(225,90,60,0.92)'
+          : 'linear-gradient(160deg, #2fd06a, #1f9d4d)',
+        color: timerRunning ? (boostActive ? '#2a1804' : '#fff5f2') : '#06210f',
+        boxShadow: timerRunning ? '0 6px 16px -6px rgba(0,0,0,0.6)' : '0 6px 16px -6px rgba(34,197,94,0.6)',
+      }}
+    >
+      {timerRunning ? (boostActive ? '⚡Aktif' : extraActive ? '🍅+1.5×' : '🍅Aktif') : goalMet ? '🍅 +Ekstra' : '🍅 Başlat'}
+    </button>
+  )
+}
 
 interface Props {
   habit: Habit
@@ -107,8 +197,19 @@ export default function HabitRow({ habit, log }: Props) {
           }}
         />
 
-        {/* Main row — wraps controls onto their own line on mobile */}
-        <div className="flex flex-wrap items-center gap-2.5 pl-4 pr-3 py-3">
+        {/* Label color radial glow */}
+        {habit.labelColor && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `radial-gradient(ellipse at 50% 50%, ${hexToRgba(habit.labelColor, 0.2)} 0%, transparent 65%)`,
+              borderRadius: 22,
+            }}
+          />
+        )}
+
+        {/* ── Shared: checkbox + emoji + name always in one line ── */}
+        <div className="flex items-center gap-2.5 pl-4 pr-3 py-3">
           {/* Checkbox / Multi counter */}
           {isMultiMode ? (
             <button
@@ -117,11 +218,7 @@ export default function HabitRow({ habit, log }: Props) {
               title={multiAtMax ? 'Bu günlük bu kadar yeter, yoruldun 💪' : undefined}
               className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-bold soft-trans ${checkAnim ? 'animate-check' : ''}`}
               style={{
-                background: multiAtMax
-                  ? 'rgba(255,255,255,0.04)'
-                  : multiGoalMet
-                    ? 'rgba(34,197,94,0.22)'
-                    : 'rgba(59,130,246,0.16)',
+                background: multiAtMax ? 'rgba(255,255,255,0.04)' : multiGoalMet ? 'rgba(34,197,94,0.22)' : 'rgba(59,130,246,0.16)',
                 border: `2px solid ${multiAtMax ? 'rgba(255,255,255,0.08)' : multiGoalMet ? 'rgba(34,197,94,0.6)' : 'rgba(59,130,246,0.45)'}`,
                 boxShadow: multiGoalMet && !multiAtMax ? '0 4px 14px -3px rgba(34,197,94,0.5)' : 'none',
                 color: multiAtMax ? 'rgba(255,255,255,0.2)' : multiGoalMet ? '#6ee79f' : '#93c5fd',
@@ -136,38 +233,18 @@ export default function HabitRow({ habit, log }: Props) {
               aria-label={log.completed ? 'Tamamlandı işaretini kaldır' : checkboxLocked ? 'Pomodoro olmadan tamamla' : 'Bitir'}
               className={`flex-shrink-0 h-7 px-2.5 rounded-xl flex items-center justify-center gap-1 text-[11px] font-bold soft-trans ${checkAnim ? 'animate-check' : ''}`}
               style={{
-                background: log.completed
-                  ? 'rgba(34,197,94,0.18)'
-                  : checkboxLocked
-                    ? confirmPomodoro ? 'rgba(225,90,60,0.18)' : 'rgba(225,90,60,0.08)'
-                    : 'rgba(34,197,94,0.14)',
-                border: `1.5px solid ${
-                  log.completed ? 'rgba(34,197,94,0.55)'
-                  : checkboxLocked ? (confirmPomodoro ? 'rgba(225,90,60,0.7)' : 'rgba(225,90,60,0.32)')
-                  : 'rgba(34,197,94,0.38)'
-                }`,
-                color: log.completed
-                  ? '#6ee79f'
-                  : checkboxLocked ? 'rgba(240,138,106,0.85)' : '#6ee79f',
+                background: log.completed ? 'rgba(34,197,94,0.18)' : checkboxLocked ? (confirmPomodoro ? 'rgba(225,90,60,0.18)' : 'rgba(225,90,60,0.08)') : 'rgba(34,197,94,0.14)',
+                border: `1.5px solid ${log.completed ? 'rgba(34,197,94,0.55)' : checkboxLocked ? (confirmPomodoro ? 'rgba(225,90,60,0.7)' : 'rgba(225,90,60,0.32)') : 'rgba(34,197,94,0.38)'}`,
+                color: log.completed ? '#6ee79f' : checkboxLocked ? 'rgba(240,138,106,0.85)' : '#6ee79f',
                 cursor: 'pointer',
               }}
             >
               {log.completed ? (
-                <>
-                  <svg width="10" height="8" viewBox="0 0 11 9" fill="none">
-                    <path d="M1 4.5L4 7.5L10 1.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Bitti
-                </>
+                <><svg width="10" height="8" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>Bitti</>
               ) : checkboxLocked ? (
                 <>🍅 Bitir</>
               ) : (
-                <>
-                  <svg width="10" height="8" viewBox="0 0 11 9" fill="none">
-                    <path d="M1 4.5L4 7.5L10 1.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Bitir
-                </>
+                <><svg width="10" height="8" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>Bitir</>
               )}
             </button>
           )}
@@ -175,175 +252,91 @@ export default function HabitRow({ habit, log }: Props) {
           {/* Emoji */}
           <span className="text-xl flex-shrink-0 w-7 text-center leading-none">{habit.emoji}</span>
 
-          {/* Name + category — gets the full first line on mobile */}
-          <div className="flex-1 min-w-0" style={{ flexBasis: '40%' }}>
+          {/* Name + category */}
+          <div className="flex-1 min-w-0">
             <p
-              className="text-sm font-semibold leading-snug break-words sm:truncate soft-trans"
-              style={{
-                textDecoration: log.completed ? 'line-through' : 'none',
-                opacity: log.completed ? 0.6 : 1,
-              }}
+              className="text-sm font-semibold leading-snug truncate soft-trans"
+              style={{ textDecoration: log.completed ? 'line-through' : 'none', opacity: log.completed ? 0.6 : 1 }}
             >
               {habit.name}
             </p>
             {cat && (
-              <p className="text-[11px] leading-tight mt-0.5 font-medium ink-60">
-                {cat.emoji} {cat.name}
-              </p>
+              <p className="text-[11px] leading-tight mt-0.5 font-medium ink-60">{cat.emoji} {cat.name}</p>
             )}
           </div>
 
-          {/* Right controls — full row on mobile, inline on desktop */}
-          <div className="flex items-center gap-1.5 flex-shrink-0 w-full sm:w-auto justify-end">
-            {/* Stats (desktop) */}
-            <span className="text-[11px] hidden sm:inline-block text-right ink-45" style={{ minWidth: 88 }}>
-              {isMultiMode ? (
-                <span className="flex items-center justify-end gap-1">
-                  <span style={{ color: multiGoalMet ? '#6ee79f' : '#93c5fd' }}>🔁 {completionCount}/{habitGoal}</span>
-                  {completionCount > habitGoal && (
-                    <span style={{ color: '#93c5fd', opacity: 0.7 }}>+{completionCount - habitGoal}</span>
-                  )}
-                </span>
-              ) : isGoalMode && pomCount > 0 ? (
-                <span className="flex items-center justify-end gap-1">
-                  <span>🍅 {Math.min(pomCount, pomGoal)}/{pomGoal}</span>
-                  {extraCount > 0 && <span className="text-[10px] font-bold" style={{ color: '#f08a6a' }}>+{extraCount}</span>}
-                  {extraCount > 0 && <span className="text-[9px] font-bold px-1 rounded" style={{ background: 'rgba(225,90,60,0.2)', color: '#f08a6a' }}>1.5×</span>}
-                </span>
-              ) : pomCount > 0 ? (
-                `🍅${pomCount} · ${formatMinutes(workMin)}`
-              ) : ''}
-            </span>
-
-            {/* BOOST — only when pomodoro UI is shown */}
-            {showPomodoroUI && (
-              <div className="relative flex-shrink-0">
-                <button
-                  onClick={() => !boostLocked && setHabitBoostMode(habit.id, !boostOn)}
-                  disabled={boostLocked}
-                  className="btn-press h-7 rounded-full text-[10px] font-bold tracking-wider soft-trans"
-                  style={{
-                    width: 54,
-                    background: boostUsedLocked
-                      ? 'rgba(255,255,255,0.05)'
-                      : boostOn
-                        ? 'rgba(245,158,11,0.92)'
-                        : 'rgba(255,255,255,0.06)',
-                    border: `1px solid ${boostOn && !boostUsedLocked ? 'rgba(245,158,11,0.55)' : 'rgba(255,255,255,0.1)'}`,
-                    color: boostUsedLocked
-                      ? 'rgba(232,237,238,0.28)'
-                      : boostOn
-                        ? '#2a1804'
-                        : 'rgba(232,237,238,0.6)',
-                    boxShadow: boostOn && !boostUsedLocked ? '0 4px 14px -4px rgba(245,158,11,0.8)' : 'none',
-                    opacity: boostTimerLocked && !boostUsedLocked ? 0.45 : 1,
-                    cursor: boostLocked ? 'not-allowed' : 'pointer',
-                  }}
-                  title={
-                    boostUsedLocked ? 'Bu gün boost kullanıldı ✓'
-                    : boostTimerLocked ? 'Pomodoro çalışırken değiştirilemez 🔒'
-                    : boostOn ? 'Boost aktif (×1.5 süre + ×1.5 XP)'
-                    : 'Boost aç'
-                  }
-                >
-                  {boostUsedLocked ? '⚡✓' : boostOn ? '⚡ON' : 'BOOST'}
-                </button>
-                {/* 1.5× corner badge on boost button */}
-                <span
-                  className="absolute -top-1.5 -right-1.5 text-[8px] font-black px-1 rounded-full leading-tight"
-                  style={{ background: 'rgba(245,158,11,0.9)', color: '#2a1804' }}
-                >1.5×</span>
-              </div>
+          {/* ── DESKTOP ONLY: all controls inline ── */}
+          <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
+            {/* Stats */}
+            {(isMultiMode || pomCount > 0) && (
+              <span className="text-[11px] text-right ink-45 mr-1" style={{ minWidth: 80 }}>
+                {isMultiMode ? (
+                  <span className="flex items-center justify-end gap-1">
+                    <span style={{ color: multiGoalMet ? '#6ee79f' : '#93c5fd' }}>🔁 {completionCount}/{habitGoal}</span>
+                    {completionCount > habitGoal && <span style={{ color: '#93c5fd', opacity: 0.7 }}>+{completionCount - habitGoal}</span>}
+                  </span>
+                ) : isGoalMode ? (
+                  <span className="flex items-center justify-end gap-1">
+                    <span>🍅 {Math.min(pomCount, pomGoal)}/{pomGoal}</span>
+                    {extraCount > 0 && <span className="text-[10px] font-bold" style={{ color: '#f08a6a' }}>+{extraCount}</span>}
+                    {extraCount > 0 && <span className="text-[9px] font-bold px-1 rounded" style={{ background: 'rgba(225,90,60,0.2)', color: '#f08a6a' }}>1.5×</span>}
+                  </span>
+                ) : (
+                  `🍅${pomCount} · ${formatMinutes(workMin)}`
+                )}
+              </span>
             )}
+
+            {/* Boost */}
+            {showPomodoroUI && <BoostButton {...{ boostUsedLocked, boostTimerLocked, boostLocked, boostOn, habit, setHabitBoostMode }} />}
 
             {/* Note */}
-            <button
-              onClick={handleNoteToggle}
-              aria-label="Not"
-              className={`btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm soft-trans ${noteOpen || log.notes ? '' : 'ctrl'}`}
-              style={noteOpen || log.notes
-                ? { background: 'rgba(34,197,94,0.18)', color: '#6ee79f', border: '1px solid rgba(34,197,94,0.35)' }
-                : undefined}
-            >
-              ✎
-            </button>
+            <NoteBtn noteOpen={noteOpen} hasNote={!!log.notes} onClick={handleNoteToggle} />
 
             {/* Edit */}
-            <button
-              onClick={() => setEditing(true)}
-              aria-label="Düzenle"
-              className={ctrlBtn}
-            >
-              ⊙
-            </button>
+            <button onClick={() => setEditing(true)} aria-label="Düzenle" className={ctrlBtn}>⊙</button>
 
             {/* Delete */}
-            <button
-              onClick={handleDeleteClick}
-              aria-label="Sil"
-              className={`btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm soft-trans ${confirmDel ? '' : 'ctrl'}`}
-              style={confirmDel
-                ? { background: 'rgba(225,90,60,0.92)', color: '#fff5f2' }
-                : { color: 'rgba(239,122,90,0.8)' }}
-              title={confirmDel ? 'Emin misin? Tekrar tıkla' : 'Sil'}
-            >
-              {confirmDel ? '!' : '✕'}
-            </button>
+            <DeleteBtn confirmDel={confirmDel} onClick={handleDeleteClick} />
 
-            {/* Pomodoro start — only when pomodoro UI is shown */}
-            {showPomodoroUI && (
-              <button
-                onClick={() => startPomodoro(habit.id)}
-                disabled={timerRunning}
-                className="btn-press flex-shrink-0 h-7 rounded-full text-[11px] font-bold soft-trans flex items-center justify-center gap-1"
-                style={{
-                  width: extraActive ? 84 : 74,
-                  background: timerRunning
-                    ? boostActive ? 'rgba(245,158,11,0.92)' : extraActive ? 'rgba(225,90,60,0.75)' : 'rgba(225,90,60,0.92)'
-                    : 'linear-gradient(160deg, #2fd06a, #1f9d4d)',
-                  color: timerRunning
-                    ? boostActive ? '#2a1804' : '#fff5f2'
-                    : '#06210f',
-                  boxShadow: timerRunning
-                    ? '0 6px 16px -6px rgba(0,0,0,0.6)'
-                    : '0 6px 16px -6px rgba(34,197,94,0.6)',
-                }}
-              >
-                {timerRunning
-                  ? boostActive ? '⚡Aktif' : extraActive ? '🍅+1.5×' : '🍅Aktif'
-                  : goalMet ? '🍅 +Ekstra' : '🍅 Başlat'}
-              </button>
-            )}
+            {/* Pomodoro start */}
+            {showPomodoroUI && <PomodoroBtn {...{ timerRunning, boostActive, extraActive, goalMet, habit, startPomodoro }} />}
           </div>
         </div>
 
-        {/* Mobile stats */}
-        {(isMultiMode || pomCount > 0) && (
-          <div className="sm:hidden px-4 pb-2.5 flex gap-2 text-[11px] ink-45 items-center">
-            {isMultiMode ? (
-              <>
-                <span style={{ color: multiGoalMet ? '#6ee79f' : '#93c5fd' }}>🔁 {completionCount}/{habitGoal}</span>
-                {completionCount > habitGoal && (
-                  <><span>·</span><span style={{ color: '#93c5fd', opacity: 0.7 }}>+{completionCount - habitGoal} ekstra</span></>
-                )}
-                {multiAtMax && <span style={{ color: 'rgba(255,255,255,0.35)' }}>· Maks. doldu 💪</span>}
-              </>
-            ) : isGoalMode ? (
-              <>
-                <span>🍅 {Math.min(pomCount, pomGoal)}/{pomGoal}</span>
-                {extraCount > 0 && (
-                  <>
-                    <span>·</span>
-                    <span className="font-bold" style={{ color: '#f08a6a' }}>+{extraCount} ekstra</span>
-                    <span className="text-[9px] font-bold px-1 rounded" style={{ background: 'rgba(225,90,60,0.2)', color: '#f08a6a' }}>1.5×</span>
-                  </>
-                )}
-              </>
-            ) : (
-              <><span>🍅 {pomCount}</span><span>·</span><span>{formatMinutes(workMin)}</span></>
-            )}
-          </div>
-        )}
+        {/* ── MOBILE ONLY: controls row ── */}
+        <div className="sm:hidden flex items-center justify-end gap-1.5 px-3 pb-2.5">
+          {/* Stats */}
+          {(isMultiMode || pomCount > 0) && (
+            <span className="text-[11px] ink-45 mr-auto">
+              {isMultiMode ? (
+                <span style={{ color: multiGoalMet ? '#6ee79f' : '#93c5fd' }}>
+                  🔁 {completionCount}/{habitGoal}
+                  {multiAtMax && ' · 💪'}
+                </span>
+              ) : isGoalMode ? (
+                <span>🍅 {Math.min(pomCount, pomGoal)}/{pomGoal}{extraCount > 0 ? ` +${extraCount}` : ''}</span>
+              ) : (
+                <span>🍅 {pomCount} · {formatMinutes(workMin)}</span>
+              )}
+            </span>
+          )}
+
+          {/* Boost */}
+          {showPomodoroUI && <BoostButton {...{ boostUsedLocked, boostTimerLocked, boostLocked, boostOn, habit, setHabitBoostMode }} />}
+
+          {/* Note */}
+          <NoteBtn noteOpen={noteOpen} hasNote={!!log.notes} onClick={handleNoteToggle} />
+
+          {/* Edit */}
+          <button onClick={() => setEditing(true)} aria-label="Düzenle" className={ctrlBtn}>⊙</button>
+
+          {/* Delete */}
+          <DeleteBtn confirmDel={confirmDel} onClick={handleDeleteClick} />
+
+          {/* Pomodoro start */}
+          {showPomodoroUI && <PomodoroBtn {...{ timerRunning, boostActive, extraActive, goalMet, habit, startPomodoro }} />}
+        </div>
 
         {/* Pomodoro override confirmation — animated */}
         <div style={{ maxHeight: confirmPomodoro ? '160px' : 0, overflow: 'hidden', transition: 'max-height 0.25s cubic-bezier(0.16,1,0.3,1)' }}>
