@@ -200,9 +200,11 @@ export default function HabitRow({ habit, log }: Props) {
         {/* Label color radial glow */}
         {habit.labelColor && (
           <div
-            className="absolute inset-0 pointer-events-none"
+            className="pointer-events-none"
             style={{
-              background: `radial-gradient(ellipse at 50% 50%, ${hexToRgba(habit.labelColor, 0.2)} 0%, transparent 65%)`,
+              position: 'absolute',
+              inset: 0,
+              background: `radial-gradient(ellipse at 50% 50%, ${hexToRgba(habit.labelColor, 0.35)} 0%, transparent 68%)`,
               borderRadius: 22,
             }}
           />
