@@ -30,23 +30,23 @@ type TileState = 'completed' | 'active' | 'next' | 'locked'
 const TILE_STYLE: Record<TileState, { bg: string; border: string; color: string; opacity?: number }> = {
   completed: {
     bg: 'rgba(34,197,94,0.18)',
-    border: 'rgba(34,197,94,0.55)',
-    color: '#6ee79f',
+    border: 'rgba(34,197,94,0.5)',
+    color: '#15803d',
   },
   active: {
-    bg: 'rgba(225,90,60,0.2)',
-    border: 'rgba(225,90,60,0.7)',
-    color: '#f08a6a',
+    bg: 'rgba(249,115,22,0.16)',
+    border: 'rgba(249,115,22,0.6)',
+    color: '#c2410c',
   },
   next: {
-    bg: 'rgba(255,255,255,0.12)',
-    border: 'rgba(255,255,255,0.45)',
-    color: '#f1f5f5',
+    bg: '#ffffff',
+    border: 'rgba(26,23,38,0.18)',
+    color: '#1a1726',
   },
   locked: {
-    bg: 'rgba(255,255,255,0.03)',
-    border: 'rgba(255,255,255,0.06)',
-    color: 'rgba(241,245,245,0.18)',
+    bg: 'rgba(26,23,38,0.04)',
+    border: 'rgba(26,23,38,0.07)',
+    color: 'rgba(26,23,38,0.28)',
   },
 }
 
@@ -145,31 +145,31 @@ export default function JustStart() {
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#f1f5f5' }}>
+        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#1a1726' }}>
           Just Start
         </h1>
-        <p className="text-xs mt-1" style={{ color: 'rgba(241,245,245,0.4)' }}>
+        <p className="text-xs mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
           Sadece başlamak yeter · {completedMins}/{TOTAL_MINUTES} dk
         </p>
 
         {/* Progress bar */}
-        <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
+        <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(26,23,38,0.08)' }}>
           <div
             className="h-1.5 rounded-full transition-all duration-700"
             style={{
               width: `${progress}%`,
               background: progress === 100
                 ? 'linear-gradient(90deg, #22c55e, #4ade80)'
-                : 'linear-gradient(90deg, #f08a6a, #e15a3c)',
+                : 'linear-gradient(90deg, #fbbf24, #f97316)',
               boxShadow: progress > 0 ? `0 0 8px ${progress === 100 ? 'rgba(34,197,94,0.6)' : 'rgba(225,90,60,0.5)'}` : 'none',
             }}
           />
         </div>
         <div className="flex justify-between mt-1">
-          <span className="text-[10px]" style={{ color: 'rgba(241,245,245,0.3)' }}>%0</span>
+          <span className="text-[10px]" style={{ color: 'rgba(26,23,38,0.4)' }}>%0</span>
           <span
             className="text-[10px] font-bold tabular-nums"
-            style={{ color: progress === 100 ? '#6ee79f' : 'rgba(241,245,245,0.45)' }}
+            style={{ color: progress === 100 ? '#15803d' : 'rgba(26,23,38,0.5)' }}
           >
             %{progress}
           </span>
@@ -192,7 +192,7 @@ export default function JustStart() {
                 color: s.color,
                 boxShadow: state === 'completed' ? '0 0 8px rgba(34,197,94,0.15)'
                   : state === 'active' ? '0 0 12px rgba(225,90,60,0.25)'
-                  : state === 'next' ? '0 0 10px rgba(255,255,255,0.08)'
+                  : state === 'next' ? '0 0 10px rgba(26,23,38,0.1)'
                   : 'none',
               }}
             >
@@ -208,19 +208,19 @@ export default function JustStart() {
       {/* Timer — only when a step is active */}
       {active !== null && (
         <div className="text-center mb-6 animate-fade-up">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: '#f08a6a' }}>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: '#c2410c' }}>
             {STEPS[active]} dakika · {paused ? 'Durakladı' : 'Devam ediyor'}
           </p>
           <div
             className="tnum text-6xl font-mono font-bold leading-none"
-            style={{ color: '#f1f5f5', textShadow: '0 0 30px rgba(225,90,60,0.4)' }}
+            style={{ color: '#1a1726', textShadow: '0 0 30px rgba(225,90,60,0.4)' }}
           >
             {fmt(secs)}
           </div>
           <button
             onClick={cancelStep}
             className="mt-3 text-xs underline"
-            style={{ color: 'rgba(241,245,245,0.35)' }}
+            style={{ color: 'rgba(26,23,38,0.45)' }}
           >
             adımı iptal et
           </button>
@@ -233,7 +233,7 @@ export default function JustStart() {
           className="glass g-lime rounded-2xl px-4 py-4 text-center space-y-3 mb-6 animate-fade-up"
           style={{ border: '1px solid rgba(34,197,94,0.35)' }}
         >
-          <p className="text-base font-bold" style={{ color: '#6ee79f' }}>
+          <p className="text-base font-bold" style={{ color: '#15803d' }}>
             🎉 {TOTAL_MINUTES} dakika tamamlandı!
           </p>
           {!xpClaimed ? (
@@ -255,13 +255,13 @@ export default function JustStart() {
       {/* Stats */}
       <div className="flex items-center justify-center gap-8 py-4">
         <div className="text-center">
-          <p className="text-2xl font-bold tnum" style={{ color: '#f1f5f5' }}>{stats.today}</p>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(241,245,245,0.35)' }}>Bugün</p>
+          <p className="text-2xl font-bold tnum" style={{ color: '#1a1726' }}>{stats.today}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>Bugün</p>
         </div>
-        <div className="w-px h-8" style={{ background: 'rgba(255,255,255,0.1)' }} />
+        <div className="w-px h-8" style={{ background: 'rgba(26,23,38,0.07)' }} />
         <div className="text-center">
-          <p className="text-2xl font-bold tnum" style={{ color: '#f1f5f5' }}>{stats.allTime}</p>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(241,245,245,0.35)' }}>Toplam</p>
+          <p className="text-2xl font-bold tnum" style={{ color: '#1a1726' }}>{stats.allTime}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>Toplam</p>
         </div>
       </div>
 
@@ -269,10 +269,10 @@ export default function JustStart() {
       <div
         className="fixed bottom-[4.5rem] sm:bottom-0 left-0 right-0 z-20 px-4 py-4"
         style={{
-          background: 'rgba(10,11,12,0.92)',
+          background: 'rgba(251,247,240,0.95)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          borderTop: '1px solid rgba(26,23,38,0.1)',
         }}
       >
         <div className="max-w-sm mx-auto space-y-2">
@@ -293,15 +293,15 @@ export default function JustStart() {
                 onClick={togglePause}
                 className="btn-press flex-1 py-3 rounded-2xl text-sm font-bold"
                 style={{
-                  background: paused ? 'rgba(34,197,94,0.9)' : 'rgba(255,255,255,0.1)',
-                  color: paused ? '#06210f' : '#f1f5f5',
+                  background: paused ? 'rgba(34,197,94,0.9)' : 'rgba(26,23,38,0.07)',
+                  color: paused ? '#06210f' : '#1a1726',
                 }}
               >
                 {paused ? '▶ Devam Et' : '⏸ Duraklat'}
               </button>
             )}
             {allDone && (
-              <div className="flex-1 py-3 rounded-2xl text-sm font-bold text-center" style={{ color: 'rgba(241,245,245,0.35)', background: 'rgba(255,255,255,0.04)' }}>
+              <div className="flex-1 py-3 rounded-2xl text-sm font-bold text-center" style={{ color: 'rgba(26,23,38,0.45)', background: 'rgba(26,23,38,0.04)' }}>
                 Tamamlandı ✓
               </div>
             )}
@@ -316,7 +316,7 @@ export default function JustStart() {
           </div>
 
           {/* Hint line */}
-          <p className="text-center text-xs" style={{ color: 'rgba(241,245,245,0.35)' }}>
+          <p className="text-center text-xs" style={{ color: 'rgba(26,23,38,0.45)' }}>
             {active !== null
               ? `${STEPS[active]} dakikalık adım · ${fmt(secs)} kaldı`
               : allDone

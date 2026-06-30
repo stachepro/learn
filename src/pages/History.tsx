@@ -52,13 +52,13 @@ export default function History() {
   return (
     <div className={`max-w-3xl mx-auto px-4 py-6 pb-40 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
       <div>
-        <h1 className="display text-3xl font-extrabold" style={{ color: '#f1f5f5' }}>Geçmiş</h1>
-        <p className="text-sm mt-1" style={{ color: 'rgba(241,245,245,0.55)' }}>Alışkanlık geçmişin</p>
+        <h1 className="display text-3xl font-extrabold" style={{ color: '#1a1726' }}>Geçmiş</h1>
+        <p className="text-sm mt-1" style={{ color: 'rgba(26,23,38,0.55)' }}>Alışkanlık geçmişin</p>
       </div>
 
       {/* Calendar */}
       <div className="glass g-neutral" style={{ borderRadius: 24 }}>
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
           <button onClick={prevMonth} aria-label="Önceki ay" className={navBtn}>
             ←
           </button>
@@ -99,13 +99,13 @@ export default function History() {
                     : activity
                       ? 'rgba(34,197,94,0.22)'
                       : isToday
-                        ? 'rgba(255,255,255,0.06)'
+                        ? 'rgba(26,23,38,0.05)'
                         : 'transparent',
                   color: isSelected
                     ? '#06210f'
                     : isFuture
-                      ? 'rgba(232,237,238,0.2)'
-                      : '#e8edee',
+                      ? 'rgba(26,23,38,0.25)'
+                      : '#1a1726',
                   fontWeight: (activity || isToday || isSelected) ? 700 : 500,
                   boxShadow: isToday && !isSelected ? 'inset 0 0 0 2px rgba(34,197,94,0.7)' : 'none',
                 }}
@@ -120,7 +120,7 @@ export default function History() {
       {/* Day detail */}
       {selectedDay && (
         <div className="glass g-neutral animate-fade-in" style={{ borderRadius: 24 }}>
-          <div className="px-5 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="px-5 py-3.5" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
             <p className="display text-sm font-bold">
               {new Date(selectedDay + 'T12:00:00').toLocaleDateString('tr-TR', {
                 weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -137,7 +137,7 @@ export default function History() {
                   <div
                     key={habitId}
                     className="flex items-start gap-3 px-5 py-3.5"
-                    style={{ borderBottom: idx < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
+                    style={{ borderBottom: idx < arr.length - 1 ? '1px solid rgba(26,23,38,0.06)' : 'none' }}
                   >
                     <span className="text-xl mt-0.5 flex-shrink-0">{habit?.emoji ?? '⭐'}</span>
                     <div className="flex-1 min-w-0">
@@ -170,7 +170,7 @@ export default function History() {
                     </div>
                     <div
                       className="w-2.5 h-2.5 rounded-full mt-2 flex-shrink-0"
-                      style={{ background: h.completed ? 'rgb(34,197,94)' : 'rgba(255,255,255,0.14)' }}
+                      style={{ background: h.completed ? 'rgb(34,197,94)' : 'rgba(26,23,38,0.14)' }}
                     />
                   </div>
                 )
@@ -184,7 +184,7 @@ export default function History() {
 
       {/* Last 30 days */}
       <div>
-        <p className="display text-sm font-bold mb-3" style={{ color: '#f1f5f5' }}>Son 30 Gün</p>
+        <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>Son 30 Gün</p>
         <div className="glass g-neutral" style={{ borderRadius: 24 }}>
           {last30.map(({ key, label }, idx) => {
             const log = logs[key]
@@ -200,7 +200,7 @@ export default function History() {
                 className="btn-press w-full flex items-center justify-between px-5 py-3 text-left soft-trans"
                 style={{
                   background: isSelected ? 'rgba(34,197,94,0.14)' : 'transparent',
-                  borderBottom: idx < last30.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                  borderBottom: idx < last30.length - 1 ? '1px solid rgba(26,23,38,0.06)' : 'none',
                 }}
               >
                 <span className="text-sm w-36 text-left font-medium" style={{ opacity: isSelected ? 1 : 0.7 }}>
@@ -208,7 +208,7 @@ export default function History() {
                 </span>
                 {done > 0 ? (
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold" style={{ color: '#34c759' }}>
+                    <span className="text-xs font-bold" style={{ color: '#2e9e4f' }}>
                       {done}/{tot} alışkanlık
                     </span>
                     {work > 0 && <span className="text-xs ink-45">{formatMinutes(work)}</span>}

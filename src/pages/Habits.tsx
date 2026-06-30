@@ -37,8 +37,8 @@ export default function Habits() {
         {/* Header */}
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="display text-3xl font-extrabold" style={{ color: '#f1f5f5' }}>Alışkanlıklar</h1>
-            <p className="text-sm mt-1" style={{ color: 'rgba(241,245,245,0.55)' }}>
+            <h1 className="display text-3xl font-extrabold" style={{ color: '#1a1726' }}>Alışkanlıklar</h1>
+            <p className="text-sm mt-1" style={{ color: 'rgba(26,23,38,0.55)' }}>
               {habits.length} alışkanlık tanımlı
             </p>
           </div>
@@ -97,8 +97,8 @@ export default function Habits() {
                       onClick={() => handleDelete(h.id)}
                       className="btn-press text-xs px-3 py-1.5 rounded-full font-semibold soft-trans"
                       style={isDel
-                        ? { background: 'rgba(225,90,60,0.92)', color: '#fff5f2' }
-                        : { background: 'rgba(255,255,255,0.06)', color: 'rgba(239,122,90,0.85)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        ? { background: '#e2503f', color: '#fff5f2' }
+                        : { background: 'rgba(26,23,38,0.05)', color: 'rgba(204,60,40,0.9)', border: '1px solid rgba(26,23,38,0.08)' }}
                     >
                       {isDel ? 'Eminim →' : 'Sil'}
                     </button>
@@ -112,7 +112,7 @@ export default function Habits() {
         {/* Custom categories */}
         {customCats.length > 0 && (
           <div>
-            <p className="display text-sm font-bold mb-3" style={{ color: '#f1f5f5' }}>
+            <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>
               Özel Kategoriler
             </p>
             <div className="space-y-2.5">
@@ -125,7 +125,7 @@ export default function Habits() {
                     <button
                       onClick={() => deleteCustomCategory(cat.id)}
                       className="chip btn-press text-xs px-3 py-1.5"
-                      style={{ color: 'rgba(239,122,90,0.85)' }}
+                      style={{ color: 'rgba(204,60,40,0.9)' }}
                     >
                       Sil
                     </button>

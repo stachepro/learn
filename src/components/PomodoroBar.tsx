@@ -25,8 +25,8 @@ export default function PomodoroBar() {
   const isDone = phase === 'break-done'
 
   const progress = totalSeconds > 0 ? ((totalSeconds - secondsLeft) / totalSeconds) * 100 : 0
-  const fillColor = isWork ? '#e15a3c' : '#22c55e'
-  const labelColor = isWork ? '#f08a6a' : '#6ee79f'
+  const fillColor = isWork ? '#f97316' : '#22c55e'
+  const labelColor = isWork ? '#c2410c' : '#15803d'
 
   const relaunch = () => {
     if (isFree) startFree()
@@ -39,15 +39,15 @@ export default function PomodoroBar() {
     <div
       className="animate-slide-bar fixed bottom-20 sm:bottom-0 left-0 right-0 z-30"
       style={{
-        background: 'rgba(14,15,17,0.92)',
+        background: 'rgba(251,247,240,0.96)',
         backdropFilter: 'blur(24px) saturate(150%)',
         WebkitBackdropFilter: 'blur(24px) saturate(150%)',
-        borderTop: '1px solid rgba(255,255,255,0.09)',
-        boxShadow: '0 -10px 30px -14px rgba(0,0,0,0.85)',
+        borderTop: '1px solid rgba(26,23,38,0.08)',
+        boxShadow: '0 -10px 30px -16px rgba(26,23,38,0.4)',
       }}
     >
       {/* Progress bar */}
-      <div className="relative h-[3px]" style={{ background: 'rgba(255,255,255,0.08)' }}>
+      <div className="relative h-[3px]" style={{ background: 'rgba(26,23,38,0.08)' }}>
         <div
           className="progress-fill absolute inset-y-0 left-0 rounded-r-full"
           style={{ width: `${progress}%`, background: fillColor, boxShadow: `0 0 10px ${fillColor}` }}
@@ -61,7 +61,7 @@ export default function PomodoroBar() {
             {isFree ? '🧘' : (habit?.emoji ?? '🍅')}
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold truncate leading-tight" style={{ color: '#f1f5f5' }}>
+            <p className="text-sm font-semibold truncate leading-tight" style={{ color: '#1a1726' }}>
               {isFree ? 'Serbest Çalışma' : (habit?.name ?? '')}
             </p>
             <p className="text-[10px] font-bold uppercase tracking-[0.16em] leading-tight mt-0.5" style={{ color: labelColor }}>
@@ -71,7 +71,7 @@ export default function PomodoroBar() {
         </div>
 
         {/* Center: time */}
-        <div className="flex-shrink-0 tnum text-2xl font-mono font-bold" style={{ color: isDone ? labelColor : '#f1f5f5' }}>
+        <div className="flex-shrink-0 tnum text-2xl font-mono font-bold" style={{ color: isDone ? labelColor : '#1a1726' }}>
           {isDone ? '✓' : formatSeconds(secondsLeft)}
         </div>
 
@@ -79,7 +79,7 @@ export default function PomodoroBar() {
         <div className="flex items-center gap-2 flex-shrink-0">
           {confirmEarly ? (
             <>
-              <span className="text-xs font-semibold hidden sm:block" style={{ color: 'rgba(241,245,245,0.55)' }}>
+              <span className="text-xs font-semibold hidden sm:block" style={{ color: 'rgba(26,23,38,0.55)' }}>
                 Emin misin?
               </span>
               <button
@@ -118,9 +118,9 @@ export default function PomodoroBar() {
                   title="Erken Bitir"
                   className={iconBtn}
                   style={{
-                    background: 'rgba(34,197,94,0.14)',
-                    color: '#6ee79f',
-                    boxShadow: 'inset 0 0 0 1px rgba(34,197,94,0.35)',
+                    background: 'rgba(34,197,94,0.16)',
+                    color: '#15803d',
+                    boxShadow: 'inset 0 0 0 1px rgba(34,197,94,0.4)',
                   }}
                 >
                   <CheckIcon />
@@ -131,7 +131,7 @@ export default function PomodoroBar() {
                 <button
                   onClick={relaunch}
                   className="btn-press h-9 px-4 rounded-xl text-xs font-bold"
-                  style={{ background: '#e15a3c', color: '#fff5f2' }}
+                  style={{ background: '#f97316', color: '#fff5f2' }}
                 >
                   Yeni Oturum
                 </button>

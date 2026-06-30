@@ -104,7 +104,7 @@ export default function Profile() {
 
       {/* Stats */}
       <div>
-        <p className="display text-sm font-bold mb-3" style={{ color: '#f1f5f5' }}>Tüm Zamanlar</p>
+        <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>Tüm Zamanlar</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <StatCard variant="g-lime" label="Tamamlanan" value={String(totalCompleted)} emoji="✅" />
           <StatCard variant="g-rust" label="Pomodoro" value={String(totalPomodoros)} emoji="🍅" />
@@ -118,8 +118,8 @@ export default function Profile() {
 
       {/* Badges */}
       <div>
-        <p className="display text-sm font-bold mb-3" style={{ color: '#f1f5f5' }}>
-          Rozetler <span style={{ color: 'rgba(241,245,245,0.5)' }}>({profile.badges.length}/{ALL_BADGES.length})</span>
+        <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>
+          Rozetler <span style={{ color: 'rgba(26,23,38,0.5)' }}>({profile.badges.length}/{ALL_BADGES.length})</span>
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {ALL_BADGES.map((badge) => {
@@ -131,7 +131,7 @@ export default function Profile() {
                 style={{ borderRadius: 18, opacity: earned ? 1 : 0.62 }}
               >
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                  style={{ background: earned ? 'rgba(34,197,94,0.18)' : 'rgba(255,255,255,0.06)' }}>
+                  style={{ background: earned ? 'rgba(34,197,94,0.18)' : 'rgba(26,23,38,0.05)' }}>
                   {earned ? '🏅' : '🔒'}
                 </div>
                 <div>
@@ -147,7 +147,7 @@ export default function Profile() {
 
       {/* Pomodoro settings */}
       <div className="glass g-neutral" style={{ borderRadius: 24 }}>
-        <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
           🍅 Pomodoro Ayarları
         </p>
         <div className="p-5 space-y-5">

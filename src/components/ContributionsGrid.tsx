@@ -1,13 +1,13 @@
 import { useApp } from '../context/AppContext'
 import { dateStr, getDaysInMonth, getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS } from '../utils/date'
 
-// Green scale that reads on the dark obsidian tile
+// Green scale that reads on the light cream tile
 function completionColor(count: number): string {
-  if (count === 0) return 'rgba(255,255,255,0.05)'
-  if (count === 1) return 'rgba(34,197,94,0.30)'
-  if (count === 2) return 'rgba(34,197,94,0.48)'
-  if (count === 3) return 'rgba(34,197,94,0.68)'
-  if (count === 4) return 'rgba(34,197,94,0.86)'
+  if (count === 0) return 'rgba(26,23,38,0.05)'
+  if (count === 1) return 'rgba(34,197,94,0.28)'
+  if (count === 2) return 'rgba(34,197,94,0.46)'
+  if (count === 3) return 'rgba(34,197,94,0.66)'
+  if (count === 4) return 'rgba(34,197,94,0.84)'
   return 'rgb(34,197,94)'
 }
 
@@ -70,8 +70,8 @@ export default function ContributionsGrid() {
               key={day}
               className="contrib-cell aspect-square rounded-lg flex items-center justify-center relative"
               style={{
-                background: isFuture ? 'rgba(255,255,255,0.03)' : completionColor(count),
-                boxShadow: isToday ? '0 0 0 2px rgb(34,197,94)' : 'inset 0 0 0 1px rgba(255,255,255,0.06)',
+                background: isFuture ? 'rgba(26,23,38,0.03)' : completionColor(count),
+                boxShadow: isToday ? '0 0 0 2px rgb(34,197,94)' : 'inset 0 0 0 1px rgba(26,23,38,0.06)',
                 opacity: isFuture ? 0.5 : 1,
               }}
               title={`${day} ${trMonthName(month)}: ${count} tamamlandı`}
@@ -79,7 +79,7 @@ export default function ContributionsGrid() {
               {!isFuture && count > 0 && (
                 <span
                   className="text-[10px] font-bold leading-none select-none tnum"
-                  style={{ color: count >= 3 ? '#06210f' : '#bdf0cd' }}
+                  style={{ color: count >= 3 ? '#06210f' : '#15803d' }}
                 >
                   {count}
                 </span>
@@ -99,7 +99,7 @@ export default function ContributionsGrid() {
           <div
             key={n}
             className="w-3 h-3 rounded-[5px]"
-            style={{ background: completionColor(n), boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}
+            style={{ background: completionColor(n), boxShadow: 'inset 0 0 0 1px rgba(26,23,38,0.08)' }}
           />
         ))}
         <span className="text-[10px] ink-45">Çok</span>

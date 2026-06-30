@@ -144,7 +144,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
           style={{ borderRadius: 28 }}
         >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
           <h2 className="display text-lg font-bold">
             {editHabit ? 'Alışkanlığı Düzenle' : 'Yeni Alışkanlık'}
           </h2>
@@ -174,8 +174,8 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 disabled={emojiPage === 0}
                 className="btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold"
                 style={{
-                  background: emojiPage === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.10)',
-                  color: emojiPage === 0 ? 'rgba(255,255,255,0.2)' : 'rgba(241,245,245,0.85)',
+                  background: emojiPage === 0 ? 'rgba(26,23,38,0.04)' : 'rgba(26,23,38,0.07)',
+                  color: emojiPage === 0 ? 'rgba(26,23,38,0.25)' : 'rgba(26,23,38,0.78)',
                 }}
               >
                 ← Geri
@@ -192,7 +192,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     style={{
                       width: i === emojiPage ? 22 : 7,
                       height: 7,
-                      background: i === emojiPage ? 'rgb(34,197,94)' : 'rgba(255,255,255,0.2)',
+                      background: i === emojiPage ? 'rgb(34,197,94)' : 'rgba(26,23,38,0.25)',
                       boxShadow: i === emojiPage ? '0 0 8px rgba(34,197,94,0.6)' : 'none',
                     }}
                   />
@@ -205,8 +205,8 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 disabled={emojiPage === TOTAL_PAGES - 1}
                 className="btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold"
                 style={{
-                  background: emojiPage === TOTAL_PAGES - 1 ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.10)',
-                  color: emojiPage === TOTAL_PAGES - 1 ? 'rgba(255,255,255,0.2)' : 'rgba(241,245,245,0.85)',
+                  background: emojiPage === TOTAL_PAGES - 1 ? 'rgba(26,23,38,0.04)' : 'rgba(26,23,38,0.07)',
+                  color: emojiPage === TOTAL_PAGES - 1 ? 'rgba(26,23,38,0.25)' : 'rgba(26,23,38,0.78)',
                 }}
               >
                 İleri →
@@ -269,9 +269,9 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     onClick={() => setCategoryId(cat.id)}
                     className="btn-press flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all text-left"
                     style={{
-                      background: sel ? `${c.text}22` : 'rgba(255,255,255,0.05)',
-                      boxShadow: sel ? `inset 0 0 0 1.5px ${c.text}` : 'inset 0 0 0 1px rgba(255,255,255,0.08)',
-                      color: sel ? c.text : 'rgba(232,237,238,0.6)',
+                      background: sel ? `${c.text}22` : 'rgba(26,23,38,0.05)',
+                      boxShadow: sel ? `inset 0 0 0 1.5px ${c.text}` : 'inset 0 0 0 1px rgba(26,23,38,0.08)',
+                      color: sel ? c.text : 'rgba(26,23,38,0.6)',
                     }}
                   >
                     <span>{cat.emoji}</span>
@@ -324,10 +324,10 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
               ]).map(({ id, icon, label: mLabel, desc }) => {
                 const sel = completionMode === id
                 const colors = id === 'pomodoro'
-                  ? { bg: 'rgba(225,90,60,0.18)', border: 'rgba(225,90,60,0.55)', text: '#f08a6a' }
+                  ? { bg: 'rgba(225,90,60,0.18)', border: 'rgba(225,90,60,0.55)', text: '#cc4322' }
                   : id === 'multi'
-                    ? { bg: 'rgba(59,130,246,0.18)', border: 'rgba(59,130,246,0.55)', text: '#93c5fd' }
-                    : { bg: 'rgba(34,197,94,0.18)', border: 'rgba(34,197,94,0.55)', text: '#6ee79f' }
+                    ? { bg: 'rgba(59,130,246,0.18)', border: 'rgba(59,130,246,0.55)', text: '#2563eb' }
+                    : { bg: 'rgba(34,197,94,0.18)', border: 'rgba(34,197,94,0.55)', text: '#16a34a' }
                 return (
                   <button
                     key={id}
@@ -335,13 +335,13 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     onClick={() => setCompletionMode(id)}
                     className="btn-press flex flex-col items-center gap-1 py-3 px-2 rounded-2xl text-center transition-all"
                     style={{
-                      background: sel ? colors.bg : 'rgba(255,255,255,0.04)',
-                      border: `1.5px solid ${sel ? colors.border : 'rgba(255,255,255,0.08)'}`,
+                      background: sel ? colors.bg : 'rgba(26,23,38,0.04)',
+                      border: `1.5px solid ${sel ? colors.border : 'rgba(26,23,38,0.08)'}`,
                     }}
                   >
                     <span className="text-xl leading-none">{icon}</span>
-                    <span className="text-xs font-bold" style={{ color: sel ? colors.text : 'rgba(232,237,238,0.75)' }}>{mLabel}</span>
-                    <span className="text-[10px]" style={{ color: 'rgba(232,237,238,0.38)' }}>{desc}</span>
+                    <span className="text-xs font-bold" style={{ color: sel ? colors.text : 'rgba(26,23,38,0.72)' }}>{mLabel}</span>
+                    <span className="text-[10px]" style={{ color: 'rgba(26,23,38,0.42)' }}>{desc}</span>
                   </button>
                 )
               })}
@@ -362,8 +362,8 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                   <div
                     className="flex-1 text-center text-xl font-bold py-2 rounded-xl"
                     style={completionMode === 'pomodoro'
-                      ? { background: 'rgba(225,90,60,0.12)', color: '#f08a6a' }
-                      : { background: 'rgba(59,130,246,0.12)', color: '#93c5fd' }}
+                      ? { background: 'rgba(225,90,60,0.12)', color: '#cc4322' }
+                      : { background: 'rgba(59,130,246,0.12)', color: '#2563eb' }}
                   >
                     {completionGoal}
                     <span className="text-sm font-medium opacity-70 ml-1">
@@ -403,12 +403,12 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     onClick={() => setRecurrence(id)}
                     className="btn-press flex items-center gap-2 px-3 py-2.5 rounded-2xl text-left transition-all"
                     style={{
-                      background: sel ? 'rgba(34,197,94,0.18)' : 'rgba(255,255,255,0.04)',
-                      border: `1.5px solid ${sel ? 'rgba(34,197,94,0.55)' : 'rgba(255,255,255,0.08)'}`,
+                      background: sel ? 'rgba(34,197,94,0.18)' : 'rgba(26,23,38,0.04)',
+                      border: `1.5px solid ${sel ? 'rgba(34,197,94,0.55)' : 'rgba(26,23,38,0.08)'}`,
                     }}
                   >
                     <span className="text-base leading-none">{icon}</span>
-                    <span className="text-xs font-semibold" style={{ color: sel ? '#6ee79f' : 'rgba(232,237,238,0.75)' }}>{rLabel}</span>
+                    <span className="text-xs font-semibold" style={{ color: sel ? '#16a34a' : 'rgba(26,23,38,0.72)' }}>{rLabel}</span>
                   </button>
                 )
               })}
@@ -417,7 +417,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
             {/* Weekly: show which day */}
             {recurrence === 'weekly' && (
               <p className="mt-2 text-[11px] ink-45 text-center animate-fade-up">
-                Her <span style={{ color: '#6ee79f', fontWeight: 700 }}>{WEEKDAY_FULL[weeklyDay]}</span> tekrarlanacak
+                Her <span style={{ color: '#16a34a', fontWeight: 700 }}>{WEEKDAY_FULL[weeklyDay]}</span> tekrarlanacak
               </p>
             )}
 
@@ -434,9 +434,9 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                         onClick={() => toggleRecurrenceDay(idx)}
                         className="btn-press flex-1 py-2 rounded-xl text-[11px] font-bold transition-all"
                         style={{
-                          background: sel ? 'rgba(34,197,94,0.22)' : 'rgba(255,255,255,0.05)',
-                          border: `1.5px solid ${sel ? 'rgba(34,197,94,0.6)' : 'rgba(255,255,255,0.1)'}`,
-                          color: sel ? '#6ee79f' : 'rgba(232,237,238,0.5)',
+                          background: sel ? 'rgba(34,197,94,0.22)' : 'rgba(26,23,38,0.05)',
+                          border: `1.5px solid ${sel ? 'rgba(34,197,94,0.6)' : 'rgba(26,23,38,0.1)'}`,
+                          color: sel ? '#16a34a' : 'rgba(26,23,38,0.5)',
                           minWidth: 36,
                         }}
                       >
@@ -465,11 +465,11 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 className="btn-press w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                 title="Renksiz"
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: `2px solid ${!labelColor ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.15)'}`,
+                  background: 'rgba(26,23,38,0.05)',
+                  border: `2px solid ${!labelColor ? 'rgba(26,23,38,0.7)' : 'rgba(26,23,38,0.18)'}`,
                 }}
               >
-                <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>✕</span>
+                <span style={{ fontSize: 14, color: 'rgba(26,23,38,0.4)' }}>✕</span>
               </button>
               {LABEL_COLORS.map(({ hex, name: cname }) => (
                 <button
@@ -503,14 +503,14 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 onClick={() => setUseTimeWindow((v) => !v)}
                 className="btn-press flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                 style={{
-                  background: useTimeWindow ? 'rgba(34,197,94,0.18)' : 'rgba(255,255,255,0.06)',
-                  border: `1px solid ${useTimeWindow ? 'rgba(34,197,94,0.45)' : 'rgba(255,255,255,0.1)'}`,
-                  color: useTimeWindow ? '#6ee79f' : 'rgba(232,237,238,0.5)',
+                  background: useTimeWindow ? 'rgba(34,197,94,0.18)' : 'rgba(26,23,38,0.05)',
+                  border: `1px solid ${useTimeWindow ? 'rgba(34,197,94,0.45)' : 'rgba(26,23,38,0.1)'}`,
+                  color: useTimeWindow ? '#16a34a' : 'rgba(26,23,38,0.5)',
                 }}
               >
                 <span
                   className="w-3.5 h-3.5 rounded-full transition-all flex-shrink-0"
-                  style={{ background: useTimeWindow ? 'rgb(34,197,94)' : 'rgba(255,255,255,0.2)' }}
+                  style={{ background: useTimeWindow ? 'rgb(34,197,94)' : 'rgba(26,23,38,0.25)' }}
                 />
                 {useTimeWindow ? 'Açık' : 'Kapalı'}
               </button>
