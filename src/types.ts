@@ -92,6 +92,7 @@ export interface UserProfile {
 export interface PomodoroSettings {
   workDuration: number
   breakDuration: number
+  autoLoop?: boolean   // auto-start break after work and work after break (default: false → manual)
 }
 
 export interface Badge {

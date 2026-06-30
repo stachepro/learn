@@ -8,7 +8,9 @@ import { getHabitMode, getHabitGoal } from '../types'
 import { storage } from '../utils/storage'
 
 export const FREE_ID = '__free__'
-type TimerPhase = 'idle' | 'work' | 'break' | 'break-done'
+// 'work-done' = work finished, waiting for the user to start the break (manual mode)
+// 'break-done' = break finished, waiting for the user to start the next work round
+type TimerPhase = 'idle' | 'work' | 'work-done' | 'break' | 'break-done'
 
 interface PomodoroContextValue {
   activeHabitId: string | null
@@ -26,6 +28,7 @@ interface PomodoroContextValue {
   startPomodoro: (habitId: string) => void
   startFree: () => void
   pauseResume: () => void
+  startBreak: () => void
   skipBreak: () => void
   finishEarly: () => void
   stopTimer: () => void
@@ -51,6 +54,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   const [soundEnabled, setSoundEnabled] = useState(() => storage.getSoundEnabled())
 
   const settingsRef = useRef(pomodoroSettings)
+  const activeHabitIdRef = useRef<string | null>(null)
   const isBoostRef = useRef(false)
   const soundEnabledRef = useRef(soundEnabled)
   const todayLogRef = useRef(todayLog)
@@ -59,6 +63,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   const today = todayStr()
 
   useEffect(() => { settingsRef.current = pomodoroSettings }, [pomodoroSettings])
+  useEffect(() => { activeHabitIdRef.current = activeHabitId }, [activeHabitId])
   useEffect(() => { todayLogRef.current = todayLog }, [todayLog])
   useEffect(() => { isBoostRef.current = isBoostSession }, [isBoostSession])
   useEffect(() => { habitsRef.current = habits }, [habits])
@@ -86,8 +91,45 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null }
   }
 
+  const calcBoostAndSecs = (habitId: string): { boost: boolean; secs: number } => {
+    if (habitId === FREE_ID) return { boost: false, secs: settingsRef.current.workDuration * 60 }
+    const hl = todayLogRef.current.habits[habitId]
+    const boost = (hl?.boostMode ?? false) && !(hl?.boostUsed ?? false)
+    const secs = boost
+      ? Math.round(settingsRef.current.workDuration * 1.5) * 60
+      : settingsRef.current.workDuration * 60
+    return { boost, secs }
+  }
+
+  // Begin (or auto-begin) a work round for the active habit, recomputing boost/secs.
+  const beginWork = () => {
+    const id = activeHabitIdRef.current
+    if (!id) return
+    clearTick()
+    const { boost, secs } = calcBoostAndSecs(id)
+    setPhase('work')
+    setSecondsLeft(secs)
+    setTotalSeconds(secs)
+    setIsPaused(false)
+    setIsBoostSession(boost)
+    isBoostRef.current = boost
+  }
+
+  // Begin (or auto-begin) the break.
+  const beginBreak = () => {
+    clearTick()
+    const breakSecs = settingsRef.current.breakDuration * 60
+    setPhase('break')
+    setSecondsLeft(breakSecs)
+    setTotalSeconds(breakSecs)
+    setIsPaused(false)
+    setIsBoostSession(false)
+    isBoostRef.current = false
+  }
+
   const finishWork = useCallback((habitId: string) => {
-    if (soundEnabledRef.current) playBell()
+    // Work-end alert rings 3× in a row
+    if (soundEnabledRef.current) playBell(3)
     const boost = isBoostRef.current
     const workDuration = settingsRef.current.workDuration
     const session = {
@@ -118,22 +160,35 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     }
 
     setSessionCount((c) => c + 1)
-    const breakSecs = settingsRef.current.breakDuration * 60
-    setPhase('break')
-    setSecondsLeft(breakSecs)
-    setTotalSeconds(breakSecs)
     setIsPaused(false)
     setIsBoostSession(false)
     isBoostRef.current = false
+
+    if (settingsRef.current.autoLoop) {
+      // Auto mode: break starts immediately
+      const breakSecs = settingsRef.current.breakDuration * 60
+      setPhase('break')
+      setSecondsLeft(breakSecs)
+      setTotalSeconds(breakSecs)
+    } else {
+      // Manual mode: wait for the user to press "Mola Başlat"
+      setPhase('work-done')
+    }
   }, [addPomodoroSession, addFreeSession])
 
   const finishBreak = useCallback(() => {
     if (soundEnabledRef.current) playBell()
-    setPhase('break-done')
+    if (settingsRef.current.autoLoop) {
+      // Auto mode: next work round starts immediately
+      beginWork()
+    } else {
+      // Manual mode: wait for the user to press "Çalışmaya Başla"
+      setPhase('break-done')
+    }
   }, [])
 
   useEffect(() => {
-    if (phase === 'idle' || phase === 'break-done' || isPaused) { clearTick(); return }
+    if (phase === 'idle' || phase === 'work-done' || phase === 'break-done' || isPaused) { clearTick(); return }
     tickRef.current = setInterval(() => {
       setSecondsLeft((s) => {
         if (s <= 1) {
@@ -147,16 +202,6 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     }, 1000)
     return clearTick
   }, [phase, isPaused, activeHabitId, finishWork, finishBreak])
-
-  const calcBoostAndSecs = (habitId: string): { boost: boolean; secs: number } => {
-    if (habitId === FREE_ID) return { boost: false, secs: settingsRef.current.workDuration * 60 }
-    const hl = todayLogRef.current.habits[habitId]
-    const boost = (hl?.boostMode ?? false) && !(hl?.boostUsed ?? false)
-    const secs = boost
-      ? Math.round(settingsRef.current.workDuration * 1.5) * 60
-      : settingsRef.current.workDuration * 60
-    return { boost, secs }
-  }
 
   const launch = useCallback((habitId: string) => {
     clearTick()
@@ -183,6 +228,9 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
       return next
     })
   }, [])
+
+  // Manual "Mola Başlat" — start the break after a work round (from 'work-done')
+  const startBreak = useCallback(() => { beginBreak() }, [])
 
   const skipBreak = useCallback(() => {
     clearTick()
@@ -217,7 +265,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
       activeHabitId, phase, secondsLeft, totalSeconds, sessionCount,
       isVisible, isPaused, todayFocusSeconds, isFree, isBoostSession, isExtraSession,
       soundEnabled,
-      startPomodoro, startFree, pauseResume, skipBreak, finishEarly, stopTimer, toggleSound,
+      startPomodoro, startFree, pauseResume, startBreak, skipBreak, finishEarly, stopTimer, toggleSound,
       showBar: () => setIsVisible(true),
       hideBar: () => setIsVisible(false),
       displayTime: formatSeconds(secondsLeft),

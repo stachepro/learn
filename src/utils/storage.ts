@@ -58,7 +58,7 @@ export const storage = {
   setUserProfile: (profile: UserProfile) => write(KEYS.USER_PROFILE, profile),
 
   getPomodoroSettings: (): PomodoroSettings =>
-    read(KEYS.POMODORO_SETTINGS, { workDuration: 25, breakDuration: 5 }),
+    read(KEYS.POMODORO_SETTINGS, { workDuration: 25, breakDuration: 5, autoLoop: false }),
   setPomodoroSettings: (settings: PomodoroSettings) =>
     write(KEYS.POMODORO_SETTINGS, settings),
 

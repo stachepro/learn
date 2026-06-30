@@ -1,5 +1,11 @@
 import { useApp } from '../context/AppContext'
-import { dateStr, getDaysInMonth, getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS } from '../utils/date'
+import { getDaysInMonth, getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS } from '../utils/date'
+
+// Local YYYY-MM-DD key — avoids the UTC shift that toISOString() causes on
+// local-midnight Dates in timezones ahead of UTC.
+function ymd(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 // Green scale that reads on the light cream tile
 function completionColor(count: number): string {
@@ -19,10 +25,10 @@ export default function ContributionsGrid() {
 
   const daysInMonth = getDaysInMonth(year, month)
   const firstDay = getFirstDayOfMonth(year, month)
-  const todayKey = dateStr(now)
+  const todayKey = ymd(now)
 
   const getCount = (day: number): number => {
-    const key = dateStr(new Date(year, month, day))
+    const key = ymd(new Date(year, month, day))
     const log = logs[key]
     if (!log) return 0
     return Object.values(log.habits).filter((h) => h.completed).length
@@ -60,7 +66,7 @@ export default function ContributionsGrid() {
 
         {Array.from({ length: daysInMonth }).map((_, i) => {
           const day = i + 1
-          const key = dateStr(new Date(year, month, day))
+          const key = ymd(new Date(year, month, day))
           const count = getCount(day)
           const isFuture = key > todayKey
           const isToday = key === todayKey

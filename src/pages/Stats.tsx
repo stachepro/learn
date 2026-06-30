@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import ContributionsGrid from '../components/ContributionsGrid'
+import CategoryPie from '../components/CategoryPie'
 import { formatMinutes, trMonthName } from '../utils/date'
 
 export default function Stats() {
@@ -62,6 +63,14 @@ export default function Stats() {
             <p className="display text-2xl font-extrabold tnum">{pomCount} <span className="text-base font-bold">Pomodoro</span></p>
             <p className="text-[11px] mt-1 ink-45">Tamamlanan oturum</p>
           </div>
+        </div>
+      </div>
+
+      {/* Category distribution */}
+      <div>
+        <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>Kategori Dağılımı</p>
+        <div className="glass g-neutral p-5" style={{ borderRadius: 24 }}>
+          <CategoryPie />
         </div>
       </div>
     </div>

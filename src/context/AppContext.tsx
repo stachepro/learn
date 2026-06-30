@@ -128,7 +128,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const deleteHabit = useCallback((id: string) => {
     saveHabits(habits.filter((h) => h.id !== id))
-  }, [habits])
+    // Purge all per-day stats history for this habit so deletion is permanent
+    let touched = false
+    const newLogs: DailyLogs = {}
+    for (const [dateKey, day] of Object.entries(logs)) {
+      if (day.habits[id]) {
+        touched = true
+        const { [id]: _removed, ...rest } = day.habits
+        newLogs[dateKey] = { ...day, habits: rest }
+      } else {
+        newLogs[dateKey] = day
+      }
+    }
+    if (touched) {
+      saveLogs(newLogs)
+      saveProfile(syncProfile(newLogs, profile))
+    }
+  }, [habits, logs, profile])
 
   const editHabit = useCallback((id: string, name: string, emoji: string, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions, labelColor?: string) => {
     saveHabits(habits.map((h) => h.id === id ? {

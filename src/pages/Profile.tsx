@@ -10,11 +10,16 @@ export default function Profile() {
   const [nameInput, setNameInput] = useState(profile.username)
   const [workDur, setWorkDur] = useState(pomodoroSettings.workDuration)
   const [breakDur, setBreakDur] = useState(pomodoroSettings.breakDuration)
+  const [autoLoop, setAutoLoop] = useState(pomodoroSettings.autoLoop ?? false)
   const [saved, setSaved] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
-  useEffect(() => { setWorkDur(pomodoroSettings.workDuration); setBreakDur(pomodoroSettings.breakDuration) }, [pomodoroSettings])
+  useEffect(() => {
+    setWorkDur(pomodoroSettings.workDuration)
+    setBreakDur(pomodoroSettings.breakDuration)
+    setAutoLoop(pomodoroSettings.autoLoop ?? false)
+  }, [pomodoroSettings])
 
   const { current, needed, percentage } = expProgressInCurrentLevel(profile.totalExp)
   const allDays = Object.values(logs)
@@ -39,7 +44,7 @@ export default function Profile() {
     setEditingName(false)
   }
   const handleSavePomo = () => {
-    updatePomodoroSettings({ workDuration: workDur, breakDuration: breakDur })
+    updatePomodoroSettings({ workDuration: workDur, breakDuration: breakDur, autoLoop })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -164,6 +169,37 @@ export default function Profile() {
                 onChange={(e) => set(Number(e.target.value))} className="w-full" />
             </div>
           ))}
+
+          {/* Auto-loop toggle */}
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <div className="min-w-0">
+              <p className="text-sm font-medium ink-60">Otomatik Döngü</p>
+              <p className="text-[11px] mt-0.5" style={{ color: 'rgba(26,23,38,0.45)' }}>
+                {autoLoop
+                  ? 'Mola ve çalışma turları otomatik başlar'
+                  : 'Her tur için manuel başlatma gerekir'}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={autoLoop}
+              aria-label="Otomatik Döngü"
+              onClick={() => setAutoLoop((v) => !v)}
+              className="btn-press relative flex-shrink-0 rounded-full transition-all"
+              style={{
+                width: 48, height: 28,
+                background: autoLoop ? 'rgb(34,197,94)' : 'rgba(26,23,38,0.18)',
+                boxShadow: autoLoop ? '0 0 10px rgba(34,197,94,0.45)' : 'none',
+              }}
+            >
+              <span
+                className="absolute top-1 rounded-full bg-white transition-all"
+                style={{ width: 20, height: 20, left: autoLoop ? 24 : 4 }}
+              />
+            </button>
+          </div>
+
           <button
             onClick={handleSavePomo}
             className="btn-ink btn-press px-5 py-2.5 text-sm"

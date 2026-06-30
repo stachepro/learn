@@ -11,8 +11,10 @@ import History from './pages/History'
 import Profile from './pages/Profile'
 import JustStart from './pages/JustStart'
 import Stats from './pages/Stats'
+import Pomodoro from './pages/Pomodoro'
+import HabitStats from './pages/HabitStats'
 
-const ROUTE_ORDER = ['/', '/habits', '/history', '/profile', '/just-start', '/stats']
+const ROUTE_ORDER = ['/', '/habits', '/history', '/profile', '/just-start', '/stats', '/pomodoro']
 
 function AnimatedOutlet() {
   const location = useLocation()
@@ -58,6 +60,8 @@ export default function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="just-start" element={<JustStart />} />
               <Route path="stats" element={<Stats />} />
+              <Route path="pomodoro" element={<Pomodoro />} />
+              <Route path="habit/:id/stats" element={<HabitStats />} />
             </Route>
           </Routes>
         </PomodoroProvider>

@@ -8,7 +8,7 @@ import { WEEKDAY_NAMES, WEEKDAY_FULL } from '../utils/habitSchedule'
 
 const EMOJIS_PER_PAGE = 50  // 5 rows × 10 cols — fixed grid, no size change
 
-const LABEL_COLORS = [
+export const LABEL_COLORS = [
   { hex: '#e15a3c', name: 'Mercan' },
   { hex: '#f59e0b', name: 'Turuncu' },
   { hex: '#eab308', name: 'Sarı' },
@@ -22,7 +22,7 @@ const LABEL_COLORS = [
 ]
 const TOTAL_PAGES = Math.ceil(EMOJI_LIST.length / EMOJIS_PER_PAGE)
 
-const TIME_OF_DAY_OPTS: { id: TimeOfDay; icon: string; label: string }[] = [
+export const TIME_OF_DAY_OPTS: { id: TimeOfDay; icon: string; label: string }[] = [
   { id: 'morning', icon: '☀️', label: 'Sabah' },
   { id: 'afternoon', icon: '🌤️', label: 'Öğle' },
   { id: 'evening', icon: '🌙', label: 'Akşam' },
@@ -44,6 +44,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
   const [newCatEmoji, setNewCatEmoji] = useState('🌟')
   const [showNewCat, setShowNewCat] = useState(false)
   const [emojiPage, setEmojiPage] = useState(0)
+  const [openPicker, setOpenPicker] = useState<'emoji' | 'category' | null>(null)
   const touchStartX = useRef(0)
   const [completionMode, setCompletionMode] = useState<CompletionMode>(
     editHabit ? getHabitMode(editHabit) : 'single'
@@ -96,6 +97,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
   while (pageEmojis.length < EMOJIS_PER_PAGE) pageEmojis.push(null)
 
   const supportsPomodoro = POMODORO_CATEGORY_IDS.has(categoryId)
+  const selectedCat = categories.find((c) => c.id === categoryId)
 
   // Reset pomodoro mode if category no longer supports it
   useEffect(() => {
@@ -170,11 +172,33 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
           {/* Emoji preview + picker */}
           <div>
             <p className={label}>Emoji</p>
-            {/* Emoji preview */}
-            <div className="glass g-cream w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-3">
-              {emoji}
-            </div>
+            {/* Collapsible trigger — shows selected emoji */}
+            <button
+              type="button"
+              onClick={() => setOpenPicker((p) => (p === 'emoji' ? null : 'emoji'))}
+              aria-expanded={openPicker === 'emoji'}
+              className="btn-press w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all"
+              style={{
+                background: openPicker === 'emoji' ? 'rgba(34,197,94,0.1)' : 'rgba(26,23,38,0.04)',
+                border: `1.5px solid ${openPicker === 'emoji' ? 'rgba(34,197,94,0.5)' : 'rgba(26,23,38,0.08)'}`,
+              }}
+            >
+              <span className="glass g-cream w-10 h-10 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                {emoji}
+              </span>
+              <span className="text-sm font-semibold flex-1 text-left" style={{ color: 'rgba(26,23,38,0.6)' }}>
+                {openPicker === 'emoji' ? 'Bir emoji seç' : 'Emojiyi değiştir'}
+              </span>
+              <span
+                className="text-xs transition-transform flex-shrink-0"
+                style={{ transform: openPicker === 'emoji' ? 'rotate(180deg)' : 'rotate(0deg)', color: 'rgba(26,23,38,0.4)' }}
+              >
+                ▼
+              </span>
+            </button>
 
+            {openPicker === 'emoji' && (
+            <div className="mt-3 animate-fade-up">
             {/* Page navigation */}
             <div className="flex items-center justify-between mb-2">
               <button
@@ -238,7 +262,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                   <button
                     key={`${emojiPage}-${idx}`}
                     type="button"
-                    onClick={() => setEmoji(e)}
+                    onClick={() => { setEmoji(e); setOpenPicker(null) }}
                     className="btn-press w-8 h-8 flex items-center justify-center text-[18px] rounded-xl transition-all"
                     style={emoji === e ? { background: 'rgba(34,197,94,0.22)', boxShadow: '0 0 0 1.5px rgba(34,197,94,0.7)' } : undefined}
                   >
@@ -249,6 +273,8 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 ),
               )}
             </div>
+            </div>
+            )}
           </div>
 
           {/* Name input */}
@@ -267,7 +293,44 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
           {/* Category */}
           <div>
             <p className={label}>Kategori</p>
-            <div className="grid grid-cols-3 gap-2">
+            {/* Collapsible trigger — shows selected category */}
+            <button
+              type="button"
+              onClick={() => setOpenPicker((p) => (p === 'category' ? null : 'category'))}
+              aria-expanded={openPicker === 'category'}
+              className="btn-press w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all"
+              style={{
+                background: openPicker === 'category' ? 'rgba(34,197,94,0.1)' : 'rgba(26,23,38,0.04)',
+                border: `1.5px solid ${openPicker === 'category' ? 'rgba(34,197,94,0.5)' : 'rgba(26,23,38,0.08)'}`,
+              }}
+            >
+              {selectedCat ? (
+                (() => {
+                  const c = getCategoryColor(selectedCat.color)
+                  return (
+                    <>
+                      <span className="text-lg flex-shrink-0">{selectedCat.emoji}</span>
+                      <span className="text-sm font-semibold flex-1 text-left truncate" style={{ color: c.text }}>
+                        {selectedCat.name}
+                      </span>
+                    </>
+                  )
+                })()
+              ) : (
+                <span className="text-sm font-semibold flex-1 text-left" style={{ color: 'rgba(26,23,38,0.6)' }}>
+                  Kategori Seç
+                </span>
+              )}
+              <span
+                className="text-xs transition-transform flex-shrink-0"
+                style={{ transform: openPicker === 'category' ? 'rotate(180deg)' : 'rotate(0deg)', color: 'rgba(26,23,38,0.4)' }}
+              >
+                ▼
+              </span>
+            </button>
+
+            {openPicker === 'category' && (
+            <div className="grid grid-cols-3 gap-2 mt-3 animate-fade-up">
               {categories.map((cat) => {
                 const c = getCategoryColor(cat.color)
                 const sel = categoryId === cat.id
@@ -275,7 +338,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                   <button
                     key={cat.id}
                     type="button"
-                    onClick={() => setCategoryId(cat.id)}
+                    onClick={() => { setCategoryId(cat.id); setOpenPicker(null) }}
                     className="btn-press flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all text-left"
                     style={{
                       background: sel ? `${c.text}22` : 'rgba(26,23,38,0.05)',
@@ -289,6 +352,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 )
               })}
             </div>
+            )}
 
             {showNewCat && (
               <div className="well mt-3 p-3 rounded-2xl space-y-2 animate-fade-up">

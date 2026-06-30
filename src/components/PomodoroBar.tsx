@@ -7,7 +7,7 @@ export default function PomodoroBar() {
   const {
     activeHabitId, phase, secondsLeft, totalSeconds, sessionCount,
     isVisible, isPaused, isFree, soundEnabled,
-    pauseResume, skipBreak, stopTimer, startPomodoro, startFree, toggleSound,
+    pauseResume, startBreak, skipBreak, stopTimer, toggleSound,
     finishEarly,
   } = usePomodoro()
   const { habits } = useApp()
@@ -22,16 +22,12 @@ export default function PomodoroBar() {
   const habit = isFree ? null : habits.find((h) => h.id === activeHabitId)
   const isWork = phase === 'work'
   const isBreak = phase === 'break'
+  const isWorkDone = phase === 'work-done'
   const isDone = phase === 'break-done'
 
   const progress = totalSeconds > 0 ? ((totalSeconds - secondsLeft) / totalSeconds) * 100 : 0
   const fillColor = isWork ? '#f97316' : '#22c55e'
   const labelColor = isWork ? '#c2410c' : '#15803d'
-
-  const relaunch = () => {
-    if (isFree) startFree()
-    else if (activeHabitId) startPomodoro(activeHabitId)
-  }
 
   const iconBtn = 'btn-press w-9 h-9 rounded-xl flex items-center justify-center'
 
@@ -65,14 +61,14 @@ export default function PomodoroBar() {
               {isFree ? 'Serbest Çalışma' : (habit?.name ?? '')}
             </p>
             <p className="text-[10px] font-bold uppercase tracking-[0.16em] leading-tight mt-0.5" style={{ color: labelColor }}>
-              {isDone ? 'Mola Bitti' : isWork ? 'Odak' : 'Mola'} · {sessionCount} tamamlandı
+              {isWorkDone ? 'Çalışma Bitti' : isDone ? 'Mola Bitti' : isWork ? 'Odak' : 'Mola'} · {sessionCount} tamamlandı
             </p>
           </div>
         </div>
 
         {/* Center: time */}
-        <div className="flex-shrink-0 tnum text-2xl font-mono font-bold" style={{ color: isDone ? labelColor : '#1a1726' }}>
-          {isDone ? '✓' : formatSeconds(secondsLeft)}
+        <div className="flex-shrink-0 tnum text-2xl font-mono font-bold" style={{ color: (isWorkDone || isDone) ? labelColor : '#1a1726' }}>
+          {(isWorkDone || isDone) ? '✓' : formatSeconds(secondsLeft)}
         </div>
 
         {/* Controls */}
@@ -127,17 +123,27 @@ export default function PomodoroBar() {
                 </button>
               )}
 
-              {isDone && (
+              {isWorkDone && (
                 <button
-                  onClick={relaunch}
+                  onClick={startBreak}
                   className="btn-press h-9 px-4 rounded-xl text-xs font-bold"
-                  style={{ background: '#f97316', color: '#fff5f2' }}
+                  style={{ background: '#22c55e', color: '#06210f' }}
                 >
-                  Yeni Oturum
+                  Mola Başlat
                 </button>
               )}
 
-              {(isBreak || isDone) && (
+              {isDone && (
+                <button
+                  onClick={skipBreak}
+                  className="btn-press h-9 px-4 rounded-xl text-xs font-bold"
+                  style={{ background: '#f97316', color: '#fff5f2' }}
+                >
+                  Çalışmaya Başla
+                </button>
+              )}
+
+              {isBreak && (
                 <button
                   onClick={skipBreak}
                   aria-label="Molayı atla"

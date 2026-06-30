@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
-import { usePomodoro } from '../context/PomodoroContext'
 import HabitRow from '../components/HabitRow'
 import ExpBar from '../components/ExpBar'
 import AddHabitModal from '../components/AddHabitModal'
+import HabitCreateChooser from '../components/HabitCreateChooser'
+import PresetHabitsModal, { type PresetHabit } from '../components/PresetHabitsModal'
+import PresetCustomizeModal from '../components/PresetCustomizeModal'
 import { formatDisplayDate, formatMinutes, yesterdayStr } from '../utils/date'
 import { isHabitScheduledFor, getWindowStatus } from '../utils/habitSchedule'
 import type { HabitLog, TimeOfDay } from '../types'
@@ -22,8 +24,8 @@ const TIME_GROUPS: { id: TimeOfDay; label: string; icon: string }[] = [
 
 export default function Dashboard() {
   const { habits, profile, todayLog, logs, freeSessions } = useApp()
-  const { startFree, phase, isFree } = usePomodoro()
-  const [showAdd, setShowAdd] = useState(false)
+  const [createStep, setCreateStep] = useState<'chooser' | 'presets' | 'preset-customize' | 'form' | null>(null)
+  const [presetInitial, setPresetInitial] = useState<PresetHabit | null>(null)
   const [mounted, setMounted] = useState(false)
   const [now, setNow] = useState(() => new Date())
   const yesterday = yesterdayStr()
@@ -71,11 +73,30 @@ export default function Dashboard() {
   const vsYesterday = yesterdayWork === 0 ? null
     : Math.round(((todayWork - yesterdayWork) / yesterdayWork) * 100)
 
-  const freeRunning = phase !== 'idle' && isFree
-
   return (
     <>
-      {showAdd && <AddHabitModal onClose={() => setShowAdd(false)} />}
+      {createStep === 'chooser' && (
+        <HabitCreateChooser
+          onClose={() => setCreateStep(null)}
+          onPreset={() => setCreateStep('presets')}
+          onCreate={() => { setPresetInitial(null); setCreateStep('form') }}
+        />
+      )}
+      {createStep === 'presets' && (
+        <PresetHabitsModal
+          onClose={() => setCreateStep(null)}
+          onBack={() => setCreateStep('chooser')}
+          onSelect={(p) => { setPresetInitial(p); setCreateStep('preset-customize') }}
+        />
+      )}
+      {createStep === 'preset-customize' && presetInitial && (
+        <PresetCustomizeModal
+          preset={presetInitial}
+          onClose={() => { setCreateStep(null); setPresetInitial(null) }}
+          onBack={() => setCreateStep('presets')}
+        />
+      )}
+      {createStep === 'form' && <AddHabitModal onClose={() => setCreateStep(null)} />}
 
       <div className={`max-w-3xl mx-auto px-4 py-6 pb-36 sm:pb-24 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
         {/* Greeting */}
@@ -129,28 +150,18 @@ export default function Dashboard() {
           <h2 className="display text-lg font-extrabold" style={{ color: '#1a1726' }}>
             Bugün
           </h2>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={startFree}
-              disabled={freeRunning}
-              className="chip btn-press flex items-center gap-1.5 text-xs px-3.5 py-2"
-              style={freeRunning ? { background: '#e2503f', color: '#fff5f2', borderColor: 'transparent' } : undefined}
-            >
-              🧘 {freeRunning ? 'Çalışıyor' : 'Serbest'}
-            </button>
-            <button
-              onClick={() => setShowAdd(true)}
-              className="btn-ink btn-press flex items-center gap-1 text-xs px-4 py-2"
-            >
-              + Ekle
-            </button>
-          </div>
+          <button
+            onClick={() => setCreateStep('chooser')}
+            className="btn-ink btn-press flex items-center gap-1 text-xs px-4 py-2"
+          >
+            + Ekle
+          </button>
         </div>
 
         {/* Habit list */}
         {habits.length === 0 ? (
           <button
-            onClick={() => setShowAdd(true)}
+            onClick={() => setCreateStep('chooser')}
             className="glass g-neutral glass-lift btn-press w-full p-10 text-center"
             style={{ borderRadius: 24 }}
           >

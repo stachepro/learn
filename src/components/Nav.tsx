@@ -86,6 +86,16 @@ function IconClock({ size = 28, strokeWidth = 1.5, color = 'currentColor' }: Ico
   )
 }
 
+function IconTimer({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <line x1="10" y1="2" x2="14" y2="2" />
+      <line x1="12" y1="14" x2="15" y2="11" />
+      <circle cx="12" cy="14" r="8" />
+    </svg>
+  )
+}
+
 function IconChart({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -196,8 +206,26 @@ function HubModal({ onClose }: { onClose: () => void }) {
             </div>
           </button>
 
+          {/* Pomodoro tile — free, task-independent focus timer */}
+          <button
+            onClick={() => goTo('/pomodoro')}
+            className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40, background: '#fae4dd', border: '1px solid #f3c9bd' }}
+          >
+            <span
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(150deg, #fb923c, #ef4444)', boxShadow: '0 8px 20px -6px rgba(239,68,68,0.5)' }}
+            >
+              <IconTimer size={24} strokeWidth={2} color="#fff" />
+            </span>
+            <div className="text-center">
+              <p className="text-sm font-bold" style={{ color: '#a33418' }}>Pomodoro</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#c2562f' }}>Serbest odak</p>
+            </div>
+          </button>
+
           {/* Placeholders */}
-          {Array.from({ length: 4 }, (_, i) => (
+          {Array.from({ length: 3 }, (_, i) => (
             <div
               key={i}
               className="glass g-neutral flex flex-col items-center justify-center gap-3 rounded-2xl"
