@@ -19,9 +19,9 @@ interface AppContextValue {
   categories: Category[]
   todayLog: DayLog
   freeSessions: PomodoroSession[]
-  addHabit: (name: string, emoji: string, categoryId: string, mode?: CompletionMode, goal?: number, schedule?: ScheduleOptions) => void
+  addHabit: (name: string, emoji: string, categoryId: string, mode?: CompletionMode, goal?: number, schedule?: ScheduleOptions, labelColor?: string) => void
   deleteHabit: (id: string) => void
-  editHabit: (id: string, name: string, emoji: string, categoryId: string, mode?: CompletionMode, goal?: number, schedule?: ScheduleOptions) => void
+  editHabit: (id: string, name: string, emoji: string, categoryId: string, mode?: CompletionMode, goal?: number, schedule?: ScheduleOptions, labelColor?: string) => void
   incrementCompletion: (habitId: string) => void
   toggleHabitComplete: (habitId: string) => void
   addJustStartXP: (amount: number) => void
@@ -109,7 +109,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveProfile(syncProfile(logs, updated))
   }, [profile, logs])
 
-  const addHabit = useCallback((name: string, emoji: string, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions) => {
+  const addHabit = useCallback((name: string, emoji: string, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions, labelColor?: string) => {
     const today = todayStr()
     const h: Habit = {
       id: crypto.randomUUID(), name: name.trim(), emoji, categoryId,
@@ -120,6 +120,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...(schedule?.recurrence ? { recurrence: schedule.recurrence } : {}),
       ...(schedule?.recurrenceDays?.length ? { recurrenceDays: schedule.recurrenceDays } : {}),
       ...(schedule?.timeWindow ? { timeWindow: schedule.timeWindow } : {}),
+      ...(labelColor ? { labelColor } : {}),
     }
     saveHabits([...habits, h])
   }, [habits])
@@ -128,7 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveHabits(habits.filter((h) => h.id !== id))
   }, [habits])
 
-  const editHabit = useCallback((id: string, name: string, emoji: string, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions) => {
+  const editHabit = useCallback((id: string, name: string, emoji: string, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions, labelColor?: string) => {
     saveHabits(habits.map((h) => h.id === id ? {
       ...h, name: name.trim(), emoji, categoryId,
       completionMode: mode,
@@ -138,6 +139,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       recurrence: schedule?.recurrence ?? h.recurrence,
       recurrenceDays: schedule?.recurrenceDays ?? h.recurrenceDays,
       timeWindow: schedule?.timeWindow !== undefined ? schedule.timeWindow : h.timeWindow,
+      labelColor: labelColor ?? undefined,
     } : h))
   }, [habits])
 

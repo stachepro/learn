@@ -7,6 +7,19 @@ import { getHabitMode, getHabitGoal } from '../types'
 import { WEEKDAY_NAMES, WEEKDAY_FULL } from '../utils/habitSchedule'
 
 const EMOJIS_PER_PAGE = 50  // 5 rows × 10 cols — fixed grid, no size change
+
+const LABEL_COLORS = [
+  { hex: '#e15a3c', name: 'Mercan' },
+  { hex: '#f59e0b', name: 'Turuncu' },
+  { hex: '#eab308', name: 'Sarı' },
+  { hex: '#22c55e', name: 'Yeşil' },
+  { hex: '#2dd4bf', name: 'Teal' },
+  { hex: '#3b82f6', name: 'Mavi' },
+  { hex: '#6366f1', name: 'Indigo' },
+  { hex: '#8b5cf6', name: 'Mor' },
+  { hex: '#ec4899', name: 'Pembe' },
+  { hex: '#f43f5e', name: 'Kırmızı' },
+]
 const TOTAL_PAGES = Math.ceil(EMOJI_LIST.length / EMOJIS_PER_PAGE)
 
 interface Props {
@@ -40,6 +53,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
   const [useTimeWindow, setUseTimeWindow] = useState(!!editHabit?.timeWindow)
   const [windowStart, setWindowStart] = useState(editHabit?.timeWindow?.start ?? '09:00')
   const [windowEnd, setWindowEnd] = useState(editHabit?.timeWindow?.end ?? '22:00')
+  const [labelColor, setLabelColor] = useState(editHabit?.labelColor ?? '')
 
   // The weekday on which a 'weekly' habit will repeat (based on today for new, or createdDate for edit)
   const weeklyDay = editHabit?.createdDate
@@ -90,8 +104,8 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
       recurrenceDays: recurrence === 'custom' ? recurrenceDays : undefined,
       timeWindow: useTimeWindow ? { start: windowStart, end: windowEnd } : undefined,
     }
-    if (editHabit) saveEdit(editHabit.id, name, emoji, categoryId, effectiveMode, goal, schedule)
-    else addHabit(name, emoji, categoryId, effectiveMode, goal, schedule)
+    if (editHabit) saveEdit(editHabit.id, name, emoji, categoryId, effectiveMode, goal, schedule, labelColor || undefined)
+    else addHabit(name, emoji, categoryId, effectiveMode, goal, schedule, labelColor || undefined)
     handleClose()
   }
 
@@ -437,6 +451,46 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                   </p>
                 )}
               </div>
+            )}
+          </div>
+
+          {/* Label color */}
+          <div>
+            <p className={label}>Renk Etiketi</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* No color option */}
+              <button
+                type="button"
+                onClick={() => setLabelColor('')}
+                className="btn-press w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                title="Renksiz"
+                style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  border: `2px solid ${!labelColor ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.15)'}`,
+                }}
+              >
+                <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>✕</span>
+              </button>
+              {LABEL_COLORS.map(({ hex, name: cname }) => (
+                <button
+                  key={hex}
+                  type="button"
+                  onClick={() => setLabelColor(hex)}
+                  title={cname}
+                  className="btn-press w-8 h-8 rounded-full flex-shrink-0"
+                  style={{
+                    background: hex,
+                    border: `2.5px solid ${labelColor === hex ? '#fff' : 'transparent'}`,
+                    boxShadow: labelColor === hex ? `0 0 0 1px rgba(0,0,0,0.4), 0 0 12px ${hex}88` : `0 0 8px ${hex}44`,
+                    opacity: labelColor === hex ? 1 : 0.75,
+                  }}
+                />
+              ))}
+            </div>
+            {labelColor && (
+              <p className="text-[11px] ink-45 mt-2">
+                Alışkanlık kutucuğu ortasından <span style={{ color: labelColor, fontWeight: 700 }}>{LABEL_COLORS.find(c => c.hex === labelColor)?.name ?? ''}</span> rengiyle parlayacak
+              </p>
             )}
           </div>
 

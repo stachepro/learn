@@ -46,7 +46,7 @@ export default function PomodoroAmbience() {
   if (phase !== 'work') return null
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-20" aria-hidden>
+    <div className="fixed inset-0 pointer-events-none z-[2]" aria-hidden>
       <div className="absolute inset-0 pom-edge-glow" />
       {PARTICLES.map((p, i) => <div key={i} style={particleStyle(p)} />)}
     </div>

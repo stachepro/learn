@@ -24,6 +24,7 @@ export interface Habit {
   createdDate?: string               // YYYY-MM-DD; for 'once' and 'weekly' recurrence
   completionMode?: CompletionMode
   completionGoal?: number            // target count for 'multi'; pomodoro count for 'pomodoro'
+  labelColor?: string                // hex color for card radial glow, e.g. '#22c55e'
   // Legacy fields — kept for backward compatibility
   pomodoroEnabled?: boolean
   pomodoroGoal?: number
