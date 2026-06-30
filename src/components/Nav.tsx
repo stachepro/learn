@@ -86,6 +86,17 @@ function IconClock({ size = 28, strokeWidth = 1.5, color = 'currentColor' }: Ico
   )
 }
 
+function IconChart({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3v18h18" />
+      <rect x="7" y="12" width="3" height="5" rx="0.5" />
+      <rect x="12" y="8" width="3" height="9" rx="0.5" />
+      <rect x="17" y="5" width="3" height="12" rx="0.5" />
+    </svg>
+  )
+}
+
 /* ── Route config ── */
 const links = [
   { to: '/', label: 'Bugün' },
@@ -167,8 +178,26 @@ function HubModal({ onClose }: { onClose: () => void }) {
             </div>
           </button>
 
+          {/* İstatistikler tile */}
+          <button
+            onClick={() => goTo('/stats')}
+            className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40, background: '#e6f0fb', border: '1px solid #c5ddf6' }}
+          >
+            <span
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(150deg, #60a5fa, #2563eb)', boxShadow: '0 8px 20px -6px rgba(37,99,235,0.55)' }}
+            >
+              <IconChart size={24} strokeWidth={2} color="#fff" />
+            </span>
+            <div className="text-center">
+              <p className="text-sm font-bold" style={{ color: '#0c447c' }}>İstatistikler</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#3f7bc0' }}>Aylık özet</p>
+            </div>
+          </button>
+
           {/* Placeholders */}
-          {Array.from({ length: 5 }, (_, i) => (
+          {Array.from({ length: 4 }, (_, i) => (
             <div
               key={i}
               className="glass g-neutral flex flex-col items-center justify-center gap-3 rounded-2xl"

@@ -4,7 +4,6 @@ import { usePomodoro } from '../context/PomodoroContext'
 import HabitRow from '../components/HabitRow'
 import ExpBar from '../components/ExpBar'
 import AddHabitModal from '../components/AddHabitModal'
-import ContributionsGrid from '../components/ContributionsGrid'
 import { formatDisplayDate, formatMinutes, yesterdayStr } from '../utils/date'
 import { isHabitScheduledFor, getWindowStatus } from '../utils/habitSchedule'
 import type { HabitLog } from '../types'
@@ -211,10 +210,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Contributions */}
-        <div className="glass g-neutral p-5" style={{ borderRadius: 24 }}>
-          <ContributionsGrid />
-        </div>
       </div>
     </>
   )
