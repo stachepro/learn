@@ -127,7 +127,7 @@ function HubModal({ onClose }: { onClose: () => void }) {
     <div
       className={`fixed top-16 inset-x-0 bottom-[4.5rem] sm:bottom-0 z-[35] flex flex-col ${exiting ? 'animate-hub-close' : 'animate-hub-open'}`}
       style={{
-        background: 'rgba(12,13,15,0.97)',
+        background: 'rgba(251,247,240,0.97)',
         backdropFilter: 'blur(24px) saturate(150%)',
         WebkitBackdropFilter: 'blur(24px) saturate(150%)',
       }}
@@ -135,17 +135,17 @@ function HubModal({ onClose }: { onClose: () => void }) {
       {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-4"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+        style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}
       >
         <div>
-          <h2 className="display text-xl font-bold" style={{ color: '#f1f5f5' }}>Hub</h2>
-          <p className="text-xs mt-0.5" style={{ color: 'rgba(241,245,245,0.4)' }}>Hızlı erişim</p>
+          <h2 className="display text-xl font-bold" style={{ color: '#1a1726' }}>Hub</h2>
+          <p className="text-xs mt-0.5" style={{ color: 'rgba(26,23,38,0.45)' }}>Hızlı erişim</p>
         </div>
         <button
           onClick={handleClose}
           className="ctrl btn-press w-9 h-9 rounded-full flex items-center justify-center"
         >
-          <IconX color="rgba(241,245,245,0.7)" />
+          <IconX color="rgba(26,23,38,0.7)" />
         </button>
       </div>
 
@@ -154,16 +154,16 @@ function HubModal({ onClose }: { onClose: () => void }) {
           {/* Just Start tile — energetic flagship */}
           <button
             onClick={() => goTo('/just-start')}
-            className="btn-press glass g-flame tile-press flame-glow flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40 }}
+            className="btn-press tile-press flame-glow flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40, background: '#faecd6', border: '1px solid #f3dcb0' }}
           >
             <span
               className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
               style={{ background: 'linear-gradient(150deg, #fbbf24, #f97316)', boxShadow: '0 8px 20px -6px rgba(249,115,22,0.6)' }}
             >⚡</span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#f1f5f5' }}>Just Start</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: 'rgba(251,191,36,0.75)' }}>1→115 dk momentum</p>
+              <p className="text-sm font-bold" style={{ color: '#7a3d08' }}>Just Start</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#b87520' }}>1→115 dk momentum</p>
             </div>
           </button>
 
@@ -172,10 +172,10 @@ function HubModal({ onClose }: { onClose: () => void }) {
             <div
               key={i}
               className="glass g-neutral flex flex-col items-center justify-center gap-3 rounded-2xl"
-              style={{ paddingTop: 40, paddingBottom: 40, opacity: 0.38 }}
+              style={{ paddingTop: 40, paddingBottom: 40, opacity: 0.55 }}
             >
-              <IconClock color="rgba(241,245,245,0.5)" />
-              <span className="text-xs font-semibold tracking-wide" style={{ color: 'rgba(241,245,245,0.45)' }}>
+              <IconClock color="rgba(26,23,38,0.4)" />
+              <span className="text-xs font-semibold tracking-wide" style={{ color: 'rgba(26,23,38,0.4)' }}>
                 Yakında
               </span>
             </div>
@@ -197,24 +197,24 @@ export default function Nav() {
     <>
       {showHub && <HubModal onClose={() => setShowHub(false)} />}
 
-      {/* Top nav — dark frosted rail */}
+      {/* Top nav — light frosted rail */}
       <nav
         className="sticky top-0 z-40"
         style={{
-          background: 'rgba(10,11,12,0.72)',
+          background: 'rgba(251,247,240,0.82)',
           backdropFilter: 'blur(20px) saturate(140%)',
           WebkitBackdropFilter: 'blur(20px) saturate(140%)',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 6px 22px -12px rgba(0,0,0,0.7)',
+          borderBottom: '1px solid rgba(26,23,38,0.08)',
+          boxShadow: '0 6px 22px -16px rgba(26,23,38,0.4)',
         }}
       >
         <div className="max-w-3xl mx-auto px-4 flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="glass g-lime w-9 h-9 rounded-2xl flex items-center justify-center ring-pulse">
-              <span className="display text-[17px] font-extrabold acc">L</span>
+            <div className="w-9 h-9 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(150deg, #fbbf24, #f97316)', boxShadow: '0 6px 14px -6px rgba(249,115,22,0.55)' }}>
+              <span className="display text-[17px] font-black" style={{ color: '#2a1402' }}>L</span>
             </div>
-            <span className="display font-extrabold text-[19px] tracking-tight" style={{ color: '#f1f5f5' }}>
+            <span className="display font-extrabold text-[19px] tracking-tight" style={{ color: '#1a1726' }}>
               Luupi
             </span>
           </div>
@@ -232,8 +232,8 @@ export default function Nav() {
                 }
                 style={({ isActive }) =>
                   isActive
-                    ? { background: 'rgba(34,197,94,0.16)', color: '#6ee79f', boxShadow: 'inset 0 0 0 1px rgba(34,197,94,0.4)' }
-                    : { color: 'rgba(241,245,245,0.62)' }
+                    ? { background: '#faecd6', color: '#9a4d0a', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }
+                    : { color: 'rgba(26,23,38,0.55)' }
                 }
               >
                 {label}
@@ -245,15 +245,13 @@ export default function Nav() {
               title="Hub"
               className="btn-press w-8 h-8 rounded-full flex items-center justify-center mx-0.5"
               style={{
-                background: showHub
-                  ? 'linear-gradient(135deg, rgba(34,197,94,1), rgba(22,163,74,0.95))'
-                  : 'linear-gradient(135deg, rgba(34,197,94,0.85), rgba(22,163,74,0.78))',
+                background: 'linear-gradient(135deg, #fbbf24, #f97316)',
                 boxShadow: showHub
-                  ? '0 0 20px rgba(34,197,94,0.55)'
-                  : '0 0 14px rgba(34,197,94,0.3)',
+                  ? '0 4px 16px -4px rgba(249,115,22,0.7)'
+                  : '0 4px 12px -5px rgba(249,115,22,0.5)',
               }}
             >
-              <IconLayoutGrid size={15} strokeWidth={2} color="#fff" />
+              <IconLayoutGrid size={15} strokeWidth={2.2} color="#2a1402" />
             </button>
 
             {links.slice(2).map(({ to, label }) => (
@@ -267,8 +265,8 @@ export default function Nav() {
                 }
                 style={({ isActive }) =>
                   isActive
-                    ? { background: 'rgba(34,197,94,0.16)', color: '#6ee79f', boxShadow: 'inset 0 0 0 1px rgba(34,197,94,0.4)' }
-                    : { color: 'rgba(241,245,245,0.62)' }
+                    ? { background: '#faecd6', color: '#9a4d0a', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }
+                    : { color: 'rgba(26,23,38,0.55)' }
                 }
               >
                 {label}
@@ -283,11 +281,11 @@ export default function Nav() {
               className="btn-press flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-full"
               style={
                 timerActive
-                  ? { background: '#ffffff', color: '#111827', boxShadow: '0 2px 10px rgba(255,255,255,0.18)' }
-                  : { background: 'rgba(255,255,255,0.08)', color: '#dfe6e7', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.1)' }
+                  ? { background: '#1a1726', color: '#fbf7f0', boxShadow: '0 4px 12px -6px rgba(26,23,38,0.5)' }
+                  : { background: 'rgba(26,23,38,0.06)', color: '#4a4658', boxShadow: 'inset 0 0 0 1px rgba(26,23,38,0.08)' }
               }
             >
-              {timerActive && <span className="w-1.5 h-1.5 rounded-full bg-white animate-live" />}
+              {timerActive && <span className="w-1.5 h-1.5 rounded-full animate-live" style={{ background: '#fbbf24' }} />}
               Odak {fmtFocus(todayFocusSeconds)}
             </button>
           ) : (
@@ -300,11 +298,11 @@ export default function Nav() {
       <div
         className="sm:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center"
         style={{
-          background: 'rgba(12,13,15,0.92)',
+          background: 'rgba(251,247,240,0.94)',
           backdropFilter: 'blur(24px) saturate(150%)',
           WebkitBackdropFilter: 'blur(24px) saturate(150%)',
-          borderTop: '1px solid rgba(255,255,255,0.09)',
-          boxShadow: '0 -10px 30px -12px rgba(0,0,0,0.8)',
+          borderTop: '1px solid rgba(26,23,38,0.08)',
+          boxShadow: '0 -10px 30px -16px rgba(26,23,38,0.35)',
           paddingTop: 8,
           paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
         }}
@@ -322,12 +320,12 @@ export default function Nav() {
               <>
                 <Icon
                   size={22}
-                  strokeWidth={isActive ? 2.2 : 1.6}
-                  color={isActive ? '#6ee79f' : 'rgba(241,245,245,0.35)'}
+                  strokeWidth={isActive ? 2.4 : 1.7}
+                  color={isActive ? '#e8730f' : 'rgba(26,23,38,0.4)'}
                 />
                 <span
                   className="text-[10px] font-semibold tracking-wide"
-                  style={{ color: isActive ? '#6ee79f' : 'rgba(241,245,245,0.35)' }}
+                  style={{ color: isActive ? '#c25e0c' : 'rgba(26,23,38,0.42)' }}
                 >
                   {label}
                 </span>
@@ -342,15 +340,13 @@ export default function Nav() {
             onClick={() => setShowHub(v => !v)}
             className="btn-press w-12 h-12 rounded-full flex items-center justify-center"
             style={{
-              background: showHub
-                ? 'linear-gradient(135deg, rgba(34,197,94,1), rgba(22,163,74,0.95))'
-                : 'linear-gradient(135deg, rgba(34,197,94,0.95), rgba(22,163,74,0.88))',
+              background: 'linear-gradient(135deg, #fbbf24, #f97316)',
               boxShadow: showHub
-                ? '0 0 28px rgba(34,197,94,0.7), 0 4px 14px rgba(0,0,0,0.45)'
-                : '0 0 22px rgba(34,197,94,0.45), 0 4px 14px rgba(0,0,0,0.45)',
+                ? '0 6px 22px -4px rgba(249,115,22,0.7), 0 4px 12px -4px rgba(26,23,38,0.25)'
+                : '0 6px 18px -6px rgba(249,115,22,0.6), 0 4px 12px -6px rgba(26,23,38,0.2)',
             }}
           >
-            <IconLayoutGrid size={20} strokeWidth={2} color="#fff" />
+            <IconLayoutGrid size={20} strokeWidth={2.3} color="#2a1402" />
           </button>
         </div>
 
@@ -367,12 +363,12 @@ export default function Nav() {
               <>
                 <Icon
                   size={22}
-                  strokeWidth={isActive ? 2.2 : 1.6}
-                  color={isActive ? '#6ee79f' : 'rgba(241,245,245,0.35)'}
+                  strokeWidth={isActive ? 2.4 : 1.7}
+                  color={isActive ? '#e8730f' : 'rgba(26,23,38,0.4)'}
                 />
                 <span
                   className="text-[10px] font-semibold tracking-wide"
-                  style={{ color: isActive ? '#6ee79f' : 'rgba(241,245,245,0.35)' }}
+                  style={{ color: isActive ? '#c25e0c' : 'rgba(26,23,38,0.42)' }}
                 >
                   {label}
                 </span>

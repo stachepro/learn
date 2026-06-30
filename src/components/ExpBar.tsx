@@ -4,9 +4,10 @@ interface Props {
   totalExp: number
   level: number
   compact?: boolean
+  tiny?: boolean
 }
 
-export default function ExpBar({ totalExp, level, compact }: Props) {
+export default function ExpBar({ totalExp, level, compact, tiny }: Props) {
   const { current, needed, percentage } = expProgressInCurrentLevel(totalExp)
 
   const Bar = ({ h }: { h: number }) => (
@@ -17,6 +18,10 @@ export default function ExpBar({ totalExp, level, compact }: Props) {
       />
     </div>
   )
+
+  if (tiny) {
+    return <Bar h={5} />
+  }
 
   if (compact) {
     return (
