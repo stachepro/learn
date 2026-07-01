@@ -101,3 +101,21 @@ export interface Badge {
   description: string
   condition: string
 }
+
+export type NoRushStageStatus = 'pending' | 'running' | 'done'
+
+export interface NoRushStage {
+  id: string
+  text: string
+  status: NoRushStageStatus
+  elapsedSeconds: number     // banked time from previous run(s)
+  startedAt: number | null   // epoch ms of current run start, when status === 'running'
+}
+
+export interface NoRushRecord {
+  id: string
+  title: string
+  stageCount: number
+  totalSeconds: number
+  completedAt: string
+}

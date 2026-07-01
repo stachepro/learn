@@ -96,6 +96,18 @@ function IconTimer({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: Ico
   )
 }
 
+function IconCoffee({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+      <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+      <line x1="6" y1="2" x2="6" y2="4" />
+      <line x1="10" y1="2" x2="10" y2="4" />
+      <line x1="14" y1="2" x2="14" y2="4" />
+    </svg>
+  )
+}
+
 function IconChart({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -224,8 +236,26 @@ function HubModal({ onClose }: { onClose: () => void }) {
             </div>
           </button>
 
+          {/* Acele Yok tile — break big tasks into paced stages */}
+          <button
+            onClick={() => goTo('/acele-yok')}
+            className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40, background: '#efe7db', border: '1px solid #ddccb0' }}
+          >
+            <span
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(150deg, #a8846a, #6b4a35)', boxShadow: '0 8px 20px -6px rgba(107,74,53,0.5)' }}
+            >
+              <IconCoffee size={24} strokeWidth={2} color="#fff" />
+            </span>
+            <div className="text-center">
+              <p className="text-sm font-bold" style={{ color: '#4a3220' }}>Acele Yok</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#8a6a4d' }}>Adım adım ilerle</p>
+            </div>
+          </button>
+
           {/* Placeholders */}
-          {Array.from({ length: 3 }, (_, i) => (
+          {Array.from({ length: 2 }, (_, i) => (
             <div
               key={i}
               className="glass g-neutral flex flex-col items-center justify-center gap-3 rounded-2xl"

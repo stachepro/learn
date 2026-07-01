@@ -1,4 +1,4 @@
-import type { Habit, DailyLogs, UserProfile, PomodoroSettings, Category, PomodoroSession } from '../types'
+import type { Habit, DailyLogs, UserProfile, PomodoroSettings, Category, PomodoroSession, NoRushRecord } from '../types'
 import { DEFAULT_CATEGORIES } from './categories'
 
 const KEYS = {
@@ -9,6 +9,7 @@ const KEYS = {
   CATEGORIES: 'luupi_categories',
   FREE_SESSIONS: 'luupi_free_sessions',
   SOUND_ENABLED: 'luupi_sound_enabled',
+  NO_RUSH_HISTORY: 'luupi_no_rush_history',
 } as const
 
 function read<T>(key: string, fallback: T): T {
@@ -87,5 +88,11 @@ export const storage = {
   },
   setSoundEnabled: (on: boolean): void => {
     try { localStorage.setItem(KEYS.SOUND_ENABLED, on ? 'true' : 'false') } catch { /* ignore */ }
+  },
+
+  getNoRushHistory: (): NoRushRecord[] => read(KEYS.NO_RUSH_HISTORY, []),
+  addNoRushRecord: (record: NoRushRecord) => {
+    const existing = read<NoRushRecord[]>(KEYS.NO_RUSH_HISTORY, [])
+    write(KEYS.NO_RUSH_HISTORY, [record, ...existing])
   },
 }

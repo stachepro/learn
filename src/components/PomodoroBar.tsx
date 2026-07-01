@@ -73,7 +73,7 @@ export default function PomodoroBar() {
 
         {/* Controls */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          {confirmEarly ? (
+          {confirmEarly && !isFree ? (
             <>
               <span className="text-xs font-semibold hidden sm:block" style={{ color: 'rgba(26,23,38,0.55)' }}>
                 Emin misin?
@@ -107,7 +107,7 @@ export default function PomodoroBar() {
                 </button>
               )}
 
-              {isWork && (
+              {isWork && !isFree && (
                 <button
                   onClick={() => setConfirmEarly(true)}
                   aria-label="Erken Bitir"

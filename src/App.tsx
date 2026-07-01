@@ -13,8 +13,9 @@ import JustStart from './pages/JustStart'
 import Stats from './pages/Stats'
 import Pomodoro from './pages/Pomodoro'
 import HabitStats from './pages/HabitStats'
+import NoRush from './pages/NoRush'
 
-const ROUTE_ORDER = ['/', '/habits', '/history', '/profile', '/just-start', '/stats', '/pomodoro']
+const ROUTE_ORDER = ['/', '/habits', '/history', '/profile', '/just-start', '/stats', '/pomodoro', '/acele-yok']
 
 function AnimatedOutlet() {
   const location = useLocation()
@@ -61,6 +62,7 @@ export default function App() {
               <Route path="just-start" element={<JustStart />} />
               <Route path="stats" element={<Stats />} />
               <Route path="pomodoro" element={<Pomodoro />} />
+              <Route path="acele-yok" element={<NoRush />} />
               <Route path="habit/:id/stats" element={<HabitStats />} />
             </Route>
           </Routes>

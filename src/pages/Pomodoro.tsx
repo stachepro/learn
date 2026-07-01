@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import { usePomodoro } from '../context/PomodoroContext'
 import { todayStr, formatSeconds } from '../utils/date'
@@ -8,12 +7,8 @@ export default function Pomodoro() {
   const {
     phase, secondsLeft, totalSeconds, sessionCount,
     isPaused, isFree, soundEnabled,
-    startFree, pauseResume, startBreak, skipBreak, stopTimer, finishEarly, toggleSound,
+    startFree, pauseResume, startBreak, skipBreak, stopTimer, toggleSound,
   } = usePomodoro()
-  const [confirmEarly, setConfirmEarly] = useState(false)
-
-  // Reset confirmation when phase changes
-  useEffect(() => { setConfirmEarly(false) }, [phase])
 
   // A non-free habit Pomodoro is occupying the shared timer
   const otherActive = phase !== 'idle' && !isFree
@@ -178,39 +173,6 @@ export default function Pomodoro() {
               >
                 Çalışmaya Başla
               </button>
-            )}
-
-            {/* Early finish (work only) */}
-            {isWork && (
-              confirmEarly ? (
-                <div className="flex gap-2 items-center animate-fade-up">
-                  <button
-                    onClick={() => { finishEarly(); setConfirmEarly(false) }}
-                    className="btn-press flex-1 py-3 rounded-2xl text-sm font-bold"
-                    style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
-                  >
-                    Evet, Tamamla
-                  </button>
-                  <button
-                    onClick={() => setConfirmEarly(false)}
-                    className="ctrl btn-press px-4 py-3 rounded-2xl text-xs font-semibold flex-shrink-0"
-                  >
-                    Vazgeç
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setConfirmEarly(true)}
-                  className="btn-press w-full py-3 rounded-2xl text-xs font-bold"
-                  style={{
-                    background: 'rgba(34,197,94,0.16)',
-                    color: '#15803d',
-                    boxShadow: 'inset 0 0 0 1px rgba(34,197,94,0.4)',
-                  }}
-                >
-                  ✓ Erken Bitir
-                </button>
-              )
             )}
 
             {/* Secondary row: sound + cancel */}
