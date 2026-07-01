@@ -26,7 +26,7 @@ export const TIME_OF_DAY_OPTS: { id: TimeOfDay; icon: string; label: string }[] 
   { id: 'morning', icon: '☀️', label: 'Sabah' },
   { id: 'afternoon', icon: '🌤️', label: 'Öğle' },
   { id: 'evening', icon: '🌙', label: 'Akşam' },
-  { id: 'any', icon: '🕐', label: 'Herhangi' },
+  { id: 'any', icon: '🕐', label: 'Gün içinde' },
 ]
 
 interface Props {
@@ -61,7 +61,11 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
   const [useTimeWindow, setUseTimeWindow] = useState(!!editHabit?.timeWindow)
   const [windowStart, setWindowStart] = useState(editHabit?.timeWindow?.start ?? '09:00')
   const [windowEnd, setWindowEnd] = useState(editHabit?.timeWindow?.end ?? '22:00')
-  const [labelColor, setLabelColor] = useState(editHabit?.labelColor ?? '')
+  // New habits default to a random palette color (picked once on mount);
+  // editing preserves the habit's existing color (or "Renksiz").
+  const [labelColor, setLabelColor] = useState(() =>
+    editHabit ? (editHabit.labelColor ?? '') : LABEL_COLORS[Math.floor(Math.random() * LABEL_COLORS.length)].hex
+  )
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(editHabit?.timeOfDay ?? 'any')
 
   // The weekday on which a 'weekly' habit will repeat (based on today for new, or createdDate for edit)

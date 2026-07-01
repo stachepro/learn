@@ -19,7 +19,7 @@ const TIME_GROUPS: { id: TimeOfDay; label: string; icon: string }[] = [
   { id: 'morning', label: 'Sabah', icon: '☀️' },
   { id: 'afternoon', label: 'Öğle', icon: '🌤️' },
   { id: 'evening', label: 'Akşam', icon: '🌙' },
-  { id: 'any', label: 'Tümü', icon: '🕐' },
+  { id: 'any', label: 'Gün İçinde', icon: '🕐' },
 ]
 
 export default function Dashboard() {

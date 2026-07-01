@@ -21,7 +21,8 @@ export default function PresetCustomizeModal({ preset, onClose, onBack }: Props)
   const [recurrence, setRecurrence] = useState<RecurrenceType>('daily')
   const [recurrenceDays, setRecurrenceDays] = useState<number[]>([])
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('any')
-  const [labelColor, setLabelColor] = useState('')
+  // Default to a random palette color, picked once on mount
+  const [labelColor, setLabelColor] = useState(() => LABEL_COLORS[Math.floor(Math.random() * LABEL_COLORS.length)].hex)
 
   const cat = categories.find((c) => c.id === preset.categoryId)
   const colors = getCategoryColor(cat?.color ?? '#6b7280')
