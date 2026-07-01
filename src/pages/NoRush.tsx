@@ -205,7 +205,7 @@ function SummaryModal({ title, stages, totalSeconds, onClose }: {
 
 /* ── Stage card ── */
 function StageCard({
-  stage, index, onChangeText, onStart, onFinish, onUndo, onDragStart, onDragOver, onDrop, now,
+  stage, index, onChangeText, onStart, onFinish, onUndo, onDragStart, onDragOver, onDrop, now, disableStart,
 }: {
   stage: NoRushStage
   index: number
@@ -217,6 +217,7 @@ function StageCard({
   onDragOver: (e: React.DragEvent) => void
   onDrop: () => void
   now: number
+  disableStart: boolean
 }) {
   const isDone = stage.status === 'done'
   const isRunning = stage.status === 'running'
@@ -292,8 +293,13 @@ function StageCard({
       ) : (
         <button
           onClick={() => { playConfirm(); onStart() }}
-          className="btn-press px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0"
-          style={{ background: 'rgba(59,130,246,0.9)', color: '#fff' }}
+          disabled={disableStart}
+          title={disableStart ? 'Önce çalışan aşamayı bitir' : undefined}
+          className="btn-press px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 disabled:cursor-not-allowed"
+          style={{
+            background: disableStart ? 'rgba(26,23,38,0.07)' : 'rgba(59,130,246,0.9)',
+            color: disableStart ? 'rgba(26,23,38,0.32)' : '#fff',
+          }}
         >
           Başladım
         </button>
@@ -438,6 +444,7 @@ export default function NoRush() {
               onDragStart={() => handleDragStart(index)}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(index)}
+              disableStart={hasRunning && stage.status !== 'running'}
             />
           ))}
         </div>
