@@ -33,7 +33,7 @@ export default function PomodoroBar() {
 
   return (
     <div
-      className="animate-slide-bar fixed bottom-20 sm:bottom-0 left-0 right-0 z-30"
+      className="animate-slide-bar fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] sm:bottom-0 left-0 right-0 z-30"
       style={{
         background: 'rgba(251,247,240,0.96)',
         backdropFilter: 'blur(24px) saturate(150%)',

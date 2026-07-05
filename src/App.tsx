@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { AppProvider } from './context/AppContext'
 import { PomodoroProvider } from './context/PomodoroContext'
 import Nav from './components/Nav'
@@ -29,6 +29,10 @@ function AnimatedOutlet() {
     dirRef.current.prevPath = location.pathname
   }
 
+  useEffect(() => {
+    document.getElementById('app-scroll')?.scrollTo(0, 0)
+  }, [location.pathname])
+
   return (
     <main key={location.key} className={dirRef.current.cls}>
       <Outlet />
@@ -38,11 +42,23 @@ function AnimatedOutlet() {
 
 function Layout() {
   return (
-    <div className="min-h-screen relative">
+    <div className="h-full relative">
       <PomodoroAmbience />
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col h-full">
         <Nav />
-        <AnimatedOutlet />
+        {/* iOS çentik altı buzlu şerit — içerik kayarken durum çubuğu okunur kalır */}
+        <div
+          className="sm:hidden fixed top-0 inset-x-0 z-40 pointer-events-none"
+          style={{
+            height: 'env(safe-area-inset-top)',
+            background: 'rgba(251,247,240,0.82)',
+            backdropFilter: 'blur(20px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(140%)',
+          }}
+        />
+        <div id="app-scroll" className="app-scroll flex-1">
+          <AnimatedOutlet />
+        </div>
         <PomodoroBar />
       </div>
     </div>

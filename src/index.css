@@ -14,9 +14,19 @@
 html { scroll-behavior: smooth; }
 html { overflow-x: hidden; }
 
+/* Body kaydırmaz — kaydırma .app-scroll içinde yaşar. Böylece iOS
+   lastik-bant sekmesi nav/alt bar gibi sabit katmanları süreklemez. */
+html, body { height: 100%; }
+
 body {
   margin: 0;
-  min-height: 100svh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  /* Native his: yazılar seçilemez/kopyalanamaz, uzun basış menüsü çıkmaz */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
   color: #1a1726;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -24,10 +34,29 @@ body {
     radial-gradient(120% 80% at 50% -8%, rgba(249,115,22,0.05) 0%, transparent 42%),
     radial-gradient(90% 70% at 90% 4%, rgba(34,197,94,0.045) 0%, transparent 50%),
     #fbf7f0;
-  background-attachment: fixed;
 }
 
-#root { width: 100%; min-height: 100svh; }
+/* Form alanları seçilebilir kalmalı — yoksa yazı yazılamaz/düzeltilemez */
+input, textarea, [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+#root { width: 100%; height: 100%; }
+
+/* İç kaydırma alanı — tek scroller. Mobilde üst nav olmadığı için
+   içerik çentiğin altından başlar. */
+.app-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-top: env(safe-area-inset-top);
+}
+@media (min-width: 640px) {
+  .app-scroll { padding-top: 0; }
+}
 
 /* Display face for headings + big numbers — geometric, confident */
 .display {

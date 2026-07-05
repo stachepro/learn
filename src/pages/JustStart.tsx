@@ -267,7 +267,7 @@ export default function JustStart() {
 
       {/* Bottom action bar */}
       <div
-        className="fixed bottom-[4.5rem] sm:bottom-0 left-0 right-0 z-20 px-4 py-4"
+        className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] sm:bottom-0 left-0 right-0 z-20 px-4 py-4"
         style={{
           background: 'rgba(251,247,240,0.95)',
           backdropFilter: 'blur(20px)',

@@ -174,8 +174,9 @@ function HubModal({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <div
-      className={`fixed top-16 inset-x-0 bottom-[4.5rem] sm:bottom-0 z-[35] flex flex-col ${exiting ? 'animate-hub-close' : 'animate-hub-open'}`}
+      className={`fixed inset-x-0 top-0 sm:top-16 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] sm:bottom-0 z-[35] flex flex-col ${exiting ? 'animate-hub-close' : 'animate-hub-open'}`}
       style={{
+        paddingTop: 'env(safe-area-inset-top)',
         background: 'rgba(251,247,240,0.97)',
         backdropFilter: 'blur(24px) saturate(150%)',
         WebkitBackdropFilter: 'blur(24px) saturate(150%)',
@@ -315,10 +316,11 @@ export default function Nav() {
     <>
       {showHub && <HubModal onClose={() => setShowHub(false)} />}
 
-      {/* Top nav — light frosted rail */}
+      {/* Top nav — light frosted rail (desktop only; mobile is chrome-free) */}
       <nav
-        className="sticky top-0 z-40"
+        className="hidden sm:block sticky top-0 z-40"
         style={{
+          paddingTop: 'env(safe-area-inset-top)',
           background: 'rgba(251,247,240,0.82)',
           backdropFilter: 'blur(20px) saturate(140%)',
           WebkitBackdropFilter: 'blur(20px) saturate(140%)',
