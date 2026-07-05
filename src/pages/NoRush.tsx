@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { storage } from '../utils/storage'
 import { formatHMS } from '../utils/date'
+import BackBar from '../components/BackBar'
 import { playConfirm } from '../utils/sound'
 import type { NoRushStage, NoRushRecord } from '../types'
 
@@ -405,6 +406,7 @@ export default function NoRush() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-6 pb-40">
+      <BackBar />
       {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
       {showSummary && (
         <SummaryModal title={title} stages={stages} totalSeconds={totalSeconds} onClose={closeSummary} />

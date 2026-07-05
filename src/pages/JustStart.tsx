@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useApp } from '../context/AppContext'
 import { usePomodoro } from '../context/PomodoroContext'
 import { playBell } from '../utils/sound'
+import { todayStr } from '../utils/date'
+import BackBar from '../components/BackBar'
 
 const STEPS = [1, 2, 3, 4, 5, 10, 15, 20, 25, 30]
 const TOTAL_MINUTES = 115
@@ -14,14 +16,14 @@ function fmt(s: number) {
 function loadStats() {
   try {
     const d = JSON.parse(localStorage.getItem(LS_STATS) || 'null')
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayStr()
     return { today: d?.date === today ? (d.today ?? 0) : 0, allTime: d?.allTime ?? 0 }
   } catch { return { today: 0, allTime: 0 } }
 }
 
 function saveStats(today: number, allTime: number) {
   localStorage.setItem(LS_STATS, JSON.stringify({
-    date: new Date().toISOString().slice(0, 10), today, allTime,
+    date: todayStr(), today, allTime,
   }))
 }
 
@@ -142,6 +144,7 @@ export default function JustStart() {
 
   return (
     <div className="max-w-sm mx-auto px-4 pt-6 pb-40">
+      <BackBar />
 
       {/* Header */}
       <div className="mb-6">
@@ -165,8 +168,7 @@ export default function JustStart() {
             }}
           />
         </div>
-        <div className="flex justify-between mt-1">
-          <span className="text-[10px]" style={{ color: 'rgba(26,23,38,0.4)' }}>%0</span>
+        <div className="flex justify-end mt-1">
           <span
             className="text-[10px] font-bold tabular-nums"
             style={{ color: progress === 100 ? '#15803d' : 'rgba(26,23,38,0.5)' }}

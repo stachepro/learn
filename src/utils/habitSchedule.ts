@@ -42,3 +42,5 @@ export function getWindowStatus(habit: Habit, now: Date): WindowStatus {
 
 export const WEEKDAY_NAMES = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt']
 export const WEEKDAY_FULL  = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi']
+// Gün seçicilerde gösterim sırası: Pazartesi başlar; değerler getDay() ile uyumlu kalır
+export const WEEKDAY_ORDER_TR = [1, 2, 3, 4, 5, 6, 0]

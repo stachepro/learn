@@ -1,12 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 
 import { useApp } from '../context/AppContext'
 import { usePomodoro } from '../context/PomodoroContext'
 import { getCardPalette, POMODORO_CATEGORY_IDS, type CardPalette } from '../utils/categories'
 import { formatMinutes } from '../utils/date'
 import { playBell } from '../utils/sound'
-import AddHabitModal from './AddHabitModal'
 import type { Habit, HabitLog } from '../types'
 import { getHabitMode, getHabitGoal } from '../types'
 
@@ -58,31 +56,6 @@ function NoteBtn({ noteOpen, hasNote, onClick, pal }: { noteOpen: boolean; hasNo
   )
 }
 
-function DeleteBtn({ confirmDel, onClick }: { confirmDel: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-label="Sil"
-      className="btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm soft-trans"
-      style={confirmDel
-        ? { background: '#e2503f', color: '#fff5f2', border: '1px solid transparent' }
-        : { background: 'rgba(255,255,255,0.6)', color: 'rgba(204,60,40,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}
-      title={confirmDel ? 'Emin misin? Tekrar tıkla' : 'Sil'}
-    >{confirmDel ? '!' : '✕'}</button>
-  )
-}
-
-function EditBtn({ onClick, color }: { onClick: () => void; color: string }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-label="Düzenle"
-      className="btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm soft-trans"
-      style={{ background: 'rgba(255,255,255,0.6)', color, border: '1px solid rgba(0,0,0,0.07)' }}
-    >⊙</button>
-  )
-}
-
 function PomodoroBtn({ timerRunning, boostActive, extraActive, goalMet, habit, startPomodoro }: {
   timerRunning: boolean; boostActive: boolean; extraActive: boolean; goalMet: boolean
   habit: Habit; startPomodoro: (id: string) => void
@@ -113,19 +86,16 @@ interface Props {
 }
 
 export default function HabitRow({ habit, log, justCompleted }: Props) {
-  const { toggleHabitComplete, incrementCompletion, setHabitBoostMode, setHabitNote, deleteHabit, categories } = useApp()
+  const { toggleHabitComplete, incrementCompletion, setHabitBoostMode, setHabitNote, categories } = useApp()
   const { startPomodoro, activeHabitId, phase, isBoostSession, isExtraSession, soundEnabled } = usePomodoro()
   const [noteOpen, setNoteOpen] = useState(false)
-  const [editing, setEditing] = useState(false)
   const [checkAnim, setCheckAnim] = useState(false)
   const [flash, setFlash] = useState(false)
-  const [confirmDel, setConfirmDel] = useState(false)
   const [confirmPomodoro, setConfirmPomodoro] = useState(false)
   // 'gray': card desaturates in place; 'slide': card slides down & collapses before
   // Dashboard moves it to the Tamamlananlar section
   const [movePhase, setMovePhase] = useState<'idle' | 'gray' | 'slide'>('idle')
   const noteRef = useRef<HTMLTextAreaElement>(null)
-  const delTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!justCompleted) { setMovePhase('idle'); return }
@@ -182,16 +152,6 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
 
   const handleNoteToggle = () => {
     setNoteOpen((o) => { if (!o) setTimeout(() => noteRef.current?.focus(), 50); return !o })
-  }
-
-  const handleDeleteClick = () => {
-    if (confirmDel) {
-      if (delTimer.current) clearTimeout(delTimer.current)
-      deleteHabit(habit.id)
-    } else {
-      setConfirmDel(true)
-      delTimer.current = setTimeout(() => setConfirmDel(false), 3000)
-    }
   }
 
   const boostUsedLocked = log.boostUsed
@@ -262,11 +222,6 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
 
   return (
     <>
-      {editing && createPortal(
-        <AddHabitModal onClose={() => setEditing(false)} editHabit={habit} />,
-        document.body,
-      )}
-
       <div
         className={`glass soft-trans tile-press relative overflow-hidden ${flash ? 'animate-done-flash' : ''}`}
         style={{
@@ -315,8 +270,6 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
           <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
             {showPomodoroUI && <BoostButton {...{ boostUsedLocked, boostTimerLocked, boostLocked, boostOn, habit, setHabitBoostMode, pal }} />}
             <NoteBtn noteOpen={noteOpen} hasNote={!!log.notes} onClick={handleNoteToggle} pal={pal} />
-            <EditBtn onClick={() => setEditing(true)} color={pal.textSoft} />
-            <DeleteBtn confirmDel={confirmDel} onClick={handleDeleteClick} />
             {showPomodoroUI && <PomodoroBtn {...{ timerRunning, boostActive, extraActive, goalMet, habit, startPomodoro }} />}
           </div>
 
@@ -328,8 +281,6 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
         <div className="sm:hidden flex items-center justify-end gap-1.5 px-3.5 pb-2.5">
           {showPomodoroUI && <BoostButton {...{ boostUsedLocked, boostTimerLocked, boostLocked, boostOn, habit, setHabitBoostMode, pal }} />}
           <NoteBtn noteOpen={noteOpen} hasNote={!!log.notes} onClick={handleNoteToggle} pal={pal} />
-          <EditBtn onClick={() => setEditing(true)} color={pal.textSoft} />
-          <DeleteBtn confirmDel={confirmDel} onClick={handleDeleteClick} />
           {showPomodoroUI && <PomodoroBtn {...{ timerRunning, boostActive, extraActive, goalMet, habit, startPomodoro }} />}
         </div>
 

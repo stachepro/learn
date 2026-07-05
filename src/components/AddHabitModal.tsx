@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { EMOJI_LIST, getCategoryColor, POMODORO_CATEGORY_IDS } from '../utils/categories'
 import type { Habit, CompletionMode, RecurrenceType, TimeOfDay } from '../types'
 import { getHabitMode, getHabitGoal } from '../types'
-import { WEEKDAY_NAMES, WEEKDAY_FULL } from '../utils/habitSchedule'
+import { WEEKDAY_NAMES, WEEKDAY_FULL, WEEKDAY_ORDER_TR } from '../utils/habitSchedule'
 
 const EMOJIS_PER_PAGE = 50  // 5 rows × 10 cols — fixed grid, no size change
 
@@ -502,7 +502,8 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
             {recurrence === 'custom' && (
               <div className="mt-3 animate-fade-up">
                 <div className="flex gap-1.5 flex-wrap">
-                  {WEEKDAY_NAMES.map((name, idx) => {
+                  {WEEKDAY_ORDER_TR.map((idx) => {
+                    const name = WEEKDAY_NAMES[idx]
                     const sel = recurrenceDays.includes(idx)
                     return (
                       <button

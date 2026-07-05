@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import ContributionsGrid from '../components/ContributionsGrid'
+import BackBar from '../components/BackBar'
 import CategoryPie from '../components/CategoryPie'
 import { formatMinutes, trMonthName } from '../utils/date'
 
@@ -32,6 +33,7 @@ export default function Stats() {
 
   return (
     <div className={`max-w-3xl mx-auto px-4 py-6 pb-40 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
+      <BackBar />
       {/* Header */}
       <div>
         <h1 className="display text-3xl font-extrabold" style={{ color: '#1a1726' }}>İstatistikler</h1>

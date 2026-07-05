@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useApp } from '../context/AppContext'
 import { usePomodoro } from '../context/PomodoroContext'
 import { playBell } from '../utils/sound'
+import { todayStr } from '../utils/date'
 
 const STEPS = [1, 2, 3, 4, 5, 10, 15, 20, 25, 30]
 const TOTAL_MINUTES = 115
@@ -14,14 +15,14 @@ function fmt(s: number) {
 function loadStats() {
   try {
     const d = JSON.parse(localStorage.getItem(LS_STATS) || 'null')
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayStr()
     return { today: d?.date === today ? (d.today ?? 0) : 0, allTime: d?.allTime ?? 0 }
   } catch { return { today: 0, allTime: 0 } }
 }
 
 function saveStats(today: number, allTime: number) {
   localStorage.setItem(LS_STATS, JSON.stringify({
-    date: new Date().toISOString().slice(0, 10), today, allTime,
+    date: todayStr(), today, allTime,
   }))
 }
 

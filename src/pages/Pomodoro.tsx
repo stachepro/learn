@@ -1,5 +1,6 @@
 import { useApp } from '../context/AppContext'
 import { usePomodoro } from '../context/PomodoroContext'
+import BackBar from '../components/BackBar'
 import { todayStr, formatSeconds } from '../utils/date'
 
 export default function Pomodoro() {
@@ -36,6 +37,7 @@ export default function Pomodoro() {
 
   return (
     <div className="max-w-sm mx-auto px-4 pt-6 pb-40">
+      <BackBar />
       {/* Header */}
       <div className="mb-6 text-center">
         <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#1a1726' }}>

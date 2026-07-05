@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { storage } from '../utils/storage'
+import BackBar from '../components/BackBar'
 import type { TodoItem } from '../types'
 
 const OUTLINE_COLORS = [
@@ -63,17 +64,19 @@ function TodoRow({ todo, onChangeText, onToggle, onDelete, delay = 0 }: {
         readOnly={todo.done}
         placeholder="Ne yapılacak?"
         className="flex-1 min-w-0 text-sm bg-transparent outline-none soft-trans"
-        style={{ color: todo.done ? 'rgba(26,23,38,0.4)' : '#1a1726' }}
+        style={{
+          color: todo.done ? 'rgba(26,23,38,0.4)' : '#1a1726',
+          textDecoration: todo.done ? 'line-through' : 'none',
+        }}
       />
 
       <button
         onClick={onToggle}
         aria-label={todo.done ? 'Tamamlandı' : 'Tamamla'}
         className="btn-press soft-trans w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{
-          background: todo.done ? 'rgba(34,197,94,0.9)' : 'rgba(59,130,246,0.9)',
-          color: '#fff',
-        }}
+        style={todo.done
+          ? { background: 'rgba(34,197,94,0.9)', color: '#fff' }
+          : { background: '#ffffff', color: 'rgba(26,23,38,0.35)', border: '2px solid rgba(26,23,38,0.18)' }}
       >
         <IconCheck className={todo.done ? 'animate-check' : ''} />
       </button>
@@ -127,6 +130,7 @@ export default function Todo() {
 
   return (
     <div className={`max-w-sm mx-auto px-4 pt-6 pb-40 ${mounted ? 'page-enter' : 'opacity-0'}`}>
+      <BackBar />
       <div className="mb-6">
         <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#1a1726' }}>
           To-do

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useApp } from '../context/AppContext'
 import { getCategoryColor } from '../utils/categories'
-import { WEEKDAY_NAMES, WEEKDAY_FULL } from '../utils/habitSchedule'
+import { WEEKDAY_NAMES, WEEKDAY_FULL, WEEKDAY_ORDER_TR } from '../utils/habitSchedule'
 import { LABEL_COLORS, TIME_OF_DAY_OPTS } from './AddHabitModal'
 import type { PresetHabit } from './PresetHabitsModal'
 import type { RecurrenceType, TimeOfDay } from '../types'
@@ -160,7 +160,8 @@ export default function PresetCustomizeModal({ preset, onClose, onBack }: Props)
               {recurrence === 'custom' && (
                 <div className="mt-3 animate-fade-up">
                   <div className="flex gap-1.5 flex-wrap">
-                    {WEEKDAY_NAMES.map((name, idx) => {
+                    {WEEKDAY_ORDER_TR.map((idx) => {
+                      const name = WEEKDAY_NAMES[idx]
                       const sel = recurrenceDays.includes(idx)
                       return (
                         <button

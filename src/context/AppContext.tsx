@@ -71,7 +71,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [categories, setCategoriesState] = useState<Category[]>(() => storage.getCategories())
   const [freeSessions, setFreeSessionsState] = useState<PomodoroSession[]>(() => storage.getFreeSessions())
 
-  const today = todayStr()
+  // Gün değişimini izle: uygulama gece yarısını açık geçirir ya da arka plandan
+  // dönerse yeni günün kaydına yazmaya devam edebilsin
+  const [today, setToday] = useState(() => todayStr())
+  useEffect(() => {
+    const check = () => setToday((cur) => { const t = todayStr(); return cur === t ? cur : t })
+    const id = setInterval(check, 30_000)
+    document.addEventListener('visibilitychange', check)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', check) }
+  }, [])
+
   const todayLog: DayLog = logs[today] ?? { date: today, habits: {} }
 
   useEffect(() => {

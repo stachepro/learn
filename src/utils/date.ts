@@ -2,8 +2,13 @@ export function todayStr(): string {
   return dateStr(new Date())
 }
 
+// Yerel tarihi YYYY-MM-DD üretir. toISOString KULLANMA: UTC verir ve
+// Türkiye'de (UTC+3) gece 00:00–03:00 arası kayıtlar düne yazılır.
 export function dateStr(date: Date): string {
-  return date.toISOString().slice(0, 10)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 export function yesterdayStr(): string {
@@ -13,12 +18,12 @@ export function yesterdayStr(): string {
 }
 
 export function formatMinutes(minutes: number): string {
-  if (minutes === 0) return '0d'
+  if (minutes === 0) return '0dk'
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
-  if (h === 0) return `${m}d`
+  if (h === 0) return `${m}dk`
   if (m === 0) return `${h}sa`
-  return `${h}sa ${m}d`
+  return `${h}sa ${m}dk`
 }
 
 export function formatSeconds(seconds: number): string {
@@ -39,8 +44,9 @@ export function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate()
 }
 
+// Ayın ilk gününün takvim sütunu — hafta Pazartesi başlar (TR düzeni)
 export function getFirstDayOfMonth(year: number, month: number): number {
-  return new Date(year, month, 1).getDay()
+  return (new Date(year, month, 1).getDay() + 6) % 7
 }
 
 const TR_DAYS = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi']
@@ -61,4 +67,5 @@ export function trMonthName(month: number): string {
   return TR_MONTHS[month]
 }
 
-export const TR_DAY_SHORTS = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt']
+// Takvim başlıkları — Pazartesi başlar (getFirstDayOfMonth ile uyumlu)
+export const TR_DAY_SHORTS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']

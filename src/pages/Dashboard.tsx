@@ -6,7 +6,7 @@ import AddHabitModal from '../components/AddHabitModal'
 import HabitCreateChooser from '../components/HabitCreateChooser'
 import PresetHabitsModal, { type PresetHabit } from '../components/PresetHabitsModal'
 import PresetCustomizeModal from '../components/PresetCustomizeModal'
-import { formatDisplayDate, formatMinutes, yesterdayStr } from '../utils/date'
+import { formatDisplayDate, formatMinutes, yesterdayStr, dateStr } from '../utils/date'
 import { isHabitScheduledFor, getWindowStatus } from '../utils/habitSchedule'
 import type { HabitLog, TimeOfDay } from '../types'
 import { getHabitTimeOfDay } from '../types'
@@ -91,7 +91,7 @@ export default function Dashboard() {
     return () => clearInterval(id)
   }, [])
 
-  const todayDateStr = now.toISOString().slice(0, 10)
+  const todayDateStr = dateStr(now)
 
   // Only habits scheduled for today
   const scheduledHabits = habits.filter((h) => isHabitScheduledFor(h, todayDateStr))
@@ -121,7 +121,7 @@ export default function Dashboard() {
   const todayWork = habitEntries.reduce(
     (acc, { log }) => acc + log.pomodoroSessions.reduce((s, p) => s + p.workDuration, 0), 0)
   const todayFreeWork = (freeSessions ?? [])
-    .filter((s) => s.date === new Date().toISOString().slice(0, 10))
+    .filter((s) => s.date === todayDateStr)
     .reduce((acc, s) => acc + s.workDuration, 0)
   const todayBreak = habitEntries.reduce(
     (acc, { log }) => acc + log.pomodoroSessions.reduce((s, p) => s + p.breakDuration, 0), 0)
@@ -328,7 +328,7 @@ export default function Dashboard() {
               <StatCell label="Aktif çalışma" value={formatMinutes(todayWork + todayFreeWork)} />
               <StatCell label="Mola süresi" value={formatMinutes(todayBreak)} border />
               <StatCell
-                label="Dünkü"
+                label="Düne göre"
                 value={vsYesterday === null ? '--' : `${vsYesterday >= 0 ? '+' : ''}${vsYesterday}%`}
                 border
                 color={vsYesterday === null ? undefined : vsYesterday >= 0 ? '#3b6d11' : '#cc4322'}
