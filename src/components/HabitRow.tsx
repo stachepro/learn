@@ -121,17 +121,17 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
   const [flash, setFlash] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
   const [confirmPomodoro, setConfirmPomodoro] = useState(false)
-  const [moveCountdown, setMoveCountdown] = useState(3)
+  // 'gray': card desaturates in place; 'slide': card slides down & collapses before
+  // Dashboard moves it to the Tamamlananlar section
+  const [movePhase, setMovePhase] = useState<'idle' | 'gray' | 'slide'>('idle')
   const noteRef = useRef<HTMLTextAreaElement>(null)
   const delTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    if (!justCompleted) { setMoveCountdown(3); return }
-    setMoveCountdown(3)
-    const id = setInterval(() => {
-      setMoveCountdown((c) => (c > 1 ? c - 1 : 1))
-    }, 1000)
-    return () => clearInterval(id)
+    if (!justCompleted) { setMovePhase('idle'); return }
+    const t1 = setTimeout(() => setMovePhase('gray'), 250)
+    const t2 = setTimeout(() => setMovePhase('slide'), 850)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [justCompleted])
 
   const cat = categories.find((c) => c.id === habit.categoryId)
@@ -275,26 +275,17 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
           border: `1px solid ${pal.border}`,
           color: pal.text,
           opacity: log.completed ? 0.92 : 1,
+          ...(justCompleted ? {
+            filter: movePhase === 'idle' ? 'none' : 'grayscale(1)',
+            opacity: movePhase === 'slide' ? 0 : movePhase === 'gray' ? 0.6 : 0.92,
+            transform: movePhase === 'slide' ? 'translateY(28px)' : 'none',
+            maxHeight: movePhase === 'slide' ? 0 : 480,
+            // -10px offsets the list's space-y gap so siblings don't jump on removal
+            marginBottom: movePhase === 'slide' ? -10 : 0,
+            transition: 'filter 0.4s ease, opacity 0.45s ease, transform 0.5s cubic-bezier(0.55,0,0.65,0.25), max-height 0.5s cubic-bezier(0.4,0,0.2,1), margin-bottom 0.5s ease',
+          } : {}),
         }}
       >
-        {justCompleted && (
-          <div
-            className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 animate-fade-in"
-            style={{ background: 'rgba(82,82,92,0.94)', borderRadius: 22 }}
-          >
-            <span
-              key={moveCountdown}
-              className="tnum text-3xl font-black leading-none animate-value-pop"
-              style={{ color: '#fff' }}
-            >
-              {moveCountdown}
-            </span>
-            <span className="text-[11px] font-bold tracking-wide" style={{ color: 'rgba(255,255,255,0.8)' }}>
-              Tamamlananlara kaldırılıyor
-            </span>
-          </div>
-        )}
-
         {/* ── Main row ── */}
         <div className="flex items-center gap-3 px-3.5 py-3">
           {/* Icon chip */}

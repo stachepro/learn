@@ -1,5 +1,6 @@
 import type { Habit, DailyLogs, UserProfile, PomodoroSettings, Category, PomodoroSession, NoRushRecord, TodoItem } from '../types'
 import { DEFAULT_CATEGORIES } from './categories'
+import { persistNative } from './nativeStorage'
 
 const KEYS = {
   HABITS: 'luupi_habits',
@@ -21,7 +22,9 @@ function read<T>(key: string, fallback: T): T {
 }
 
 function write<T>(key: string, value: T): void {
-  localStorage.setItem(key, JSON.stringify(value))
+  const raw = JSON.stringify(value)
+  localStorage.setItem(key, raw)
+  persistNative(key, raw)
 }
 
 function migrateHabit(h: Partial<Habit> & { id: string; name: string; createdAt: string }): Habit {
@@ -88,7 +91,10 @@ export const storage = {
     try { return localStorage.getItem(KEYS.SOUND_ENABLED) !== 'false' } catch { return true }
   },
   setSoundEnabled: (on: boolean): void => {
-    try { localStorage.setItem(KEYS.SOUND_ENABLED, on ? 'true' : 'false') } catch { /* ignore */ }
+    try {
+      localStorage.setItem(KEYS.SOUND_ENABLED, on ? 'true' : 'false')
+      persistNative(KEYS.SOUND_ENABLED, on ? 'true' : 'false')
+    } catch { /* ignore */ }
   },
 
   getNoRushHistory: (): NoRushRecord[] => read(KEYS.NO_RUSH_HISTORY, []),

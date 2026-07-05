@@ -7,4 +7,8 @@ export default defineConfig({
   // GITHUB_PAGES=true → base '/learn/' for gh-pages deployment
   // local dev stays on '/'
   base: process.env.GITHUB_PAGES === 'true' ? '/learn/' : '/',
+  server: {
+    port: process.env.PORT ? Number(process.env.PORT) : undefined,
+    strictPort: Boolean(process.env.PORT),
+  },
 })

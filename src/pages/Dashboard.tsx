@@ -65,7 +65,8 @@ export default function Dashboard() {
     }
   }
 
-  // Start a 3s timer for each newly-animating habit, after which it drops to the bottom section.
+  // Timer per newly-completed habit, matching HabitRow's gray→slide animation
+  // (250ms delay + 600ms gray + 500ms slide), after which it drops to the bottom section.
   useEffect(() => {
     Object.keys(animatingIds).forEach((id) => {
       if (moveTimersRef.current[id]) return
@@ -76,7 +77,7 @@ export default function Dashboard() {
           return next
         })
         delete moveTimersRef.current[id]
-      }, 3000)
+      }, 1400)
     })
   }, [animatingIds])
 
