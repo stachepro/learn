@@ -189,16 +189,12 @@ export default function WakeUp() {
         >
           {todayRecord ? (
             <>
-              <span className="text-4xl mb-1">🌞</span>
               <span className="display text-lg font-black" style={{ color: '#3b6d11' }}>Uyandın!</span>
-              <span className="display text-2xl font-black tnum mt-0.5" style={{ color: '#3b6d11' }}>{todayRecord.time}</span>
-              <span className="text-[10px] font-bold mt-1" style={{ color: 'rgba(59,109,17,0.6)' }}>yarın tekrar görüşürüz</span>
+              <span className="display text-3xl font-black tnum mt-1" style={{ color: '#3b6d11' }}>{todayRecord.time}</span>
+              <span className="text-[10px] font-bold mt-2" style={{ color: 'rgba(59,109,17,0.6)' }}>yarın tekrar görüşürüz</span>
             </>
           ) : (
-            <>
-              <span className="text-5xl mb-2">🌅</span>
-              <span className="display text-2xl font-black" style={{ color: '#2a1402' }}>Uyandım</span>
-            </>
+            <span className="display text-3xl font-black" style={{ color: '#2a1402' }}>Uyandım</span>
           )}
         </button>
       </div>
