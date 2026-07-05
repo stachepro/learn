@@ -68,15 +68,6 @@ function IconUser({ size = 22, strokeWidth = 1.6, color = 'currentColor' }: Icon
   )
 }
 
-function IconClock({ size = 28, strokeWidth = 1.5, color = 'currentColor' }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  )
-}
-
 function IconTimer({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -264,16 +255,21 @@ function HubModal({ onClose }: { onClose: () => void }) {
             </div>
           </button>
 
-          {/* Placeholder */}
-          <div
-            className="glass g-neutral flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, opacity: 0.55 }}
+          {/* Uyandım tile — gün başlangıcı */}
+          <button
+            onClick={() => goTo('/uyandim')}
+            className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40, background: '#fdf0d9', border: '1px solid #f5ddb2' }}
           >
-            <IconClock color="rgba(26,23,38,0.4)" />
-            <span className="text-xs font-semibold tracking-wide" style={{ color: 'rgba(26,23,38,0.4)' }}>
-              Yakında
-            </span>
-          </div>
+            <span
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
+              style={{ background: 'linear-gradient(150deg, #fde68a, #f59e0b)', boxShadow: '0 8px 20px -6px rgba(245,158,11,0.55)' }}
+            >🌅</span>
+            <div className="text-center">
+              <p className="text-sm font-bold" style={{ color: '#8a5206' }}>Uyandım</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#b87520' }}>Güne merhaba de</p>
+            </div>
+          </button>
         </div>
       </div>
     </div>,

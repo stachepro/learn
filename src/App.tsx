@@ -15,8 +15,9 @@ import Pomodoro from './pages/Pomodoro'
 import HabitStats from './pages/HabitStats'
 import NoRush from './pages/NoRush'
 import Todo from './pages/Todo'
+import WakeUp from './pages/WakeUp'
 
-const ROUTE_ORDER = ['/', '/habits', '/history', '/profile', '/just-start', '/stats', '/pomodoro', '/acele-yok', '/todo']
+const ROUTE_ORDER = ['/', '/habits', '/history', '/profile', '/just-start', '/stats', '/pomodoro', '/acele-yok', '/todo', '/uyandim']
 
 function AnimatedOutlet() {
   const location = useLocation()
@@ -81,6 +82,7 @@ export default function App() {
               <Route path="pomodoro" element={<Pomodoro />} />
               <Route path="acele-yok" element={<NoRush />} />
               <Route path="todo" element={<Todo />} />
+              <Route path="uyandim" element={<WakeUp />} />
               <Route path="habit/:id/stats" element={<HabitStats />} />
             </Route>
           </Routes>

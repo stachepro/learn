@@ -357,6 +357,60 @@ input[type="range"] { accent-color: #f59e0b; }
     inset -90px 0  100px -40px rgba(245, 158, 11, 0.1);
 }
 
+/* ── "Uyandım" gece→gündüz geçiş animasyonu ── */
+.wake-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(180deg,
+    #070b26 0%, #1b1747 20%, #503a78 38%,
+    #b4557e 56%, #f97316 74%, #ffd88f 90%, #fff3d6 100%);
+  background-size: 100% 500%;
+  background-position: 50% 0%;
+  animation: wake-sky 2.7s cubic-bezier(0.4, 0, 0.2, 1) forwards,
+             fade-out 0.7s ease-in 2.9s forwards;
+}
+@keyframes wake-sky { to { background-position: 50% 100%; } }
+
+.wake-sun {
+  position: absolute;
+  left: 50%;
+  bottom: -90px;
+  width: 150px;
+  height: 150px;
+  margin-left: -75px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff7dd, #ffdf8e 45%, #fbbf24 75%, rgba(249,115,22,0.85));
+  box-shadow: 0 0 90px 45px rgba(251,191,36,0.5);
+  animation: wake-sun-rise 2.7s cubic-bezier(0.34, 1.2, 0.5, 1) forwards;
+}
+@keyframes wake-sun-rise {
+  from { transform: translateY(60px) scale(0.7); }
+  to   { transform: translateY(-46vh) scale(1); }
+}
+
+.wake-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.9;
+  animation: wake-star-out 1.4s ease forwards;
+}
+@keyframes wake-star-out { to { opacity: 0; transform: translateY(-14px); } }
+
+.wake-greet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 32%;
+  text-align: center;
+  opacity: 0;
+  animation: wake-greet-in 0.8s ease 1.5s forwards;
+}
+@keyframes wake-greet-in { to { opacity: 1; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }

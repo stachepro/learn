@@ -1,4 +1,4 @@
-import type { Habit, DailyLogs, UserProfile, PomodoroSettings, Category, PomodoroSession, NoRushRecord, TodoItem, ActivePomodoroState } from '../types'
+import type { Habit, DailyLogs, UserProfile, PomodoroSettings, Category, PomodoroSession, NoRushRecord, TodoItem, ActivePomodoroState, WakeRecord } from '../types'
 import { DEFAULT_CATEGORIES } from './categories'
 import { persistNative } from './nativeStorage'
 
@@ -13,6 +13,8 @@ const KEYS = {
   NO_RUSH_HISTORY: 'luupi_no_rush_history',
   TODOS: 'luupi_todos',
   POMODORO_ACTIVE: 'luupi_pomodoro_active',
+  WAKE_RECORDS: 'luupi_wake_records',
+  WAKE_GOAL: 'luupi_wake_goal',
 } as const
 
 function read<T>(key: string, fallback: T): T {
@@ -113,4 +115,12 @@ export const storage = {
 
   getPomodoroActive: (): ActivePomodoroState | null => read<ActivePomodoroState | null>(KEYS.POMODORO_ACTIVE, null),
   setPomodoroActive: (state: ActivePomodoroState | null) => write(KEYS.POMODORO_ACTIVE, state),
+
+  getWakeRecords: (): WakeRecord[] => read(KEYS.WAKE_RECORDS, []),
+  addWakeRecord: (record: WakeRecord) => {
+    const existing = read<WakeRecord[]>(KEYS.WAKE_RECORDS, [])
+    write(KEYS.WAKE_RECORDS, [...existing.filter((r) => r.date !== record.date), record])
+  },
+  getWakeGoal: (): string | null => read<string | null>(KEYS.WAKE_GOAL, null),
+  setWakeGoal: (time: string) => write(KEYS.WAKE_GOAL, time),
 }

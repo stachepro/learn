@@ -4,11 +4,16 @@ import ContributionsGrid from '../components/ContributionsGrid'
 import BackBar from '../components/BackBar'
 import CategoryPie from '../components/CategoryPie'
 import { formatMinutes, trMonthName } from '../utils/date'
+import { storage } from '../utils/storage'
+import { averageWakeTime, earliestWakeTime, latestWakeTime } from './WakeUp'
 
 export default function Stats() {
   const { logs, freeSessions } = useApp()
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
+
+  const wakeRecords = storage.getWakeRecords()
+  const wakeAvg = averageWakeTime(wakeRecords)
 
   const now = new Date()
   const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
@@ -67,6 +72,33 @@ export default function Stats() {
           </div>
         </div>
       </div>
+
+      {/* Wake-up stats */}
+      {wakeRecords.length > 0 && (
+        <div className="animate-fade-up" style={{ animationDelay: '0.12s' }}>
+          <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>Uyanma</p>
+          <div className="glass g-cream p-4" style={{ borderRadius: 20 }}>
+            <div className="flex items-start justify-between mb-2">
+              <span className="text-xl">🌅</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider ink-60">{wakeRecords.length} gün</span>
+            </div>
+            <div className="grid grid-cols-3 text-center">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Ortalama</p>
+                <p className="display text-xl font-extrabold tnum">{wakeAvg ?? '--'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En erken</p>
+                <p className="display text-xl font-extrabold tnum" style={{ color: '#16803c' }}>{earliestWakeTime(wakeRecords) ?? '--'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En geç</p>
+                <p className="display text-xl font-extrabold tnum" style={{ color: '#cc4322' }}>{latestWakeTime(wakeRecords) ?? '--'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Category distribution */}
       <div className="animate-fade-up" style={{ animationDelay: '0.14s' }}>

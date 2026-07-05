@@ -134,6 +134,12 @@ export interface ActivePomodoroState {
   isExtra: boolean
 }
 
+// "Uyandım" kaydı — güne bir kez, basılma anının saati tutulur
+export interface WakeRecord {
+  date: string   // YYYY-MM-DD
+  time: string   // HH:MM
+}
+
 export interface TodoItem {
   id: string
   text: string
