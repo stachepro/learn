@@ -121,6 +121,7 @@ export const storage = {
     const existing = read<WakeRecord[]>(KEYS.WAKE_RECORDS, [])
     write(KEYS.WAKE_RECORDS, [...existing.filter((r) => r.date !== record.date), record])
   },
+  clearWakeRecords: () => write(KEYS.WAKE_RECORDS, []),
   getWakeGoal: (): string | null => read<string | null>(KEYS.WAKE_GOAL, null),
   setWakeGoal: (time: string) => write(KEYS.WAKE_GOAL, time),
 }

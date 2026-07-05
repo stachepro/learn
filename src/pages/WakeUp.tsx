@@ -59,7 +59,8 @@ function SunriseOverlay() {
 }
 
 /* ── "Kaçta uyanıyorum?" istatistik modalı ── */
-function WakeStatsModal({ records, goal, onClose }: { records: WakeRecord[]; goal: string | null; onClose: () => void }) {
+function WakeStatsModal({ records, goal, onClose, onReset }: { records: WakeRecord[]; goal: string | null; onClose: () => void; onReset: () => void }) {
+  const [confirmReset, setConfirmReset] = useState(false)
   const sorted = [...records].sort((a, b) => b.date.localeCompare(a.date))
   const avg = averageWakeTime(records)
   const goalMins = goal ? timeToMinutes(goal) : null
@@ -70,8 +71,42 @@ function WakeStatsModal({ records, goal, onClose }: { records: WakeRecord[]; goa
         <div className="glass g-neutral animate-pop w-full max-w-sm" style={{ borderRadius: 24 }}>
           <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
             <p className="display text-base font-bold">Kaçta uyanıyorum?</p>
-            <button onClick={onClose} aria-label="Kapat" className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm">✕</button>
+            <div className="flex items-center gap-2">
+              {records.length > 0 && (
+                <button
+                  onClick={() => setConfirmReset(true)}
+                  className="btn-press text-xs font-bold px-3 py-1.5 rounded-full"
+                  style={{ background: 'rgba(239,68,68,0.1)', color: '#cc4322', border: '1px solid rgba(239,68,68,0.25)' }}
+                >
+                  Sıfırla
+                </button>
+              )}
+              <button onClick={onClose} aria-label="Kapat" className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm">✕</button>
+            </div>
           </div>
+
+          {confirmReset && (
+            <div className="px-5 py-4 animate-fade-up" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)', background: 'rgba(239,68,68,0.05)' }}>
+              <p className="text-sm font-semibold mb-3" style={{ color: '#1a1726' }}>
+                İstatistiklerin sıfırlanacak, emin misin?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { onReset(); setConfirmReset(false) }}
+                  className="btn-press flex-1 py-2 rounded-xl text-sm font-bold"
+                  style={{ background: '#e2503f', color: '#fff5f2', boxShadow: '0 8px 18px -10px rgba(226,80,63,0.7)' }}
+                >
+                  Eminim, Sil
+                </button>
+                <button
+                  onClick={() => setConfirmReset(false)}
+                  className="ctrl btn-press flex-1 py-2 rounded-xl text-sm font-bold"
+                >
+                  Vazgeç
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-3 px-5 py-4 text-center" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
             <div>
@@ -160,7 +195,14 @@ export default function WakeUp() {
     <div className="max-w-sm mx-auto px-4 pt-6 pb-40">
       <BackBar />
       {anim && <SunriseOverlay />}
-      {statsOpen && <WakeStatsModal records={records} goal={goal} onClose={() => setStatsOpen(false)} />}
+      {statsOpen && (
+        <WakeStatsModal
+          records={records}
+          goal={goal}
+          onClose={() => setStatsOpen(false)}
+          onReset={() => { storage.clearWakeRecords(); setRecords([]) }}
+        />
+      )}
 
       {/* Header */}
       <div className="mb-8 text-center">
@@ -228,13 +270,23 @@ export default function WakeUp() {
           <span className="text-lg">🎯</span>
           <span className="text-sm font-bold" style={{ color: '#1a1726' }}>Hedef uyanma saati</span>
         </span>
-        <input
-          type="time"
-          value={goal ?? ''}
-          onChange={(e) => changeGoal(e.target.value)}
-          className="display text-base font-bold tnum bg-transparent outline-none text-right"
-          style={{ color: goal ? '#9a4d0a' : 'rgba(26,23,38,0.35)', border: 'none' }}
-        />
+        <span className="relative flex items-center">
+          {!goal && (
+            <span
+              className="text-xs font-bold px-3.5 py-1.5 rounded-full pointer-events-none"
+              style={{ background: '#faecd6', color: '#9a4d0a', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }}
+            >
+              Seç
+            </span>
+          )}
+          <input
+            type="time"
+            value={goal ?? ''}
+            onChange={(e) => changeGoal(e.target.value)}
+            className={`display text-base font-bold tnum bg-transparent outline-none text-right ${goal ? '' : 'absolute inset-0 opacity-0 w-full cursor-pointer'}`}
+            style={{ color: '#9a4d0a', border: 'none' }}
+          />
+        </span>
       </label>
 
       {/* Kaçta uyanıyorum? */}
