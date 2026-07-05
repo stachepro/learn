@@ -6,6 +6,7 @@ import { todayStr, formatSeconds } from '../utils/date'
 import { playBell } from '../utils/sound'
 import { getHabitMode, getHabitGoal } from '../types'
 import { storage } from '../utils/storage'
+import { scheduleTimerNotification, cancelTimerNotification, NOTIF_POMODORO } from '../utils/timerNotifications'
 
 export const FREE_ID = '__free__'
 // 'work-done' = work finished, waiting for the user to start the break (manual mode)
@@ -60,7 +61,16 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   const todayLogRef = useRef(todayLog)
   const habitsRef = useRef(habits)
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // Duvar saati bazlı sayaç: geri sayım her tikte endAt'ten hesaplanır.
+  // Uygulama arka plana alınsa/kapatılsa bile süre gerçek zamanda ilerler.
+  const endAtRef = useRef<number | null>(null)
+  const pausedRemainingRef = useRef<number | null>(null)
   const today = todayStr()
+
+  const notifyAt = (atMs: number, forPhase: 'work' | 'break') => {
+    if (forPhase === 'work') scheduleTimerNotification(NOTIF_POMODORO, atMs, 'Pomodoro bitti 🍅', 'Çalışma süresi doldu — mola zamanı!')
+    else scheduleTimerNotification(NOTIF_POMODORO, atMs, 'Mola bitti ☕', 'Çalışmaya dönme zamanı!')
+  }
 
   useEffect(() => { settingsRef.current = pomodoroSettings }, [pomodoroSettings])
   useEffect(() => { activeHabitIdRef.current = activeHabitId }, [activeHabitId])
@@ -107,6 +117,9 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     if (!id) return
     clearTick()
     const { boost, secs } = calcBoostAndSecs(id)
+    endAtRef.current = Date.now() + secs * 1000
+    pausedRemainingRef.current = null
+    notifyAt(endAtRef.current, 'work')
     setPhase('work')
     setSecondsLeft(secs)
     setTotalSeconds(secs)
@@ -119,6 +132,9 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   const beginBreak = () => {
     clearTick()
     const breakSecs = settingsRef.current.breakDuration * 60
+    endAtRef.current = Date.now() + breakSecs * 1000
+    pausedRemainingRef.current = null
+    notifyAt(endAtRef.current, 'break')
     setPhase('break')
     setSecondsLeft(breakSecs)
     setTotalSeconds(breakSecs)
@@ -128,6 +144,8 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   }
 
   const finishWork = useCallback((habitId: string) => {
+    cancelTimerNotification(NOTIF_POMODORO)
+    endAtRef.current = null
     // Work-end alert rings 3× in a row
     if (soundEnabledRef.current) playBell(3)
     const boost = isBoostRef.current
@@ -167,6 +185,8 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     if (settingsRef.current.autoLoop) {
       // Auto mode: break starts immediately
       const breakSecs = settingsRef.current.breakDuration * 60
+      endAtRef.current = Date.now() + breakSecs * 1000
+      notifyAt(endAtRef.current, 'break')
       setPhase('break')
       setSecondsLeft(breakSecs)
       setTotalSeconds(breakSecs)
@@ -177,6 +197,8 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   }, [addPomodoroSession, addFreeSession])
 
   const finishBreak = useCallback(() => {
+    cancelTimerNotification(NOTIF_POMODORO)
+    endAtRef.current = null
     if (soundEnabledRef.current) playBell()
     if (settingsRef.current.autoLoop) {
       // Auto mode: next work round starts immediately
@@ -187,25 +209,89 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Sayaç tiki — kalan süre her seferinde duvar saatinden (endAt) hesaplanır;
+  // arka planda geçen süre kaybolmaz. Görünürlük değişince anında güncellenir.
   useEffect(() => {
     if (phase === 'idle' || phase === 'work-done' || phase === 'break-done' || isPaused) { clearTick(); return }
-    tickRef.current = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          clearTick()
-          if (phase === 'work') finishWork(activeHabitId!)
-          else if (phase === 'break') finishBreak()
-          return 0
-        }
-        return s - 1
-      })
-    }, 1000)
-    return clearTick
-  }, [phase, isPaused, activeHabitId, finishWork, finishBreak])
+    const tick = () => {
+      const endAt = endAtRef.current
+      if (endAt == null) return
+      const left = Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
+      setSecondsLeft(left)
+      if (left <= 0) {
+        clearTick()
+        if (phase === 'work') finishWork(activeHabitIdRef.current!)
+        else if (phase === 'break') finishBreak()
+      }
+    }
+    tick()
+    tickRef.current = setInterval(tick, 500)
+    const onVisible = () => { if (!document.hidden) tick() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { clearTick(); document.removeEventListener('visibilitychange', onVisible) }
+  }, [phase, isPaused, finishWork, finishBreak])
+
+  // ── Kalıcılık: aktif sayaç durumu depoya yazılır; uygulama tamamen
+  //    kapatılıp açılsa bile kaldığı yerden (ya da bittiyse bitmiş olarak) sürer ──
+  useEffect(() => {
+    if (phase === 'idle' || !activeHabitId) return
+    storage.setPomodoroActive({
+      habitId: activeHabitId,
+      phase,
+      endAt: endAtRef.current,
+      pausedRemaining: pausedRemainingRef.current,
+      totalSeconds,
+      sessionCount,
+      isPaused,
+      isBoost: isBoostSession,
+      isExtra: isExtraSession,
+    })
+  }, [activeHabitId, phase, isPaused, totalSeconds, sessionCount, isBoostSession, isExtraSession])
+
+  const restoredRef = useRef(false)
+  useEffect(() => {
+    if (restoredRef.current) return
+    restoredRef.current = true
+    const saved = storage.getPomodoroActive()
+    if (!saved) return
+    setActiveHabitId(saved.habitId)
+    activeHabitIdRef.current = saved.habitId
+    setSessionCount(saved.sessionCount)
+    setTotalSeconds(saved.totalSeconds)
+    setIsBoostSession(saved.isBoost)
+    isBoostRef.current = saved.isBoost
+    setIsExtraSession(saved.isExtra)
+    setIsVisible(true)
+    if (saved.phase === 'work-done' || saved.phase === 'break-done') {
+      setPhase(saved.phase)
+      return
+    }
+    if (saved.isPaused && saved.pausedRemaining != null) {
+      pausedRemainingRef.current = saved.pausedRemaining
+      setIsPaused(true)
+      setPhase(saved.phase)
+      setSecondsLeft(Math.ceil(saved.pausedRemaining))
+      return
+    }
+    if (saved.endAt != null && saved.endAt > Date.now()) {
+      endAtRef.current = saved.endAt
+      setPhase(saved.phase)
+      setSecondsLeft(Math.ceil((saved.endAt - Date.now()) / 1000))
+      notifyAt(saved.endAt, saved.phase)
+      return
+    }
+    // Süre uygulama kapalıyken doldu: seansı say ve bekleme fazına geç
+    if (saved.phase === 'work') finishWork(saved.habitId)
+    else finishBreak()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const launch = useCallback((habitId: string) => {
     clearTick()
     const { boost, secs } = calcBoostAndSecs(habitId)
+    endAtRef.current = Date.now() + secs * 1000
+    pausedRemainingRef.current = null
+    notifyAt(endAtRef.current, 'work')
     setActiveHabitId(habitId)
     setPhase('work')
     setSecondsLeft(secs)
@@ -218,7 +304,27 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
 
   const startPomodoro = useCallback((habitId: string) => launch(habitId), [launch])
   const startFree = useCallback(() => launch(FREE_ID), [launch])
-  const pauseResume = useCallback(() => setIsPaused((p) => !p), [])
+
+  const pauseResume = useCallback(() => {
+    setIsPaused((p) => {
+      const next = !p
+      if (next) {
+        // Duraklat: kalan süreyi sakla, bildirim iptal
+        if (endAtRef.current != null) {
+          pausedRemainingRef.current = Math.max(0, (endAtRef.current - Date.now()) / 1000)
+        }
+        endAtRef.current = null
+        cancelTimerNotification(NOTIF_POMODORO)
+      } else if (phase === 'work' || phase === 'break') {
+        // Devam et: kalan süreden yeni bitiş anı kur
+        const remaining = pausedRemainingRef.current ?? secondsLeft
+        endAtRef.current = Date.now() + remaining * 1000
+        pausedRemainingRef.current = null
+        notifyAt(endAtRef.current, phase)
+      }
+      return next
+    })
+  }, [phase, secondsLeft])
 
   const toggleSound = useCallback(() => {
     setSoundEnabled((prev) => {
@@ -238,6 +344,9 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     const currentId = activeHabitId
     if (!currentId) return
     const { boost, secs } = calcBoostAndSecs(currentId)
+    endAtRef.current = Date.now() + secs * 1000
+    pausedRemainingRef.current = null
+    notifyAt(endAtRef.current, 'work')
     setPhase('work')
     setSecondsLeft(secs)
     setTotalSeconds(secs)
@@ -254,6 +363,10 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
 
   const stopTimer = useCallback(() => {
     clearTick()
+    cancelTimerNotification(NOTIF_POMODORO)
+    endAtRef.current = null
+    pausedRemainingRef.current = null
+    storage.setPomodoroActive(null)
     setPhase('idle'); setSecondsLeft(0); setTotalSeconds(0)
     setActiveHabitId(null); setSessionCount(0); setIsPaused(false)
     setIsVisible(false); setIsBoostSession(false); setIsExtraSession(false)

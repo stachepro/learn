@@ -120,6 +120,20 @@ export interface NoRushRecord {
   completedAt: string
 }
 
+// Devam eden pomodoro sayacının kalıcı durumu — uygulama kapatılsa bile
+// açılışta kaldığı yerden (duvar saatine göre) devam eder
+export interface ActivePomodoroState {
+  habitId: string
+  phase: 'work' | 'work-done' | 'break' | 'break-done'
+  endAt: number | null          // epoch ms; null = duraklatılmış ya da bekleme fazı
+  pausedRemaining: number | null // saniye; duraklatılmışsa kalan süre
+  totalSeconds: number
+  sessionCount: number
+  isPaused: boolean
+  isBoost: boolean
+  isExtra: boolean
+}
+
 export interface TodoItem {
   id: string
   text: string

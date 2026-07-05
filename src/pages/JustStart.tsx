@@ -4,10 +4,41 @@ import { usePomodoro } from '../context/PomodoroContext'
 import { playBell } from '../utils/sound'
 import { todayStr } from '../utils/date'
 import BackBar from '../components/BackBar'
+import { scheduleTimerNotification, cancelTimerNotification, NOTIF_JUSTSTART } from '../utils/timerNotifications'
 
 const STEPS = [1, 2, 3, 4, 5, 10, 15, 20, 25, 30]
 const TOTAL_MINUTES = 115
 const LS_STATS = 'juststart_stats'
+const LS_STATE = 'juststart_state'
+
+// Günün oturumu depodan yüklenir: sayaç duvar saatine göre işler, uygulama
+// kapalıyken dolan adım "tamamlandı" sayılır.
+interface JSInit {
+  done: boolean[]; active: number | null; secs: number; paused: boolean
+  xpClaimed: boolean; endAt: number | null; pausedRemaining: number | null
+}
+function initState(): JSInit {
+  const fresh: JSInit = {
+    done: Array(10).fill(false), active: null, secs: 0, paused: false,
+    xpClaimed: false, endAt: null, pausedRemaining: null,
+  }
+  try {
+    const d = JSON.parse(localStorage.getItem(LS_STATE) || 'null')
+    if (!d || d.date !== todayStr()) return fresh
+    const done: boolean[] = Array.isArray(d.done) && d.done.length === STEPS.length ? d.done : fresh.done
+    let active: number | null = typeof d.active === 'number' ? d.active : null
+    let endAt: number | null = typeof d.endAt === 'number' ? d.endAt : null
+    let paused: boolean = !!d.paused
+    const pausedRemaining: number | null = typeof d.pausedRemaining === 'number' ? d.pausedRemaining : null
+    let secs = 0
+    if (active != null) {
+      if (paused && pausedRemaining != null) secs = Math.ceil(pausedRemaining)
+      else if (endAt != null && endAt > Date.now()) secs = Math.ceil((endAt - Date.now()) / 1000)
+      else { done[active] = true; active = null; endAt = null; paused = false }
+    }
+    return { done, active, secs, paused, xpClaimed: !!d.xpClaimed, endAt, pausedRemaining }
+  } catch { return fresh }
+}
 
 function fmt(s: number) {
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
@@ -58,14 +89,20 @@ export default function JustStart() {
   const soundRef = useRef(soundEnabled)
   useEffect(() => { soundRef.current = soundEnabled }, [soundEnabled])
 
-  const [done, setDone] = useState<boolean[]>(Array(10).fill(false))
-  const [active, setActive] = useState<number | null>(null)
-  const [secs, setSecs] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const [xpClaimed, setXpClaimed] = useState(false)
+  const initRef = useRef<JSInit | null>(null)
+  if (initRef.current === null) initRef.current = initState()
+  const init = initRef.current
+
+  const [done, setDone] = useState<boolean[]>(init.done)
+  const [active, setActive] = useState<number | null>(init.active)
+  const [secs, setSecs] = useState(init.secs)
+  const [paused, setPaused] = useState(init.paused)
+  const [xpClaimed, setXpClaimed] = useState(init.xpClaimed)
   const [flash, setFlash] = useState<number | null>(null)
   const [stats, setStats] = useState(loadStats)
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const endAtRef = useRef<number | null>(init.endAt)
+  const pausedRemainingRef = useRef<number | null>(init.pausedRemaining)
 
   const clearTick = useCallback(() => {
     if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null }
@@ -73,24 +110,39 @@ export default function JustStart() {
 
   useEffect(() => () => clearTick(), [clearTick])
 
+  // Oturum durumunu kalıcılaştır — uygulama kapansa bile devam edebilsin
+  useEffect(() => {
+    localStorage.setItem(LS_STATE, JSON.stringify({
+      date: todayStr(), done, active, paused, xpClaimed,
+      endAt: endAtRef.current, pausedRemaining: pausedRemainingRef.current,
+    }))
+  }, [done, active, paused, xpClaimed])
+
+  // Duvar saati bazlı tik: kalan süre endAt'ten hesaplanır, arka planda kaybolmaz
   useEffect(() => {
     if (active === null || paused) { clearTick(); return }
     const idx = active
-    tickRef.current = setInterval(() => {
-      setSecs(s => {
-        if (s <= 1) {
-          clearTick()
-          if (soundRef.current) playBell()
-          setFlash(idx)
-          setTimeout(() => setFlash(null), 700)
-          setDone(prev => { const n = [...prev]; n[idx] = true; return n })
-          setActive(null)
-          return 0
-        }
-        return s - 1
-      })
-    }, 1000)
-    return clearTick
+    const tick = () => {
+      const endAt = endAtRef.current
+      if (endAt == null) return
+      const left = Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
+      setSecs(left)
+      if (left <= 0) {
+        clearTick()
+        endAtRef.current = null
+        cancelTimerNotification(NOTIF_JUSTSTART)
+        if (soundRef.current) playBell()
+        setFlash(idx)
+        setTimeout(() => setFlash(null), 700)
+        setDone(prev => { const n = [...prev]; n[idx] = true; return n })
+        setActive(null)
+      }
+    }
+    tick()
+    tickRef.current = setInterval(tick, 500)
+    const onVisible = () => { if (!document.hidden) tick() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { clearTick(); document.removeEventListener('visibilitychange', onVisible) }
   }, [active, paused, clearTick])
 
   const nextIdx = done.findIndex(v => !v)
@@ -110,15 +162,45 @@ export default function JustStart() {
   const startNext = () => {
     if (active !== null || allDone || nextIdx === -1) return
     clearTick()
+    const secsTotal = STEPS[nextIdx] * 60
+    endAtRef.current = Date.now() + secsTotal * 1000
+    pausedRemainingRef.current = null
+    scheduleTimerNotification(
+      NOTIF_JUSTSTART, endAtRef.current,
+      'Adım tamamlandı ✨', `${STEPS[nextIdx]} dakikalık adım bitti — sıradaki seni bekliyor!`,
+    )
     setActive(nextIdx)
-    setSecs(STEPS[nextIdx] * 60)
+    setSecs(secsTotal)
     setPaused(false)
   }
 
-  const togglePause = () => setPaused(p => !p)
+  const togglePause = () => {
+    setPaused(p => {
+      const next = !p
+      if (next) {
+        if (endAtRef.current != null) {
+          pausedRemainingRef.current = Math.max(0, (endAtRef.current - Date.now()) / 1000)
+        }
+        endAtRef.current = null
+        cancelTimerNotification(NOTIF_JUSTSTART)
+      } else if (active !== null) {
+        const remaining = pausedRemainingRef.current ?? secs
+        endAtRef.current = Date.now() + remaining * 1000
+        pausedRemainingRef.current = null
+        scheduleTimerNotification(
+          NOTIF_JUSTSTART, endAtRef.current,
+          'Adım tamamlandı ✨', `${STEPS[active]} dakikalık adım bitti — sıradaki seni bekliyor!`,
+        )
+      }
+      return next
+    })
+  }
 
   const cancelStep = () => {
     clearTick()
+    endAtRef.current = null
+    pausedRemainingRef.current = null
+    cancelTimerNotification(NOTIF_JUSTSTART)
     setActive(null)
     setSecs(0)
     setPaused(false)
@@ -126,6 +208,9 @@ export default function JustStart() {
 
   const reset = () => {
     clearTick()
+    endAtRef.current = null
+    pausedRemainingRef.current = null
+    cancelTimerNotification(NOTIF_JUSTSTART)
     setDone(Array(10).fill(false))
     setActive(null)
     setSecs(0)

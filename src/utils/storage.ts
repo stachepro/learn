@@ -1,4 +1,4 @@
-import type { Habit, DailyLogs, UserProfile, PomodoroSettings, Category, PomodoroSession, NoRushRecord, TodoItem } from '../types'
+import type { Habit, DailyLogs, UserProfile, PomodoroSettings, Category, PomodoroSession, NoRushRecord, TodoItem, ActivePomodoroState } from '../types'
 import { DEFAULT_CATEGORIES } from './categories'
 import { persistNative } from './nativeStorage'
 
@@ -12,6 +12,7 @@ const KEYS = {
   SOUND_ENABLED: 'luupi_sound_enabled',
   NO_RUSH_HISTORY: 'luupi_no_rush_history',
   TODOS: 'luupi_todos',
+  POMODORO_ACTIVE: 'luupi_pomodoro_active',
 } as const
 
 function read<T>(key: string, fallback: T): T {
@@ -109,4 +110,7 @@ export const storage = {
 
   getTodos: (): TodoItem[] => read(KEYS.TODOS, []),
   setTodos: (todos: TodoItem[]) => write(KEYS.TODOS, todos),
+
+  getPomodoroActive: (): ActivePomodoroState | null => read<ActivePomodoroState | null>(KEYS.POMODORO_ACTIVE, null),
+  setPomodoroActive: (state: ActivePomodoroState | null) => write(KEYS.POMODORO_ACTIVE, state),
 }

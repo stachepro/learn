@@ -68,15 +68,6 @@ function IconUser({ size = 22, strokeWidth = 1.6, color = 'currentColor' }: Icon
   )
 }
 
-function IconX({ size = 16, strokeWidth = 2.5, color = 'currentColor' }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  )
-}
-
 function IconClock({ size = 28, strokeWidth = 1.5, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -182,22 +173,6 @@ function HubModal({ onClose }: { onClose: () => void }) {
         WebkitBackdropFilter: 'blur(24px) saturate(150%)',
       }}
     >
-      {/* Header */}
-      <div
-        className="flex items-center justify-between px-5 py-4"
-        style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}
-      >
-        <div>
-          <h2 className="display text-xl font-bold" style={{ color: '#1a1726' }}>Hub</h2>
-          <p className="text-xs mt-0.5" style={{ color: 'rgba(26,23,38,0.45)' }}>Hızlı erişim</p>
-        </div>
-        <button
-          onClick={handleClose}
-          className="ctrl btn-press w-9 h-9 rounded-full flex items-center justify-center"
-        >
-          <IconX color="rgba(26,23,38,0.7)" />
-        </button>
-      </div>
 
       <div className="flex-1 p-5 overflow-y-auto">
         <div className="grid grid-cols-2 gap-3">

@@ -335,13 +335,29 @@ function StageCard({
 }
 
 /* ── Page ── */
+const LS_ACTIVE = 'luupi_norush_active'
+
+// Aktif görev kalıcıdır: sayaç duvar saatine göre (startedAt) işlediği için
+// uygulama kapalıyken geçen süre de doğru hesaplanır.
+function loadActive(): { title: string; stages: NoRushStage[] } {
+  try {
+    const d = JSON.parse(localStorage.getItem(LS_ACTIVE) || 'null')
+    if (d && typeof d.title === 'string' && Array.isArray(d.stages)) return d
+  } catch { /* ignore */ }
+  return { title: '', stages: [] }
+}
+
 export default function NoRush() {
-  const [title, setTitle] = useState('')
-  const [stages, setStages] = useState<NoRushStage[]>([])
+  const [title, setTitle] = useState(() => loadActive().title)
+  const [stages, setStages] = useState<NoRushStage[]>(() => loadActive().stages)
   const [now, setNow] = useState(() => Date.now())
   const [showHistory, setShowHistory] = useState(false)
   const [showSummary, setShowSummary] = useState(false)
   const dragIndex = useRef<number | null>(null)
+
+  useEffect(() => {
+    localStorage.setItem(LS_ACTIVE, JSON.stringify({ title, stages }))
+  }, [title, stages])
 
   const hasRunning = stages.some((s) => s.status === 'running')
   const doneCount = stages.filter((s) => s.status === 'done').length
@@ -402,6 +418,7 @@ export default function NoRush() {
     setShowSummary(false)
     setTitle('')
     setStages([])
+    localStorage.removeItem(LS_ACTIVE)
   }
 
   return (
