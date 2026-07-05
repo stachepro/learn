@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
 import { useApp } from '../context/AppContext'
 import { usePomodoro } from '../context/PomodoroContext'
 import { getCardPalette, POMODORO_CATEGORY_IDS, type CardPalette } from '../utils/categories'
 import { formatMinutes } from '../utils/date'
+import { playBell } from '../utils/sound'
 import AddHabitModal from './AddHabitModal'
 import type { Habit, HabitLog } from '../types'
 import { getHabitMode, getHabitGoal } from '../types'
@@ -108,19 +109,30 @@ function PomodoroBtn({ timerRunning, boostActive, extraActive, goalMet, habit, s
 interface Props {
   habit: Habit
   log: HabitLog
+  justCompleted?: boolean
 }
 
-export default function HabitRow({ habit, log }: Props) {
+export default function HabitRow({ habit, log, justCompleted }: Props) {
   const { toggleHabitComplete, incrementCompletion, setHabitBoostMode, setHabitNote, deleteHabit, categories } = useApp()
-  const { startPomodoro, activeHabitId, phase, isBoostSession, isExtraSession } = usePomodoro()
+  const { startPomodoro, activeHabitId, phase, isBoostSession, isExtraSession, soundEnabled } = usePomodoro()
   const [noteOpen, setNoteOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [checkAnim, setCheckAnim] = useState(false)
   const [flash, setFlash] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
   const [confirmPomodoro, setConfirmPomodoro] = useState(false)
+  const [moveCountdown, setMoveCountdown] = useState(3)
   const noteRef = useRef<HTMLTextAreaElement>(null)
   const delTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (!justCompleted) { setMoveCountdown(3); return }
+    setMoveCountdown(3)
+    const id = setInterval(() => {
+      setMoveCountdown((c) => (c > 1 ? c - 1 : 1))
+    }, 1000)
+    return () => clearInterval(id)
+  }, [justCompleted])
 
   const cat = categories.find((c) => c.id === habit.categoryId)
   const pal = getCardPalette(habit.labelColor || cat?.color || '#6b7280')
@@ -157,8 +169,15 @@ export default function HabitRow({ habit, log }: Props) {
     if (willComplete) {
       setFlash(true)
       setTimeout(() => setFlash(false), 560)
+      if (soundEnabled) playBell()
     }
     toggleHabitComplete(habit.id)
+  }
+
+  const handleIncrement = () => {
+    const willReachGoal = !multiGoalMet && completionCount + 1 >= habitGoal
+    if (willReachGoal && soundEnabled) playBell()
+    incrementCompletion(habit.id)
   }
 
   const handleNoteToggle = () => {
@@ -194,7 +213,7 @@ export default function HabitRow({ habit, log }: Props) {
     if (isMultiMode) {
       return (
         <button
-          onClick={multiAtMax ? undefined : () => incrementCompletion(habit.id)}
+          onClick={multiAtMax ? undefined : handleIncrement}
           aria-label={multiAtMax ? 'Günlük maksimuma ulaşıldı' : `Tamamla (${completionCount}/${habitGoal})`}
           title={multiAtMax ? 'Bu günlük bu kadar yeter, yoruldun 💪' : undefined}
           className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold soft-trans ${checkAnim ? 'animate-check' : ''}`}
@@ -249,7 +268,7 @@ export default function HabitRow({ habit, log }: Props) {
       )}
 
       <div
-        className={`glass soft-trans tile-press ${flash ? 'animate-done-flash' : ''}`}
+        className={`glass soft-trans tile-press relative overflow-hidden ${flash ? 'animate-done-flash' : ''}`}
         style={{
           borderRadius: 22,
           background: pal.cardBg,
@@ -258,6 +277,24 @@ export default function HabitRow({ habit, log }: Props) {
           opacity: log.completed ? 0.92 : 1,
         }}
       >
+        {justCompleted && (
+          <div
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 animate-fade-in"
+            style={{ background: 'rgba(82,82,92,0.94)', borderRadius: 22 }}
+          >
+            <span
+              key={moveCountdown}
+              className="tnum text-3xl font-black leading-none animate-value-pop"
+              style={{ color: '#fff' }}
+            >
+              {moveCountdown}
+            </span>
+            <span className="text-[11px] font-bold tracking-wide" style={{ color: 'rgba(255,255,255,0.8)' }}>
+              Tamamlananlara kaldırılıyor
+            </span>
+          </div>
+        )}
+
         {/* ── Main row ── */}
         <div className="flex items-center gap-3 px-3.5 py-3">
           {/* Icon chip */}

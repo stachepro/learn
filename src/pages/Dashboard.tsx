@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useApp } from '../context/AppContext'
 import HabitRow from '../components/HabitRow'
 import ExpBar from '../components/ExpBar'
@@ -29,8 +29,60 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false)
   const [now, setNow] = useState(() => new Date())
   const yesterday = yesterdayStr()
+  const [animatingIds, setAnimatingIds] = useState<Record<string, boolean>>({})
+  const prevCompletedRef = useRef<Record<string, boolean>>({})
+  const baselineSetRef = useRef(false)
+  const moveTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+  const lastTodayLogRef = useRef(todayLog)
 
   useEffect(() => { setMounted(true) }, [])
+
+  // Detect habits transitioning to completed *during render* (not in an effect) so the
+  // "still animating" flag is applied before this render commits — otherwise the habit
+  // would flash into the Tamamlananlar section for one frame before the animation kicks in.
+  if (!baselineSetRef.current) {
+    // First render: record today's already-completed habits as the baseline so they
+    // aren't mistaken for "just completed" the next time any habit's state changes.
+    baselineSetRef.current = true
+    habits.forEach((habit) => {
+      prevCompletedRef.current[habit.id] = (todayLog.habits[habit.id] ?? emptyLog()).completed
+    })
+  } else if (lastTodayLogRef.current !== todayLog) {
+    lastTodayLogRef.current = todayLog
+    const newlyCompleted: string[] = []
+    habits.forEach((habit) => {
+      const log = todayLog.habits[habit.id] ?? emptyLog()
+      const wasCompleted = prevCompletedRef.current[habit.id]
+      if (log.completed && !wasCompleted) newlyCompleted.push(habit.id)
+      prevCompletedRef.current[habit.id] = log.completed
+    })
+    if (newlyCompleted.length > 0) {
+      setAnimatingIds((cur) => {
+        const next = { ...cur }
+        newlyCompleted.forEach((id) => { next[id] = true })
+        return next
+      })
+    }
+  }
+
+  // Start a 3s timer for each newly-animating habit, after which it drops to the bottom section.
+  useEffect(() => {
+    Object.keys(animatingIds).forEach((id) => {
+      if (moveTimersRef.current[id]) return
+      moveTimersRef.current[id] = setTimeout(() => {
+        setAnimatingIds((cur) => {
+          const next = { ...cur }
+          delete next[id]
+          return next
+        })
+        delete moveTimersRef.current[id]
+      }, 3000)
+    })
+  }, [animatingIds])
+
+  useEffect(() => () => {
+    Object.values(moveTimersRef.current).forEach(clearTimeout)
+  }, [])
 
   // Update `now` every minute so time-window expiry is reflected in real time
   useEffect(() => {
@@ -51,6 +103,14 @@ export default function Dashboard() {
   // Missed: window expired and not completed
   const missedEntries = allEntries.filter(({ habit, log }) =>
     !log.completed && getWindowStatus(habit, now) === 'expired'
+  )
+
+  const isAnimatingMove = (habitId: string) => !!animatingIds[habitId]
+
+  // Completed today — shown in their own section at the bottom, unless
+  // still playing the "moving to completed" animation in their original group.
+  const completedEntries = allEntries.filter(({ habit, log }) =>
+    log.completed && !isAnimatingMove(habit.id)
   )
 
   const completed = allEntries.filter(({ log }) => log.completed).length
@@ -177,7 +237,9 @@ export default function Dashboard() {
         ) : (
           <div className="space-y-5">
             {TIME_GROUPS.map(({ id, label, icon }) => {
-              const groupEntries = habitEntries.filter(({ habit }) => getHabitTimeOfDay(habit) === id)
+              const groupEntries = habitEntries.filter(({ habit, log }) =>
+                getHabitTimeOfDay(habit) === id && (!log.completed || isAnimatingMove(habit.id))
+              )
               if (groupEntries.length === 0) return null
               const remaining = groupEntries.filter(({ log }) => !log.completed).length
               return (
@@ -194,7 +256,7 @@ export default function Dashboard() {
                   <div className="space-y-2.5">
                     {groupEntries.map(({ habit, log }, i) => (
                       <div key={habit.id} className="animate-pop" style={{ animationDelay: `${Math.min(i * 60, 360)}ms` }}>
-                        <HabitRow habit={habit} log={log} />
+                        <HabitRow habit={habit} log={log} justCompleted={log.completed && isAnimatingMove(habit.id)} />
                       </div>
                     ))}
                   </div>
@@ -222,6 +284,31 @@ export default function Dashboard() {
             <p className="text-[11px] ink-45 -mt-1">Pencere kapandı — geç de olsa tamamlayabilirsin</p>
             <div className="space-y-2.5" style={{ opacity: 0.75 }}>
               {missedEntries.map(({ habit, log }, i) => (
+                <div key={habit.id} className="animate-pop" style={{ animationDelay: `${Math.min(i * 60, 360)}ms` }}>
+                  <HabitRow habit={habit} log={log} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Completed habits — bottom section */}
+        {completedEntries.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 pt-1">
+              <span className="text-base">✅</span>
+              <h2 className="display text-base font-bold" style={{ color: 'rgba(99,153,34,0.9)' }}>
+                Tamamlananlar
+              </h2>
+              <span
+                className="text-xs font-bold px-2 py-0.5 rounded-full"
+                style={{ background: 'rgba(34,197,94,0.15)', color: 'rgba(59,109,17,0.9)', border: '1px solid rgba(34,197,94,0.3)' }}
+              >
+                {completedEntries.length}
+              </span>
+            </div>
+            <div className="space-y-2.5">
+              {completedEntries.map(({ habit, log }, i) => (
                 <div key={habit.id} className="animate-pop" style={{ animationDelay: `${Math.min(i * 60, 360)}ms` }}>
                   <HabitRow habit={habit} log={log} />
                 </div>

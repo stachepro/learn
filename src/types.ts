@@ -119,3 +119,11 @@ export interface NoRushRecord {
   totalSeconds: number
   completedAt: string
 }
+
+export interface TodoItem {
+  id: string
+  text: string
+  color: string       // random outline color, fixed at creation
+  done: boolean
+  createdAt: string
+}

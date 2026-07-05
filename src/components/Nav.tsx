@@ -108,6 +108,18 @@ function IconCoffee({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: Ic
   )
 }
 
+function IconClipboardList({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      <path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3" />
+      <line x1="9" y1="12" x2="15" y2="12" />
+      <line x1="9" y1="16" x2="15" y2="16" />
+      <line x1="9" y1="8" x2="11" y2="8" />
+    </svg>
+  )
+}
+
 function IconChart({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -146,8 +158,12 @@ function HubModal({ onClose }: { onClose: () => void }) {
   }
 
   const goTo = (path: string) => {
-    handleClose()
-    setTimeout(() => navigate(path), 50)
+    // Navigate immediately and unmount without the fade-out animation — staggering
+    // them (close animation fading over 210ms while the route already changed
+    // underneath at 50ms) let the incoming page peek through the semi-transparent,
+    // still-sliding Hub sheet, which looked like the wrong page flashing on screen.
+    navigate(path)
+    onClose()
   }
 
   useEffect(() => {
@@ -254,19 +270,34 @@ function HubModal({ onClose }: { onClose: () => void }) {
             </div>
           </button>
 
-          {/* Placeholders */}
-          {Array.from({ length: 2 }, (_, i) => (
-            <div
-              key={i}
-              className="glass g-neutral flex flex-col items-center justify-center gap-3 rounded-2xl"
-              style={{ paddingTop: 40, paddingBottom: 40, opacity: 0.55 }}
+          {/* Klasik To-do tile */}
+          <button
+            onClick={() => goTo('/todo')}
+            className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40, background: '#e5f6ea', border: '1px solid #c3e8cf' }}
+          >
+            <span
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(150deg, #4ade80, #16a34a)', boxShadow: '0 8px 20px -6px rgba(22,163,74,0.55)' }}
             >
-              <IconClock color="rgba(26,23,38,0.4)" />
-              <span className="text-xs font-semibold tracking-wide" style={{ color: 'rgba(26,23,38,0.4)' }}>
-                Yakında
-              </span>
+              <IconClipboardList size={24} strokeWidth={2} color="#fff" />
+            </span>
+            <div className="text-center">
+              <p className="text-sm font-bold" style={{ color: '#166534' }}>Klasik To-do</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#3f8a5c' }}>Basit liste</p>
             </div>
-          ))}
+          </button>
+
+          {/* Placeholder */}
+          <div
+            className="glass g-neutral flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40, opacity: 0.55 }}
+          >
+            <IconClock color="rgba(26,23,38,0.4)" />
+            <span className="text-xs font-semibold tracking-wide" style={{ color: 'rgba(26,23,38,0.4)' }}>
+              Yakında
+            </span>
+          </div>
         </div>
       </div>
     </div>,

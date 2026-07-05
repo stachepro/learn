@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { useApp } from '../context/AppContext'
 import { getDaysInMonth, getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS } from '../utils/date'
 
@@ -74,12 +75,13 @@ export default function ContributionsGrid() {
           return (
             <div
               key={day}
-              className="contrib-cell aspect-square rounded-lg flex items-center justify-center relative"
+              className="contrib-cell animate-cell-pop aspect-square rounded-lg flex items-center justify-center relative"
               style={{
                 background: isFuture ? 'rgba(26,23,38,0.03)' : completionColor(count),
                 boxShadow: isToday ? '0 0 0 2px rgb(34,197,94)' : 'inset 0 0 0 1px rgba(26,23,38,0.06)',
-                opacity: isFuture ? 0.5 : 1,
-              }}
+                '--cell-opacity': isFuture ? 0.5 : 1,
+                animationDelay: `${(i % 7) * 0.02 + Math.floor(i / 7) * 0.015}s`,
+              } as CSSProperties}
               title={`${day} ${trMonthName(month)}: ${count} tamamlandı`}
             >
               {!isFuture && count > 0 && (

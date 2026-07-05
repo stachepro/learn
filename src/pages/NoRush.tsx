@@ -64,16 +64,31 @@ function IconCheck({ size = 14, color = 'currentColor' }: IconProps) {
   )
 }
 
+function IconLock({ size = 14, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="11" width="16" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  )
+}
+
 /* ── History modal ── */
 function HistoryModal({ onClose }: { onClose: () => void }) {
   const [exiting, setExiting] = useState(false)
-  const [records] = useState<NoRushRecord[]>(() => storage.getNoRushHistory())
+  const [records, setRecords] = useState<NoRushRecord[]>(() => storage.getNoRushHistory())
 
   const handleClose = () => {
     if (exiting) return
     playConfirm()
     setExiting(true)
     setTimeout(onClose, 180)
+  }
+
+  const handleDelete = (id: string) => {
+    playConfirm()
+    storage.deleteNoRushRecord(id)
+    setRecords((prev) => prev.filter((r) => r.id !== id))
   }
 
   useEffect(() => {
@@ -110,13 +125,23 @@ function HistoryModal({ onClose }: { onClose: () => void }) {
               records.map((r, idx) => (
                 <div
                   key={r.id}
-                  className="px-5 py-3.5"
+                  className="flex items-center gap-3 px-5 py-3.5"
                   style={{ borderBottom: idx < records.length - 1 ? '1px solid rgba(26,23,38,0.06)' : 'none' }}
                 >
-                  <p className="text-sm font-semibold" style={{ color: '#1a1726' }}>{r.title || 'İsimsiz görev'}</p>
-                  <p className="text-xs mt-1 ink-45">
-                    {r.stageCount} aşama · {formatHMS(r.totalSeconds)}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate" style={{ color: '#1a1726' }}>{r.title || 'İsimsiz görev'}</p>
+                    <p className="text-xs mt-1 ink-45">
+                      {r.stageCount} aşama · {formatHMS(r.totalSeconds)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleDelete(r.id)}
+                    aria-label="Sil"
+                    title="Sil"
+                    className="ctrl btn-press w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                  >
+                    <IconX size={13} />
+                  </button>
                 </div>
               ))
             )}
@@ -319,6 +344,7 @@ export default function NoRush() {
 
   const hasRunning = stages.some((s) => s.status === 'running')
   const doneCount = stages.filter((s) => s.status === 'done').length
+  const allStagesDone = stages.length > 0 && doneCount === stages.length
 
   useEffect(() => {
     if (!hasRunning) return
@@ -461,10 +487,16 @@ export default function NoRush() {
         </div>
 
         <button
-          onClick={() => { playConfirm(); finishTask() }}
-          className="btn-press w-full py-3.5 rounded-2xl text-sm font-bold"
-          style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
+          onClick={() => { if (allStagesDone) { playConfirm(); finishTask() } }}
+          disabled={!allStagesDone}
+          title={!allStagesDone ? 'Önce tüm aşamaları tamamla' : undefined}
+          className="btn-press w-full py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+          style={{
+            background: allStagesDone ? 'rgba(34,197,94,0.9)' : 'rgba(26,23,38,0.08)',
+            color: allStagesDone ? '#06210f' : 'rgba(26,23,38,0.35)',
+          }}
         >
+          {!allStagesDone && <IconLock size={14} />}
           Bitir
         </button>
       </div>

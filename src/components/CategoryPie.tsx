@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext'
 
 interface Slice {
@@ -12,6 +12,11 @@ interface Slice {
 
 export default function CategoryPie() {
   const { logs, habits, categories } = useApp()
+  const [drawn, setDrawn] = useState(false)
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setDrawn(true))
+    return () => cancelAnimationFrame(t)
+  }, [])
 
   const { slices, total } = useMemo(() => {
     // habitId → categoryId (deleted habits no longer exist; their logs are purged)
@@ -76,14 +81,15 @@ export default function CategoryPie() {
                 fill="none"
                 stroke={s.color}
                 strokeWidth="28"
-                strokeDasharray={`${segLen} ${C - segLen}`}
+                className="pie-slice"
+                strokeDasharray={drawn ? `${segLen} ${C - segLen}` : `0 ${C}`}
                 strokeDashoffset={dashoffset}
               />
             )
           })}
         </svg>
         {/* Center label */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center animate-fade-in">
           <span className="display text-2xl font-extrabold tnum" style={{ color: '#1a1726' }}>{total}</span>
           <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(26,23,38,0.45)' }}>
             Tamamlama
@@ -93,8 +99,12 @@ export default function CategoryPie() {
 
       {/* Legend — name + percentage per slice */}
       <div className="flex-1 w-full space-y-1.5">
-        {slices.map((s) => (
-          <div key={s.id} className="flex items-center gap-2.5">
+        {slices.map((s, i) => (
+          <div
+            key={s.id}
+            className="flex items-center gap-2.5 animate-fade-up"
+            style={{ animationDelay: `${i * 0.05}s` }}
+          >
             <span className="w-3 h-3 rounded-[4px] flex-shrink-0" style={{ background: s.color }} />
             <span className="text-sm flex-1 min-w-0 truncate" style={{ color: 'rgba(26,23,38,0.7)' }}>
               {s.emoji} {s.name}

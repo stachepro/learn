@@ -39,35 +39,35 @@ export default function Stats() {
       </div>
 
       {/* Monthly activity grid */}
-      <div className="glass g-neutral p-5" style={{ borderRadius: 24 }}>
+      <div className="glass glass-lift g-neutral p-5 animate-fade-up" style={{ borderRadius: 24, animationDelay: '0.04s' }}>
         <ContributionsGrid />
       </div>
 
       {/* Monthly pomodoro stats */}
-      <div>
+      <div className="animate-fade-up" style={{ animationDelay: '0.09s' }}>
         <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>Bu Ay · Pomodoro</p>
         <div className="grid grid-cols-2 gap-3">
-          <div className="glass g-rust p-4" style={{ borderRadius: 20 }}>
+          <div className="glass glass-lift g-rust p-4" style={{ borderRadius: 20 }}>
             <div className="flex items-start justify-between mb-2">
               <span className="text-xl">🍅</span>
               <span className="text-[10px] font-semibold uppercase tracking-wider ink-60">Süre</span>
             </div>
-            <p className="display text-2xl font-extrabold tnum">{formatMinutes(pomMinutes)}</p>
+            <p className="display text-2xl font-extrabold tnum animate-value-pop" key={pomMinutes}>{formatMinutes(pomMinutes)}</p>
             <p className="text-[11px] mt-1 ink-45">Toplam odak süresi</p>
           </div>
-          <div className="glass g-cream p-4" style={{ borderRadius: 20 }}>
+          <div className="glass glass-lift g-cream p-4" style={{ borderRadius: 20 }}>
             <div className="flex items-start justify-between mb-2">
               <span className="text-xl">⏱</span>
               <span className="text-[10px] font-semibold uppercase tracking-wider ink-60">Sayı</span>
             </div>
-            <p className="display text-2xl font-extrabold tnum">{pomCount} <span className="text-base font-bold">Pomodoro</span></p>
+            <p className="display text-2xl font-extrabold tnum animate-value-pop" key={pomCount}>{pomCount} <span className="text-base font-bold">Pomodoro</span></p>
             <p className="text-[11px] mt-1 ink-45">Tamamlanan oturum</p>
           </div>
         </div>
       </div>
 
       {/* Category distribution */}
-      <div>
+      <div className="animate-fade-up" style={{ animationDelay: '0.14s' }}>
         <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>Kategori Dağılımı</p>
         <div className="glass g-neutral p-5" style={{ borderRadius: 24 }}>
           <CategoryPie />
