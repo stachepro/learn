@@ -3,7 +3,7 @@ import {
 } from 'react'
 import { storage } from '../utils/storage'
 import { getLevelFromExp, calcHabitExp } from '../utils/exp'
-import { checkBadges } from '../utils/badges'
+import { checkBadges, announceNewBadges } from '../utils/badges'
 import { todayStr, yesterdayStr } from '../utils/date'
 import { scheduleHabitReminder, cancelHabitReminder, syncHabitReminders, scheduleStreakRiskReminder } from '../utils/reminderNotifications'
 import type {
@@ -119,7 +119,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const syncProfile = (newLogs: DailyLogs, base: UserProfile): UserProfile => {
     const totalExp = recalcExp(newLogs, base.justStartXP ?? 0)
     const p = { ...base, totalExp, level: getLevelFromExp(totalExp) }
-    p.badges = checkBadges(p, newLogs)
+    const newBadges = checkBadges(p, newLogs)
+    announceNewBadges(base.badges, newBadges)
+    p.badges = newBadges
     return p
   }
 
@@ -286,7 +288,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } else {
       const newExp = p.totalExp + xpAmount
       p = { ...p, totalExp: newExp, level: getLevelFromExp(newExp) }
-      p.badges = checkBadges(p, newLogs)
+      const newBadges = checkBadges(p, newLogs)
+      announceNewBadges(p.badges, newBadges)
+      p.badges = newBadges
       saveProfile(p)
     }
   }, [logs, profile, today])
@@ -296,7 +300,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setFreeSessionsState(storage.getFreeSessions())
     const p = { ...profile, totalExp: profile.totalExp + 10 }
     p.level = getLevelFromExp(p.totalExp)
-    p.badges = checkBadges(p, logs)
+    const newBadges = checkBadges(p, logs)
+    announceNewBadges(p.badges, newBadges)
+    p.badges = newBadges
     saveProfile(p)
   }, [profile, logs])
 

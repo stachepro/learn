@@ -357,6 +357,18 @@ input[type="range"] { accent-color: #f59e0b; }
     inset -90px 0  100px -40px rgba(245, 158, 11, 0.1);
 }
 
+/* ── Başarım bildirimi — üstten iner, hafif seker, yukarı çıkar ── */
+@keyframes ach-drop-in {
+  0%   { transform: translateY(-130%); opacity: 0; }
+  70%  { transform: translateY(6px);   opacity: 1; }
+  100% { transform: translateY(0);     opacity: 1; }
+}
+@keyframes ach-rise-out {
+  to { transform: translateY(-130%); opacity: 0; }
+}
+.ach-in  { animation: ach-drop-in 0.5s cubic-bezier(0.34, 1.2, 0.5, 1) both; }
+.ach-out { animation: ach-rise-out 0.38s cubic-bezier(0.4, 0, 1, 1) both; }
+
 /* ── Hub FAB — dönen ışık halkası + nefes alan parlama ── */
 .hub-aura {
   position: absolute;

@@ -1,6 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { usePomodoro } from '../context/PomodoroContext'
 
 function fmtFocus(sec: number): string {
@@ -154,7 +153,9 @@ function HubModal({ onClose }: { onClose: () => void }) {
     return () => document.removeEventListener('keydown', handler)
   }, [exiting])
 
-  return createPortal(
+  // Not: panel bilerek portalsız — uygulama kabuğuyla aynı katman bağlamında
+  // kalmalı ki z-40 alt çubuk ve Hub butonu panelin üstünde çizilebilsin
+  return (
     <div
       // Alt kenar, alt sekme çubuğunun yüksekliğiyle (58px + alt dolgu) eşleşir;
       // 6px bindirme payı panel ile çubuk arasında sayfanın sızdığı şerit kalmasın diye
@@ -169,37 +170,35 @@ function HubModal({ onClose }: { onClose: () => void }) {
 
       <div className="flex-1 p-5 overflow-y-auto">
         <div className="grid grid-cols-2 gap-3">
-          {/* Just Start tile — energetic flagship */}
+          {/* Su Takibi tile */}
           <button
-            onClick={() => goTo('/just-start')}
-            className="btn-press tile-press flame-glow flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, background: '#faecd6', border: '1px solid #f3dcb0' }}
-          >
-            <span
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
-              style={{ background: 'linear-gradient(150deg, #fbbf24, #f97316)', boxShadow: '0 8px 20px -6px rgba(249,115,22,0.6)' }}
-            >⚡</span>
-            <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#7a3d08' }}>Just Start</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#b87520' }}>1→115 dk momentum</p>
-            </div>
-          </button>
-
-          {/* İstatistikler tile */}
-          <button
-            onClick={() => goTo('/stats')}
+            onClick={() => goTo('/su-takibi')}
             className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
             style={{ paddingTop: 40, paddingBottom: 40, background: '#e6f0fb', border: '1px solid #c5ddf6' }}
           >
             <span
-              className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(150deg, #60a5fa, #2563eb)', boxShadow: '0 8px 20px -6px rgba(37,99,235,0.55)' }}
-            >
-              <IconChart size={24} strokeWidth={2} color="#fff" />
-            </span>
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
+              style={{ background: 'linear-gradient(150deg, #60a5fa, #1d4ed8)', boxShadow: '0 8px 20px -6px rgba(29,78,216,0.55)' }}
+            >💧</span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#0c447c' }}>İstatistikler</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#3f7bc0' }}>Aylık özet</p>
+              <p className="text-sm font-bold" style={{ color: '#0c447c' }}>Su Takibi</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#3f7bc0' }}>Bugün ne kadar içtin?</p>
+            </div>
+          </button>
+
+          {/* Uyandım tile — gün başlangıcı */}
+          <button
+            onClick={() => goTo('/uyandim')}
+            className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40, background: '#fdf0d9', border: '1px solid #f5ddb2' }}
+          >
+            <span
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
+              style={{ background: 'linear-gradient(150deg, #fde68a, #f59e0b)', boxShadow: '0 8px 20px -6px rgba(245,158,11,0.55)' }}
+            >🌅</span>
+            <div className="text-center">
+              <p className="text-sm font-bold" style={{ color: '#8a5206' }}>Uyandım</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#b87520' }}>Güne merhaba de</p>
             </div>
           </button>
 
@@ -221,21 +220,19 @@ function HubModal({ onClose }: { onClose: () => void }) {
             </div>
           </button>
 
-          {/* Acele Yok tile — break big tasks into paced stages */}
+          {/* Just Start tile — energetic flagship */}
           <button
-            onClick={() => goTo('/acele-yok')}
-            className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, background: '#efe7db', border: '1px solid #ddccb0' }}
+            onClick={() => goTo('/just-start')}
+            className="btn-press tile-press flame-glow flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40, background: '#faecd6', border: '1px solid #f3dcb0' }}
           >
             <span
-              className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(150deg, #a8846a, #6b4a35)', boxShadow: '0 8px 20px -6px rgba(107,74,53,0.5)' }}
-            >
-              <IconCoffee size={24} strokeWidth={2} color="#fff" />
-            </span>
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
+              style={{ background: 'linear-gradient(150deg, #fbbf24, #f97316)', boxShadow: '0 8px 20px -6px rgba(249,115,22,0.6)' }}
+            >⚡</span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#4a3220' }}>Acele Yok</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#8a6a4d' }}>Adım adım ilerle</p>
+              <p className="text-sm font-bold" style={{ color: '#7a3d08' }}>Just Start</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#b87520' }}>1→115 dk momentum</p>
             </div>
           </button>
 
@@ -257,41 +254,44 @@ function HubModal({ onClose }: { onClose: () => void }) {
             </div>
           </button>
 
-          {/* Uyandım tile — gün başlangıcı */}
+          {/* Acele Yok tile — break big tasks into paced stages */}
           <button
-            onClick={() => goTo('/uyandim')}
+            onClick={() => goTo('/acele-yok')}
             className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, background: '#fdf0d9', border: '1px solid #f5ddb2' }}
+            style={{ paddingTop: 40, paddingBottom: 40, background: '#efe7db', border: '1px solid #ddccb0' }}
           >
             <span
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
-              style={{ background: 'linear-gradient(150deg, #fde68a, #f59e0b)', boxShadow: '0 8px 20px -6px rgba(245,158,11,0.55)' }}
-            >🌅</span>
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(150deg, #a8846a, #6b4a35)', boxShadow: '0 8px 20px -6px rgba(107,74,53,0.5)' }}
+            >
+              <IconCoffee size={24} strokeWidth={2} color="#fff" />
+            </span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#8a5206' }}>Uyandım</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#b87520' }}>Güne merhaba de</p>
+              <p className="text-sm font-bold" style={{ color: '#4a3220' }}>Acele Yok</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#8a6a4d' }}>Adım adım ilerle</p>
             </div>
           </button>
 
-          {/* Su Takibi tile */}
+          {/* İstatistikler tile */}
           <button
-            onClick={() => goTo('/su-takibi')}
+            onClick={() => goTo('/stats')}
             className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
             style={{ paddingTop: 40, paddingBottom: 40, background: '#e6f0fb', border: '1px solid #c5ddf6' }}
           >
             <span
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
-              style={{ background: 'linear-gradient(150deg, #60a5fa, #1d4ed8)', boxShadow: '0 8px 20px -6px rgba(29,78,216,0.55)' }}
-            >💧</span>
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(150deg, #60a5fa, #2563eb)', boxShadow: '0 8px 20px -6px rgba(37,99,235,0.55)' }}
+            >
+              <IconChart size={24} strokeWidth={2} color="#fff" />
+            </span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#0c447c' }}>Su Takibi</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#3f7bc0' }}>Bugün ne kadar içtin?</p>
+              <p className="text-sm font-bold" style={{ color: '#0c447c' }}>İstatistikler</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#3f7bc0' }}>Aylık özet</p>
             </div>
           </button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   )
 }
 

@@ -4,6 +4,7 @@ import { storage } from '../utils/storage'
 import { formatHMS } from '../utils/date'
 import BackBar from '../components/BackBar'
 import { playConfirm } from '../utils/sound'
+import { awardStandaloneBadges } from '../utils/badges'
 import type { NoRushStage, NoRushRecord } from '../types'
 
 function newStage(): NoRushStage {
@@ -415,6 +416,7 @@ export default function NoRush() {
       totalSeconds,
       completedAt: new Date().toISOString(),
     })
+    awardStandaloneBadges()
     setShowSummary(false)
     setTitle('')
     setStages([])

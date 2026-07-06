@@ -3,6 +3,7 @@ import BackBar from '../components/BackBar'
 import { storage } from '../utils/storage'
 import { todayStr, formatShortDate } from '../utils/date'
 import { scheduleWakeGoalReminder } from '../utils/reminderNotifications'
+import { awardStandaloneBadges } from '../utils/badges'
 import type { WakeRecord } from '../types'
 
 function timeToMinutes(t: string): number {
@@ -185,6 +186,7 @@ export default function WakeUp() {
     }
     storage.addWakeRecord(record)
     setRecords(storage.getWakeRecords())
+    awardStandaloneBadges()
     setAnim(true)
     setTimeout(() => setAnim(false), 3600)
   }

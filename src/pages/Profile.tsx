@@ -140,8 +140,8 @@ export default function Profile() {
                 style={{ borderRadius: 18, opacity: earned ? 1 : 0.62 }}
               >
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                  style={{ background: earned ? 'rgba(34,197,94,0.18)' : 'rgba(26,23,38,0.05)' }}>
-                  {earned ? '🏅' : '🔒'}
+                  style={{ background: earned ? 'rgba(34,197,94,0.18)' : 'rgba(26,23,38,0.05)', filter: earned ? undefined : 'grayscale(1) opacity(0.55)' }}>
+                  {earned ? badge.emoji : '🔒'}
                 </div>
                 <div>
                   <p className="text-sm font-bold">{badge.name}</p>

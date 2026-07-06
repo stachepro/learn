@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { storage } from '../utils/storage'
 import BackBar from '../components/BackBar'
+import { awardStandaloneBadges } from '../utils/badges'
 import type { TodoItem } from '../types'
 
 const OUTLINE_COLORS = [
@@ -103,6 +104,7 @@ export default function Todo() {
   const persist = (next: TodoItem[]) => {
     setTodos(next)
     storage.setTodos(next)
+    awardStandaloneBadges()
   }
 
   const addTodo = () => {

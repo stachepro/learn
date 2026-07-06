@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { AppProvider } from './context/AppContext'
 import { PomodoroProvider } from './context/PomodoroContext'
 import Nav from './components/Nav'
+import AchievementToast from './components/AchievementToast'
 import PomodoroBar from './components/PomodoroBar'
 import PomodoroAmbience from './components/PomodoroAmbience'
 import Dashboard from './pages/Dashboard'
@@ -47,6 +48,7 @@ function Layout() {
     <div className="h-full relative">
       <PomodoroAmbience />
       <div className="relative z-10 flex flex-col h-full">
+        <AchievementToast />
         <Nav />
         {/* iOS çentik altı buzlu şerit — içerik kayarken durum çubuğu okunur kalır */}
         <div

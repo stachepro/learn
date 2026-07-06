@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import BackBar from '../components/BackBar'
 import WaterFill from '../components/WaterFill'
 import { storage } from '../utils/storage'
+import { awardStandaloneBadges } from '../utils/badges'
 import { todayStr, dateStr, getDaysInMonth, getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS, formatShortDate } from '../utils/date'
 import {
   formatLiters, formatMl, dayTotalMl, entriesForDate, totalsForMonth, totalsForYear,
@@ -317,6 +318,7 @@ export default function WaterTracker() {
     }
     storage.addWaterEntry(entry)
     setEntries(storage.getWaterEntries())
+    awardStandaloneBadges()
     setPulseKey((k) => k + 1)
     setUndo({ id: entry.id, ml })
     if (undoTimer.current != null) window.clearTimeout(undoTimer.current)
@@ -353,7 +355,10 @@ export default function WaterTracker() {
         />
       )}
 
-      <div className="relative z-10 max-w-sm mx-auto px-4 pt-3 pb-24">
+      <div
+        className="relative z-10 max-w-sm mx-auto px-4 pt-3 pb-24 flex flex-col"
+        style={{ minHeight: 'calc(100dvh - env(safe-area-inset-top))' }}
+      >
         <BackBar title="Su Takibi" />
 
         {/* Büyük litre göstergesi + hedef durumu */}
@@ -410,6 +415,9 @@ export default function WaterTracker() {
             </div>
           </div>
         )}
+
+        {/* Sayaç + hedef üstte sabit; geri kalan her şey kalan alanda dikeyde ortalanır */}
+        <div className="flex-1 flex flex-col justify-center">
 
         {/* Hızlı ekleme */}
         <div className="grid grid-cols-2 gap-2 mb-2">
@@ -514,6 +522,8 @@ export default function WaterTracker() {
         >
           📊 Su İstatistikleri
         </button>
+
+        </div>
       </div>
 
       {/* Geri al bildirimi */}

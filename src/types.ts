@@ -98,6 +98,7 @@ export interface PomodoroSettings {
 export interface Badge {
   id: string
   name: string
+  emoji: string
   description: string
   condition: string
 }
