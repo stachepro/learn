@@ -1,4 +1,4 @@
-import type { Habit, DailyLogs, UserProfile, PomodoroSettings, Category, PomodoroSession, NoRushRecord, TodoItem, ActivePomodoroState, WakeRecord } from '../types'
+import type { Habit, DailyLogs, UserProfile, PomodoroSettings, Category, PomodoroSession, NoRushRecord, TodoItem, ActivePomodoroState, WakeRecord, WaterEntry } from '../types'
 import { DEFAULT_CATEGORIES } from './categories'
 import { persistNative } from './nativeStorage'
 
@@ -15,7 +15,13 @@ const KEYS = {
   POMODORO_ACTIVE: 'luupi_pomodoro_active',
   WAKE_RECORDS: 'luupi_wake_records',
   WAKE_GOAL: 'luupi_wake_goal',
+  WATER_ENTRIES: 'luupi_water_entries',
+  WATER_BOTTLE_ML: 'luupi_water_bottle_ml',
+  WATER_GOAL_ML: 'luupi_water_goal_ml',
 } as const
+
+export const DEFAULT_WATER_BOTTLE_ML = 200
+export const DEFAULT_WATER_GOAL_ML = 2500
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -124,4 +130,21 @@ export const storage = {
   clearWakeRecords: () => write(KEYS.WAKE_RECORDS, []),
   getWakeGoal: (): string | null => read<string | null>(KEYS.WAKE_GOAL, null),
   setWakeGoal: (time: string) => write(KEYS.WAKE_GOAL, time),
+
+  getWaterEntries: (): WaterEntry[] => read(KEYS.WATER_ENTRIES, []),
+  addWaterEntry: (entry: WaterEntry) => {
+    const existing = read<WaterEntry[]>(KEYS.WATER_ENTRIES, [])
+    write(KEYS.WATER_ENTRIES, [...existing, entry])
+  },
+  deleteWaterEntry: (id: string) => {
+    const existing = read<WaterEntry[]>(KEYS.WATER_ENTRIES, [])
+    write(KEYS.WATER_ENTRIES, existing.filter((e) => e.id !== id))
+  },
+  clearWaterEntries: () => write(KEYS.WATER_ENTRIES, []),
+
+  getWaterBottleMl: (): number => read<number>(KEYS.WATER_BOTTLE_ML, DEFAULT_WATER_BOTTLE_ML),
+  setWaterBottleMl: (ml: number) => write(KEYS.WATER_BOTTLE_ML, ml),
+
+  getWaterGoalMl: (): number => read<number>(KEYS.WATER_GOAL_ML, DEFAULT_WATER_GOAL_ML),
+  setWaterGoalMl: (ml: number) => write(KEYS.WATER_GOAL_ML, ml),
 }

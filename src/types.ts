@@ -147,3 +147,12 @@ export interface TodoItem {
   done: boolean
   createdAt: string
 }
+
+// Su takibi — her yudum/bardak ayrı bir kayıt, tarih+saat damgasıyla
+export interface WaterEntry {
+  id: string
+  date: string      // YYYY-MM-DD (yerel)
+  time: string      // HH:MM (yerel)
+  ml: number
+  timestamp: string // ISO — kronolojik sıralama için
+}

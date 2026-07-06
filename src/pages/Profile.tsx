@@ -3,6 +3,8 @@ import { useApp } from '../context/AppContext'
 import { ALL_BADGES } from '../utils/badges'
 import { formatMinutes } from '../utils/date'
 import { expProgressInCurrentLevel } from '../utils/exp'
+import { storage } from '../utils/storage'
+import { formatMl } from '../utils/water'
 
 export default function Profile() {
   const { profile, logs, freeSessions, updateUsername, pomodoroSettings, updatePomodoroSettings } = useApp()
@@ -12,6 +14,8 @@ export default function Profile() {
   const [breakDur, setBreakDur] = useState(pomodoroSettings.breakDuration)
   const [autoLoop, setAutoLoop] = useState(pomodoroSettings.autoLoop ?? false)
   const [saved, setSaved] = useState(false)
+  const [bottleMl, setBottleMl] = useState(() => storage.getWaterBottleMl())
+  const [waterGoalMl, setWaterGoalMl] = useState(() => storage.getWaterGoalMl())
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
@@ -207,6 +211,52 @@ export default function Profile() {
           >
             {saved ? '✓ Kaydedildi' : 'Kaydet'}
           </button>
+        </div>
+      </div>
+
+      {/* Su takibi ayarları */}
+      <div className="glass g-sky" style={{ borderRadius: 24 }}>
+        <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+          💧 Su Takibi Ayarları
+        </p>
+        <div className="p-5 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="ink-60 font-medium">Suluk boyutu</span>
+            <span className="font-bold tnum">{formatMl(bottleMl)}</span>
+          </div>
+          <input
+            type="range"
+            min={200}
+            max={5000}
+            step={50}
+            value={bottleMl}
+            onChange={(e) => {
+              const ml = Number(e.target.value)
+              setBottleMl(ml)
+              storage.setWaterBottleMl(ml)
+            }}
+            className="w-full"
+          />
+          <p className="text-[11px] ink-45">"Suluk" butonu bu miktarı ekler — Su Takibi sayfasında görünür</p>
+
+          <div className="flex justify-between text-sm pt-3">
+            <span className="ink-60 font-medium">Günlük hedef</span>
+            <span className="font-bold tnum">{formatMl(waterGoalMl)}</span>
+          </div>
+          <input
+            type="range"
+            min={500}
+            max={6000}
+            step={250}
+            value={waterGoalMl}
+            onChange={(e) => {
+              const ml = Number(e.target.value)
+              setWaterGoalMl(ml)
+              storage.setWaterGoalMl(ml)
+            }}
+            className="w-full"
+          />
+          <p className="text-[11px] ink-45">Hedefe ulaştığında su animasyonu ekranı tamamen doldurur</p>
         </div>
       </div>
     </div>

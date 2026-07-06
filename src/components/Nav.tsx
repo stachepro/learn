@@ -270,6 +270,22 @@ function HubModal({ onClose }: { onClose: () => void }) {
               <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#b87520' }}>Güne merhaba de</p>
             </div>
           </button>
+
+          {/* Su Takibi tile */}
+          <button
+            onClick={() => goTo('/su-takibi')}
+            className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
+            style={{ paddingTop: 40, paddingBottom: 40, background: '#e6f0fb', border: '1px solid #c5ddf6' }}
+          >
+            <span
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
+              style={{ background: 'linear-gradient(150deg, #60a5fa, #1d4ed8)', boxShadow: '0 8px 20px -6px rgba(29,78,216,0.55)' }}
+            >💧</span>
+            <div className="text-center">
+              <p className="text-sm font-bold" style={{ color: '#0c447c' }}>Su Takibi</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#3f7bc0' }}>Bugün ne kadar içtin?</p>
+            </div>
+          </button>
         </div>
       </div>
     </div>,
