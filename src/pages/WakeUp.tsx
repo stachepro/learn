@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import BackBar from '../components/BackBar'
 import { storage } from '../utils/storage'
 import { todayStr, formatShortDate } from '../utils/date'
+import { scheduleWakeGoalReminder } from '../utils/reminderNotifications'
 import type { WakeRecord } from '../types'
 
 function timeToMinutes(t: string): number {
@@ -168,6 +169,9 @@ export default function WakeUp() {
     return () => clearInterval(id)
   }, [])
 
+  // Uygulama açıldığında hedef saat bildirimini tazele
+  useEffect(() => { void scheduleWakeGoalReminder(goal) }, [])
+
   const today = todayStr()
   const todayRecord = records.find((r) => r.date === today)
   const avg = averageWakeTime(records)
@@ -189,6 +193,7 @@ export default function WakeUp() {
     if (!value) return
     setGoal(value)
     storage.setWakeGoal(value)
+    void scheduleWakeGoalReminder(value)
   }
 
   return (

@@ -5,6 +5,7 @@ import { storage } from '../utils/storage'
 import { getLevelFromExp, calcHabitExp } from '../utils/exp'
 import { checkBadges } from '../utils/badges'
 import { todayStr, yesterdayStr } from '../utils/date'
+import { scheduleHabitReminder, cancelHabitReminder, syncHabitReminders, scheduleStreakRiskReminder } from '../utils/reminderNotifications'
 import type {
   Habit, DailyLogs, DayLog, HabitLog, UserProfile,
   PomodoroSession, PomodoroSettings, Category, CompletionMode, ScheduleOptions,
@@ -83,6 +84,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const todayLog: DayLog = logs[today] ?? { date: today, habits: {} }
 
+  // Uygulama her açıldığında saat aralığı tanımlı alışkanlıkların bildirimlerini tazele
+  useEffect(() => { syncHabitReminders(habits) }, [])
+
+  // Gün henüz hiç alışkanlık tamamlanmadan akşama yaklaşıyorsa streak uyarısı gönder;
+  // bugün bir tamamlama yapılınca (lastActiveDate güncellenince) bildirim iptal edilir
+  useEffect(() => {
+    void scheduleStreakRiskReminder(profile.lastActiveDate === today)
+  }, [today, profile.lastActiveDate])
+
   useEffect(() => {
     const p = storage.getUserProfile()
     const yesterday = yesterdayStr()
@@ -133,10 +143,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       timeOfDay: schedule?.timeOfDay ?? 'any',
     }
     saveHabits([...habits, h])
+    void scheduleHabitReminder(h)
   }, [habits])
 
   const deleteHabit = useCallback((id: string) => {
     saveHabits(habits.filter((h) => h.id !== id))
+    void cancelHabitReminder(id)
     // Purge all per-day stats history for this habit so deletion is permanent
     let touched = false
     const newLogs: DailyLogs = {}
@@ -156,18 +168,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [habits, logs, profile])
 
   const editHabit = useCallback((id: string, name: string, emoji: string, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions, labelColor?: string) => {
-    saveHabits(habits.map((h) => h.id === id ? {
-      ...h, name: name.trim(), emoji, categoryId,
-      completionMode: mode,
-      completionGoal: mode !== 'single' && goal ? goal : undefined,
-      pomodoroEnabled: mode === 'pomodoro',
-      pomodoroGoal: mode === 'pomodoro' ? goal : undefined,
-      recurrence: schedule?.recurrence ?? h.recurrence,
-      recurrenceDays: schedule?.recurrenceDays ?? h.recurrenceDays,
-      timeWindow: schedule?.timeWindow !== undefined ? schedule.timeWindow : h.timeWindow,
-      labelColor: labelColor ?? undefined,
-      timeOfDay: schedule?.timeOfDay ?? h.timeOfDay ?? 'any',
-    } : h))
+    let updatedHabit: Habit | undefined
+    saveHabits(habits.map((h) => {
+      if (h.id !== id) return h
+      updatedHabit = {
+        ...h, name: name.trim(), emoji, categoryId,
+        completionMode: mode,
+        completionGoal: mode !== 'single' && goal ? goal : undefined,
+        pomodoroEnabled: mode === 'pomodoro',
+        pomodoroGoal: mode === 'pomodoro' ? goal : undefined,
+        recurrence: schedule?.recurrence ?? h.recurrence,
+        recurrenceDays: schedule?.recurrenceDays ?? h.recurrenceDays,
+        timeWindow: schedule?.timeWindow !== undefined ? schedule.timeWindow : h.timeWindow,
+        labelColor: labelColor ?? undefined,
+        timeOfDay: schedule?.timeOfDay ?? h.timeOfDay ?? 'any',
+      }
+      return updatedHabit
+    }))
+    if (updatedHabit) void scheduleHabitReminder(updatedHabit)
   }, [habits])
 
   const toggleHabitComplete = useCallback((habitId: string) => {

@@ -645,6 +645,9 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 <p className="text-[11px] ink-45 mt-2 text-center">
                   Bitiş saati geçince tamamlanmamış alışkanlık "Yapılmamış" bölümüne taşınır
                 </p>
+                <p className="text-[11px] ink-45 mt-1 text-center">
+                  📱 Başlangıç saatinde telefonuna bildirim gönderilir
+                </p>
               </div>
             )}
           </div>
