@@ -156,7 +156,9 @@ function HubModal({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <div
-      className={`fixed inset-x-0 top-0 sm:top-16 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] sm:bottom-0 z-[35] flex flex-col ${exiting ? 'animate-hub-close' : 'animate-hub-open'}`}
+      // Alt kenar, alt sekme çubuğunun yüksekliğiyle (58px + alt dolgu) eşleşir;
+      // 6px bindirme payı panel ile çubuk arasında sayfanın sızdığı şerit kalmasın diye
+      className={`fixed inset-x-0 top-0 sm:top-16 bottom-[calc(3.25rem+max(env(safe-area-inset-bottom),12px))] sm:bottom-0 z-[35] flex flex-col ${exiting ? 'animate-hub-close' : 'animate-hub-open'}`}
       style={{
         paddingTop: 'env(safe-area-inset-top)',
         background: 'rgba(251,247,240,0.97)',
