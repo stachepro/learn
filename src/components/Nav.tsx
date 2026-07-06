@@ -410,8 +410,10 @@ export default function Nav() {
           WebkitBackdropFilter: 'blur(24px) saturate(150%)',
           borderTop: '1px solid rgba(26,23,38,0.08)',
           boxShadow: '0 -10px 30px -16px rgba(26,23,38,0.35)',
-          paddingTop: 8,
-          paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
+          paddingTop: 6,
+          // Çentiksiz cihazda 12px; çentikli cihazda home göstergesi kadar —
+          // ikisini toplamak çubuğu gereğinden fazla yukarı itiyordu
+          paddingBottom: 'max(env(safe-area-inset-bottom), 12px)',
         }}
       >
         {/* Bugün + Alışkanlık */}
@@ -441,19 +443,26 @@ export default function Nav() {
           </NavLink>
         ))}
 
-        {/* Hub button — center accent */}
-        <div className="flex-1 flex items-center justify-center" style={{ paddingBottom: 2 }}>
+        {/* Hub button — bar'ın üstüne taşan, ışıltılı FAB */}
+        <div className="flex-1 flex items-center justify-center">
           <button
             onClick={() => setShowHub(v => !v)}
-            className="btn-press w-12 h-12 rounded-full flex items-center justify-center"
+            aria-label="Hub"
+            className="btn-press relative w-16 h-16 rounded-full flex items-center justify-center"
             style={{
+              marginTop: -26,
               background: 'linear-gradient(135deg, #fbbf24, #f97316)',
+              border: '3px solid rgba(251,247,240,0.95)',
               boxShadow: showHub
-                ? '0 6px 22px -4px rgba(249,115,22,0.7), 0 4px 12px -4px rgba(26,23,38,0.25)'
-                : '0 6px 18px -6px rgba(249,115,22,0.6), 0 4px 12px -6px rgba(26,23,38,0.2)',
+                ? '0 8px 26px -4px rgba(249,115,22,0.75), 0 5px 14px -4px rgba(26,23,38,0.28)'
+                : '0 8px 22px -6px rgba(249,115,22,0.65), 0 5px 14px -6px rgba(26,23,38,0.22)',
             }}
           >
-            <IconLayoutGrid size={20} strokeWidth={2.3} color="#2a1402" />
+            <span className="hub-aura" aria-hidden />
+            <span className="hub-halo" aria-hidden />
+            <span className="relative z-10 flex items-center justify-center">
+              <IconLayoutGrid size={24} strokeWidth={2.3} color="#2a1402" />
+            </span>
           </button>
         </div>
 

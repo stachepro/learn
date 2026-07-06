@@ -90,8 +90,8 @@ export default function WaterFill({ ml, goalMl }: { ml: number; goalMl: number }
     const onOrient = (e: DeviceOrientationEvent) => {
       if (e.gamma == null) return
       hasOrientation = true
-      const g = Math.max(-32, Math.min(32, e.gamma))
-      tiltTarget = g * (Math.PI / 180) * 0.6
+      const g = Math.max(-35, Math.min(35, e.gamma))
+      tiltTarget = g * (Math.PI / 180) * 0.75
     }
     const onMotion = (e: DeviceMotionEvent) => {
       const ax = e.accelerationIncludingGravity?.x
@@ -116,12 +116,16 @@ export default function WaterFill({ ml, goalMl }: { ml: number; goalMl: number }
     const DOE = window.DeviceOrientationEvent as (typeof DeviceOrientationEvent & PermissionCapable) | undefined
     const DME = window.DeviceMotionEvent as (typeof DeviceMotionEvent & PermissionCapable) | undefined
     const needsPermission = typeof DOE?.requestPermission === 'function'
+    let disposed = false
     const requestSensors = () => {
       const asks: Promise<unknown>[] = []
       if (typeof DOE?.requestPermission === 'function') asks.push(DOE.requestPermission())
       if (typeof DME?.requestPermission === 'function') asks.push(DME.requestPermission())
       Promise.allSettled(asks).then((results) => {
+        if (disposed) return
         if (results.some((r) => r.status === 'fulfilled' && r.value === 'granted')) enableSensors()
+        // İzin gelmediyse (reddedildi ya da istek patladı) bir sonraki dokunuşta yeniden dene
+        else window.addEventListener('pointerdown', requestSensors, { once: true })
       })
     }
     // iOS 13+ sensör izni yalnızca kullanıcı dokunuşu içinde istenebilir
@@ -241,6 +245,7 @@ export default function WaterFill({ ml, goalMl }: { ml: number; goalMl: number }
       drawStatic()
       const iv = window.setInterval(drawStatic, 400)
       return () => {
+        disposed = true
         window.clearInterval(iv)
         window.removeEventListener('resize', resize)
         window.removeEventListener('pointermove', onPointer)
@@ -252,6 +257,7 @@ export default function WaterFill({ ml, goalMl }: { ml: number; goalMl: number }
 
     raf = requestAnimationFrame(frame)
     return () => {
+      disposed = true
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
       window.removeEventListener('pointermove', onPointer)

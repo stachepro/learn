@@ -357,6 +357,38 @@ input[type="range"] { accent-color: #f59e0b; }
     inset -90px 0  100px -40px rgba(245, 158, 11, 0.1);
 }
 
+/* ── Hub FAB — dönen ışık halkası + nefes alan parlama ── */
+.hub-aura {
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(251,191,36,0) 0%,
+    rgba(249,115,22,0.55) 18%,
+    rgba(251,191,36,0) 40%,
+    rgba(251,191,36,0) 55%,
+    rgba(249,115,22,0.4) 72%,
+    rgba(251,191,36,0) 95%
+  );
+  filter: blur(5px);
+  animation: hub-aura-spin 3.6s linear infinite;
+  pointer-events: none;
+}
+@keyframes hub-aura-spin { to { transform: rotate(360deg); } }
+
+.hub-halo {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  animation: hub-halo-pulse 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes hub-halo-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,0.35); }
+  50%      { box-shadow: 0 0 0 9px rgba(249,115,22,0); }
+}
+
 /* ── "Uyandım" gece→gündüz geçiş animasyonu ── */
 .wake-overlay {
   position: fixed;

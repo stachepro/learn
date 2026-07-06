@@ -353,22 +353,15 @@ export default function WaterTracker() {
         />
       )}
 
-      <div className="relative z-10 max-w-sm mx-auto px-4 pt-6 pb-40">
-        <BackBar />
-
-        <div className="mb-5 text-center">
-          <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: NAVY, textShadow: '0 1px 12px rgba(255,255,255,0.6)' }}>
-            Su Takibi
-          </h1>
-          <p className="text-xs mt-1 font-semibold" style={{ color: 'rgba(12,42,92,0.65)' }}>Bugün ne kadar içtin?</p>
-        </div>
+      <div className="relative z-10 max-w-sm mx-auto px-4 pt-3 pb-24">
+        <BackBar title="Su Takibi" />
 
         {/* Büyük litre göstergesi + hedef durumu */}
-        <div className="text-center mb-6">
-          <p key={pulseKey} className="display font-black tnum animate-value-pop" style={{ fontSize: 56, color: NAVY, textShadow: '0 2px 20px rgba(255,255,255,0.7)' }}>
+        <div className="text-center mb-3">
+          <p key={pulseKey} className="display font-black tnum animate-value-pop" style={{ fontSize: 42, lineHeight: 1.1, color: NAVY, textShadow: '0 2px 20px rgba(255,255,255,0.7)' }}>
             {formatLiters(todayTotal)}
           </p>
-          <div className="flex items-center justify-center gap-2 mt-1">
+          <div className="flex items-center justify-center gap-2 mt-1.5">
             <button
               onClick={() => setGoalOpen((o) => !o)}
               className="btn-press text-[11px] font-bold px-3 py-1.5 rounded-full"
@@ -394,9 +387,9 @@ export default function WaterTracker() {
 
         {/* Hedef düzenleme paneli */}
         {goalOpen && (
-          <div className="glass g-sky animate-fade-up p-4 mb-4" style={{ borderRadius: 20 }}>
-            <p className="text-xs font-bold mb-3">Günlük Hedef</p>
-            <div className="flex items-center justify-center gap-4 mb-3">
+          <div className="glass g-sky animate-fade-up p-3 mb-3" style={{ borderRadius: 20 }}>
+            <p className="text-xs font-bold mb-2">Günlük Hedef</p>
+            <div className="flex items-center justify-center gap-4 mb-2">
               <button onClick={() => updateGoal(goalMl - 250)} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">−</button>
               <p className="display text-2xl font-black tnum w-28 text-center" style={{ color: '#1d4ed8' }}>{formatMl(goalMl)}</p>
               <button onClick={() => updateGoal(goalMl + 250)} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">+</button>
@@ -419,35 +412,35 @@ export default function WaterTracker() {
         )}
 
         {/* Hızlı ekleme */}
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="grid grid-cols-2 gap-2 mb-2">
           {PRESETS.map((b) => (
             <button
               key={b.ml}
               onClick={() => addWater(b.ml)}
-              className="btn-press tile-press glass glass-lift g-sky flex flex-col items-center justify-center py-4"
-              style={{ borderRadius: 20 }}
+              className="btn-press tile-press glass glass-lift g-sky flex flex-col items-center justify-center py-2.5"
+              style={{ borderRadius: 18 }}
             >
-              <span className="display text-xl font-black tnum" style={{ color: '#1d4ed8' }}>{b.ml >= 1000 ? formatLiters(b.ml) : `${b.ml} ml`}</span>
-              <span className="text-[11px] ink-60 font-semibold mt-0.5">{b.label}</span>
+              <span className="display text-lg font-black tnum" style={{ color: '#1d4ed8' }}>{b.ml >= 1000 ? formatLiters(b.ml) : `${b.ml} ml`}</span>
+              <span className="text-[10px] ink-60 font-semibold">{b.label}</span>
             </button>
           ))}
         </div>
 
         {/* Suluk + özel miktar */}
-        <div className="flex gap-3 mb-2">
+        <div className="flex gap-2 mb-2">
           <button
             onClick={() => addWater(bottleMl)}
-            className="btn-press tile-press glass glass-lift g-sky flex-1 flex items-center justify-center gap-2 py-4"
-            style={{ borderRadius: 20 }}
+            className="btn-press tile-press glass glass-lift g-sky flex-1 flex items-center justify-center gap-2 py-3"
+            style={{ borderRadius: 18 }}
           >
-            <span className="text-lg leading-none">💧</span>
+            <span className="text-base leading-none">💧</span>
             <span className="text-sm font-bold">Suluk</span>
             <span className="text-xs ink-60 font-semibold">({formatMl(bottleMl)})</span>
           </button>
           <button
             onClick={() => setCustomOpen((o) => !o)}
-            className="btn-press tile-press glass g-sky px-5 py-4 text-sm font-bold"
-            style={{ borderRadius: 20, ...(customOpen ? { boxShadow: 'inset 0 0 0 2px rgba(29,78,216,0.45)' } : {}) }}
+            className="btn-press tile-press glass g-sky px-5 py-3 text-sm font-bold"
+            style={{ borderRadius: 18, ...(customOpen ? { boxShadow: 'inset 0 0 0 2px rgba(29,78,216,0.45)' } : {}) }}
           >
             Özel
           </button>
@@ -455,8 +448,8 @@ export default function WaterTracker() {
 
         {/* Özel miktar paneli */}
         {customOpen && (
-          <div className="glass g-sky animate-fade-up p-4 mb-2" style={{ borderRadius: 20 }}>
-            <div className="flex items-center justify-center gap-4 mb-3">
+          <div className="glass g-sky animate-fade-up p-3 mb-2" style={{ borderRadius: 20 }}>
+            <div className="flex items-center justify-center gap-4 mb-2">
               <button onClick={() => setCustomMl((v) => Math.max(50, v - 50))} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">−</button>
               <p className="display text-2xl font-black tnum w-28 text-center" style={{ color: '#1d4ed8' }}>{customMl} ml</p>
               <button onClick={() => setCustomMl((v) => Math.min(3000, v + 50))} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">+</button>
@@ -484,20 +477,20 @@ export default function WaterTracker() {
           </div>
         )}
 
-        <p className="text-[11px] font-semibold text-center w-full mb-6" style={{ color: 'rgba(12,42,92,0.55)' }}>
+        <p className="text-[10px] font-semibold text-center w-full mb-3" style={{ color: 'rgba(12,42,92,0.55)' }}>
           Suluk boyutu Profil → Su Takibi Ayarları'ndan değiştirilir
         </p>
 
         {/* Bugünkü kayıtlar */}
         {todayEntries.length > 0 && (
-          <div className="glass g-neutral mb-4" style={{ borderRadius: 20 }}>
-            <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(26,23,38,0.07)' }}>
+          <div className="glass g-neutral mb-3" style={{ borderRadius: 18 }}>
+            <div className="flex items-center justify-between px-4 py-2" style={{ borderBottom: '1px solid rgba(26,23,38,0.07)' }}>
               <p className="text-xs font-bold">Bugün İçtiklerin</p>
               <span className="text-[11px] font-bold tnum ink-45">{todayEntries.length} kez</span>
             </div>
-            <div className="px-3 py-2 max-h-44 overflow-y-auto">
+            <div className="px-3 py-1.5 max-h-28 overflow-y-auto">
               {[...todayEntries].reverse().map((e) => (
-                <div key={e.id} className="flex items-center gap-2 text-sm py-1.5 px-1.5 rounded-lg">
+                <div key={e.id} className="flex items-center gap-2 text-sm py-1 px-1.5 rounded-lg">
                   <span className="ink-60 font-medium tnum flex-1">{e.time}</span>
                   <span className="display font-bold tnum" style={{ color: '#1d4ed8' }}>{formatMl(e.ml)}</span>
                   <button
@@ -517,7 +510,7 @@ export default function WaterTracker() {
         {/* İstatistik butonu */}
         <button
           onClick={() => setStatsOpen(true)}
-          className="btn-dark btn-press w-full py-3 text-sm flex items-center justify-center gap-2"
+          className="btn-dark btn-press w-full py-2.5 text-sm flex items-center justify-center gap-2"
         >
           📊 Su İstatistikleri
         </button>
