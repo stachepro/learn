@@ -101,6 +101,23 @@ function IconClipboardList({ size = 28, strokeWidth = 1.8, color = 'currentColor
   )
 }
 
+function IconDroplet({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2.7 6.8 9a7 7 0 1 0 10.4 0Z" />
+      <path d="M9.2 14.5a3.5 3.5 0 0 0 2 3" />
+    </svg>
+  )
+}
+
+function IconBolt({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 2 4.5 13.5H11L9.5 22 19 10.5h-6.5L13 2Z" />
+    </svg>
+  )
+}
+
 function IconSun({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -193,9 +210,11 @@ function HubModal({ onClose }: { onClose: () => void }) {
             style={{ paddingTop: 40, paddingBottom: 40, background: '#e6f0fb', border: '1px solid #c5ddf6' }}
           >
             <span
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
               style={{ background: 'linear-gradient(150deg, #60a5fa, #1d4ed8)', boxShadow: '0 8px 20px -6px rgba(29,78,216,0.55)' }}
-            >💧</span>
+            >
+              <IconDroplet size={24} strokeWidth={2} color="#fff" />
+            </span>
             <div className="text-center">
               <p className="text-sm font-bold" style={{ color: '#0c447c' }}>Su Takibi</p>
               <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#3f7bc0' }}>Bugün ne kadar içtin?</p>
@@ -245,9 +264,11 @@ function HubModal({ onClose }: { onClose: () => void }) {
             style={{ paddingTop: 40, paddingBottom: 40, background: '#faecd6', border: '1px solid #f3dcb0' }}
           >
             <span
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
               style={{ background: 'linear-gradient(150deg, #fbbf24, #f97316)', boxShadow: '0 8px 20px -6px rgba(249,115,22,0.6)' }}
-            >⚡</span>
+            >
+              <IconBolt size={24} strokeWidth={2} color="#fff" />
+            </span>
             <div className="text-center">
               <p className="text-sm font-bold" style={{ color: '#7a3d08' }}>Just Start</p>
               <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#b87520' }}>1→115 dk momentum</p>
