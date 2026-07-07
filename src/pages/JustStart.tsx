@@ -4,7 +4,14 @@ import { usePomodoro } from '../context/PomodoroContext'
 import { playBell } from '../utils/sound'
 import { todayStr } from '../utils/date'
 import BackBar from '../components/BackBar'
+import TimerDial from '../components/TimerDial'
 import { scheduleTimerNotification, cancelTimerNotification, NOTIF_JUSTSTART } from '../utils/timerNotifications'
+
+/* ════════════════════════════════════════════════
+   JUST START — 1 dakikayla başla, 30'a kadar tırman.
+   Pomodoro ile aynı kadran dili: aktif adımda geri
+   sayım, beklemede günün toplam ilerlemesi görünür.
+   ════════════════════════════════════════════════ */
 
 const STEPS = [1, 2, 3, 4, 5, 10, 15, 20, 25, 30]
 const TOTAL_MINUTES = 115
@@ -58,31 +65,6 @@ function saveStats(today: number, allTime: number) {
   }))
 }
 
-type TileState = 'completed' | 'active' | 'next' | 'locked'
-
-const TILE_STYLE: Record<TileState, { bg: string; border: string; color: string; opacity?: number }> = {
-  completed: {
-    bg: 'rgba(34,197,94,0.18)',
-    border: 'rgba(34,197,94,0.5)',
-    color: '#15803d',
-  },
-  active: {
-    bg: 'rgba(249,115,22,0.16)',
-    border: 'rgba(249,115,22,0.6)',
-    color: '#c2410c',
-  },
-  next: {
-    bg: '#ffffff',
-    border: 'rgba(26,23,38,0.18)',
-    color: '#1a1726',
-  },
-  locked: {
-    bg: 'rgba(26,23,38,0.04)',
-    border: 'rgba(26,23,38,0.07)',
-    color: 'rgba(26,23,38,0.28)',
-  },
-}
-
 export default function JustStart() {
   const { pomodoroSettings, addJustStartXP } = useApp()
   const { soundEnabled } = usePomodoro()
@@ -100,6 +82,7 @@ export default function JustStart() {
   const [xpClaimed, setXpClaimed] = useState(init.xpClaimed)
   const [flash, setFlash] = useState<number | null>(null)
   const [stats, setStats] = useState(loadStats)
+  const [confirmReset, setConfirmReset] = useState(false)
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const endAtRef = useRef<number | null>(init.endAt)
   const pausedRemainingRef = useRef<number | null>(init.pausedRemaining)
@@ -149,15 +132,7 @@ export default function JustStart() {
   const allDone = nextIdx === -1
   const completedMins = done.reduce((a, d, i) => d ? a + STEPS[i] : a, 0)
   const completedCount = done.filter(Boolean).length
-  const progress = Math.round((completedCount / STEPS.length) * 100)
   const xpAmount = Math.round(TOTAL_MINUTES / pomodoroSettings.workDuration * 10)
-
-  const tileState = (i: number): TileState => {
-    if (done[i]) return 'completed'
-    if (active === i) return 'active'
-    if (i === nextIdx && active === null) return 'next'
-    return 'locked'
-  }
 
   const startNext = () => {
     if (active !== null || allDone || nextIdx === -1) return
@@ -216,6 +191,7 @@ export default function JustStart() {
     setSecs(0)
     setPaused(false)
     setXpClaimed(false)
+    setConfirmReset(false)
   }
 
   const claimXP = () => {
@@ -227,193 +203,245 @@ export default function JustStart() {
     saveStats(n.today, n.allTime)
   }
 
+  // ── Kadran durumu ──
+  // Aktif adımda: adımın geri sayımı (turuncu). Beklemede: günün toplam
+  // ilerlemesi (yeşil) — tikler kazanılan dakikaları gösterir.
+  const stepTotal = active !== null ? STEPS[active] * 60 : 0
+  const stepProgress = stepTotal > 0 ? (stepTotal - secs) / stepTotal : 0
+  const dayProgress = completedMins / TOTAL_MINUTES
+  const dialProgress = active !== null ? stepProgress : dayProgress
+  const accent = active !== null ? '#f97316' : '#22c55e'
+  const accentSoft = active !== null ? 'rgba(249,115,22,' : 'rgba(34,197,94,'
+  const ticking = active !== null && !paused
+  const showArc = active !== null || completedMins > 0
+
+  const chipLabel = active !== null
+    ? (paused ? 'Durakladı' : `Adım ${active + 1}/10 · ${STEPS[active]} dk`)
+    : allDone ? 'Gün Tamam'
+    : `Sıradaki · ${STEPS[nextIdx]} dk`
+
+  const hasProgress = done.some(Boolean) || active !== null || xpClaimed
+
   return (
     <div className="max-w-sm mx-auto px-4 pt-6 pb-40">
       <BackBar />
 
-      {/* Header */}
-      <div className="mb-6">
+      {/* Başlık */}
+      <div className="mb-7 text-center">
         <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#1a1726' }}>
           Just Start
         </h1>
         <p className="text-xs mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
           Sadece başlamak yeter · {completedMins}/{TOTAL_MINUTES} dk
         </p>
-
-        {/* Progress bar */}
-        <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(26,23,38,0.08)' }}>
-          <div
-            className="h-1.5 rounded-full transition-all duration-700"
-            style={{
-              width: `${progress}%`,
-              background: progress === 100
-                ? 'linear-gradient(90deg, #22c55e, #4ade80)'
-                : 'linear-gradient(90deg, #fbbf24, #f97316)',
-              boxShadow: progress > 0 ? `0 0 8px ${progress === 100 ? 'rgba(34,197,94,0.6)' : 'rgba(225,90,60,0.5)'}` : 'none',
-            }}
-          />
-        </div>
-        <div className="flex justify-end mt-1">
-          <span
-            className="text-[10px] font-bold tabular-nums"
-            style={{ color: progress === 100 ? '#15803d' : 'rgba(26,23,38,0.5)' }}
-          >
-            %{progress}
-          </span>
-        </div>
       </div>
 
-      {/* Step grid */}
-      <div className="grid grid-cols-5 gap-1.5 mb-6">
-        {STEPS.map((min, i) => {
-          const state = tileState(i)
-          const s = TILE_STYLE[state]
-          const isFlashing = flash === i
-          return (
-            <div
-              key={i}
-              className={`flex flex-col items-center justify-center rounded-xl py-3 ${isFlashing ? 'animate-done-flash' : ''} ${state === 'active' ? 'animate-pulse-subtle' : ''}`}
+      {/* ── Kadran ── */}
+      <div className="flex flex-col items-center animate-fade-up">
+        <TimerDial progress={dialProgress} accent={accent} showArc={showArc} ticking={ticking}>
+          <span
+            key={chipLabel}
+            className="pom-chip px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.18em]"
+            style={{
+              background: `${accentSoft}0.12)`,
+              color: active !== null ? '#c2410c' : '#15803d',
+              border: `1px solid ${accentSoft}0.3)`,
+            }}
+          >
+            {chipLabel}
+          </span>
+          <span
+            className="display tnum font-extrabold leading-none mt-2.5"
+            style={{
+              fontSize: 54,
+              color: active !== null ? '#1a1726' : allDone ? '#15803d' : 'rgba(26,23,38,0.28)',
+              transition: 'color 0.4s ease',
+            }}
+          >
+            {allDone ? '✓' : fmt(active !== null ? secs : STEPS[nextIdx] * 60)}
+          </span>
+          <span className="text-[11px] font-semibold mt-2" style={{ color: 'rgba(26,23,38,0.45)' }}>
+            {completedCount}/10 adım tamamlandı
+          </span>
+        </TimerDial>
+      </div>
+
+      {/* ── Kontroller ── */}
+      <div className="mt-7 space-y-3">
+        {active === null && !allDone && (
+          <button
+            onClick={startNext}
+            className="btn-press btn-go w-full py-4 text-[15px] font-bold animate-fade-up"
+          >
+            ▶ Başla — {STEPS[nextIdx]} dakika
+          </button>
+        )}
+
+        {active !== null && (
+          <>
+            <button
+              onClick={togglePause}
+              className="btn-press w-full py-3.5 rounded-2xl text-sm font-bold animate-fade-up"
               style={{
-                background: s.bg,
-                border: `1.5px solid ${s.border}`,
-                color: s.color,
-                boxShadow: state === 'completed' ? '0 0 8px rgba(34,197,94,0.15)'
-                  : state === 'active' ? '0 0 12px rgba(225,90,60,0.25)'
-                  : state === 'next' ? '0 0 10px rgba(26,23,38,0.1)'
-                  : 'none',
+                background: paused ? 'rgba(34,197,94,0.9)' : 'rgba(26,23,38,0.06)',
+                color: paused ? '#06210f' : '#1a1726',
+                border: '1px solid rgba(26,23,38,0.08)',
               }}
             >
-              <span className="text-sm font-bold leading-none">
-                {state === 'completed' ? '✓' : state === 'active' ? '▶' : min}
-              </span>
-              <span className="text-[9px] mt-0.5 leading-none" style={{ opacity: 0.6 }}>dk</span>
-            </div>
-          )
-        })}
+              {paused ? '▶ Devam Et' : '⏸ Duraklat'}
+            </button>
+            <button
+              onClick={cancelStep}
+              className="btn-press w-full py-2.5 rounded-2xl text-xs font-bold animate-fade-up"
+              style={{ background: 'rgba(225,90,60,0.12)', color: '#b3422a', boxShadow: 'inset 0 0 0 1px rgba(225,90,60,0.3)' }}
+            >
+              Adımı İptal Et
+            </button>
+          </>
+        )}
+
+        {/* Gün bitti — XP al / yeni tur */}
+        {allDone && (
+          <div
+            className="glass g-lime rounded-2xl px-4 py-4 text-center space-y-3 animate-pop"
+            style={{ border: '1px solid rgba(34,197,94,0.35)' }}
+          >
+            <p className="text-base font-bold" style={{ color: '#15803d' }}>
+              🎉 {TOTAL_MINUTES} dakika tamamlandı!
+            </p>
+            {!xpClaimed ? (
+              <button
+                onClick={claimXP}
+                className="btn-press btn-energy w-full py-3 text-sm"
+              >
+                🏆 {xpAmount} XP Kazan
+              </button>
+            ) : (
+              <>
+                <p className="text-sm font-semibold" style={{ color: '#15803d', opacity: 0.75 }}>
+                  ✓ {xpAmount} XP kazanıldı
+                </p>
+                <button
+                  onClick={reset}
+                  className="btn-press btn-go w-full py-3 text-sm font-bold"
+                >
+                  ↺ Yeni Tura Başla
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Timer — only when a step is active */}
-      {active !== null && (
-        <div className="text-center mb-6 animate-fade-up">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: '#c2410c' }}>
-            {STEPS[active]} dakika · {paused ? 'Durakladı' : 'Devam ediyor'}
-          </p>
-          <div
-            className="tnum text-6xl font-mono font-bold leading-none"
-            style={{ color: '#1a1726', textShadow: '0 0 30px rgba(225,90,60,0.4)' }}
-          >
-            {fmt(secs)}
-          </div>
-          <button
-            onClick={cancelStep}
-            className="mt-3 text-xs underline"
-            style={{ color: 'rgba(26,23,38,0.45)' }}
-          >
-            adımı iptal et
-          </button>
+      {/* ── Adım yolculuğu ── */}
+      <div className="mt-7">
+        <div className="flex items-center justify-between mb-2.5 px-0.5">
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(26,23,38,0.45)' }}>
+            Adım Yolculuğu
+          </span>
+          <span className="text-[10px] font-bold tabular-nums" style={{ color: 'rgba(26,23,38,0.45)' }}>
+            {completedMins}/{TOTAL_MINUTES} dk
+          </span>
         </div>
-      )}
-
-      {/* All done — XP claim */}
-      {allDone && (
-        <div
-          className="glass g-lime rounded-2xl px-4 py-4 text-center space-y-3 mb-6 animate-fade-up"
-          style={{ border: '1px solid rgba(34,197,94,0.35)' }}
-        >
-          <p className="text-base font-bold" style={{ color: '#15803d' }}>
-            🎉 {TOTAL_MINUTES} dakika tamamlandı!
+        <div className="grid grid-cols-5 gap-2">
+          {STEPS.map((min, i) => {
+            const isDone = done[i]
+            const isActive = active === i
+            const isNext = !isDone && !isActive && i === nextIdx && active === null
+            const isFlashing = flash === i
+            return (
+              <button
+                key={i}
+                onClick={isNext ? startNext : undefined}
+                disabled={!isNext}
+                className={`animate-cell-pop flex flex-col items-center justify-center rounded-2xl py-3 ${isNext ? 'btn-press ring-pulse' : ''} ${isActive ? 'js-step-glow' : ''} ${isFlashing ? 'animate-done-flash' : ''}`}
+                style={{
+                  animationDelay: `${i * 0.03}s`,
+                  background: isDone ? 'rgba(34,197,94,0.14)'
+                    : isActive ? 'rgba(249,115,22,0.14)'
+                    : isNext ? '#ffffff'
+                    : 'rgba(26,23,38,0.04)',
+                  border: `1.5px solid ${
+                    isDone ? 'rgba(34,197,94,0.45)'
+                    : isActive ? 'rgba(249,115,22,0.55)'
+                    : isNext ? 'rgba(26,23,38,0.18)'
+                    : 'rgba(26,23,38,0.07)'
+                  }`,
+                  color: isDone ? '#15803d'
+                    : isActive ? '#c2410c'
+                    : isNext ? '#1a1726'
+                    : 'rgba(26,23,38,0.28)',
+                  cursor: isNext ? 'pointer' : 'default',
+                }}
+              >
+                <span className="text-base font-bold leading-none">
+                  {isDone ? '✓' : isActive ? '▶' : min}
+                </span>
+                <span className="text-[9px] font-semibold mt-1 leading-none" style={{ opacity: 0.6 }}>
+                  {isDone || isActive ? `${min}dk` : 'dk'}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+        {!allDone && active === null && (
+          <p className="text-center text-[11px] mt-3" style={{ color: 'rgba(26,23,38,0.4)' }}>
+            {done.some(Boolean)
+              ? `Sıradaki adım ${STEPS[nextIdx]} dakika — hazır olunca başla.`
+              : '1 dakikayla başla, her adımda biraz daha uzat.'}
           </p>
-          {!xpClaimed ? (
-            <button
-              onClick={claimXP}
-              className="btn-press w-full py-2.5 rounded-xl text-sm font-bold"
-              style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
-            >
-              🏆 {xpAmount} XP Kazan
-            </button>
+        )}
+      </div>
+
+      {/* ── İstatistikler ── */}
+      <div className="grid grid-cols-2 gap-3 mt-6">
+        <div className="glass g-lime rounded-2xl px-4 py-4 text-center animate-fade-up" style={{ animationDelay: '0.05s' }}>
+          <p className="display text-3xl font-extrabold tnum" style={{ color: 'rgb(var(--txt))' }}>{stats.today}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1 ink-60">Bugünkü Tur</p>
+        </div>
+        <div className="glass g-neutral rounded-2xl px-4 py-4 text-center animate-fade-up" style={{ animationDelay: '0.1s' }}>
+          <p className="display text-3xl font-extrabold tnum" style={{ color: '#1a1726' }}>{stats.allTime}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>Toplam Tur</p>
+        </div>
+      </div>
+
+      {/* ── Sıfırlama — yanlışlıkla basmaya karşı onaylı ── */}
+      {hasProgress && (
+        <div className="mt-6">
+          {confirmReset ? (
+            <div className="flex items-center gap-2 animate-fade-up">
+              <span className="text-xs font-semibold flex-1 text-right" style={{ color: 'rgba(26,23,38,0.55)' }}>
+                Tüm adımlar silinsin mi?
+              </span>
+              <button
+                onClick={reset}
+                className="btn-press px-4 py-2.5 rounded-xl text-xs font-bold"
+                style={{ background: 'rgba(225,90,60,0.92)', color: '#fff5f2' }}
+              >
+                Evet, Sıfırla
+              </button>
+              <button
+                onClick={() => setConfirmReset(false)}
+                className="ctrl btn-press px-4 py-2.5 rounded-xl text-xs font-semibold"
+              >
+                Vazgeç
+              </button>
+            </div>
           ) : (
-            <p className="text-sm font-semibold" style={{ color: 'rgba(110,231,159,0.7)' }}>
-              ✓ {xpAmount} XP kazanıldı
-            </p>
+            <button
+              onClick={() => setConfirmReset(true)}
+              className="btn-press w-full py-2 text-xs font-semibold"
+              style={{ color: 'rgba(26,23,38,0.4)' }}
+            >
+              ↺ Günü Sıfırla
+            </button>
           )}
         </div>
       )}
 
-      {/* Stats */}
-      <div className="flex items-center justify-center gap-8 py-4">
-        <div className="text-center">
-          <p className="text-2xl font-bold tnum" style={{ color: '#1a1726' }}>{stats.today}</p>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>Bugün</p>
-        </div>
-        <div className="w-px h-8" style={{ background: 'rgba(26,23,38,0.07)' }} />
-        <div className="text-center">
-          <p className="text-2xl font-bold tnum" style={{ color: '#1a1726' }}>{stats.allTime}</p>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>Toplam</p>
-        </div>
-      </div>
-
-      {/* Bottom action bar */}
-      <div
-        className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] sm:bottom-0 left-0 right-0 z-20 px-4 py-4"
-        style={{
-          background: 'rgba(251,247,240,0.95)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(26,23,38,0.1)',
-        }}
-      >
-        <div className="max-w-sm mx-auto space-y-2">
-          {/* Buttons row */}
-          <div className="flex gap-2">
-            {/* Primary action */}
-            {active === null && !allDone && (
-              <button
-                onClick={startNext}
-                className="btn-press flex-1 py-3 rounded-2xl text-sm font-bold"
-                style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
-              >
-                Başla
-              </button>
-            )}
-            {active !== null && (
-              <button
-                onClick={togglePause}
-                className="btn-press flex-1 py-3 rounded-2xl text-sm font-bold"
-                style={{
-                  background: paused ? 'rgba(34,197,94,0.9)' : 'rgba(26,23,38,0.07)',
-                  color: paused ? '#06210f' : '#1a1726',
-                }}
-              >
-                {paused ? '▶ Devam Et' : '⏸ Duraklat'}
-              </button>
-            )}
-            {allDone && (
-              <div className="flex-1 py-3 rounded-2xl text-sm font-bold text-center" style={{ color: 'rgba(26,23,38,0.45)', background: 'rgba(26,23,38,0.04)' }}>
-                Tamamlandı ✓
-              </div>
-            )}
-
-            {/* Reset */}
-            <button
-              onClick={reset}
-              className="ctrl btn-press px-4 py-3 rounded-2xl text-xs font-semibold flex-shrink-0"
-            >
-              Süreci Sıfırla
-            </button>
-          </div>
-
-          {/* Hint line */}
-          <p className="text-center text-xs" style={{ color: 'rgba(26,23,38,0.45)' }}>
-            {active !== null
-              ? `${STEPS[active]} dakikalık adım · ${fmt(secs)} kaldı`
-              : allDone
-                ? '115 dakika tamamlandı — harika iş!'
-                : nextIdx >= 0
-                  ? `${STEPS[nextIdx]} dakika için başlayacak`
-                  : ''}
-          </p>
-        </div>
-      </div>
+      <p className="text-center text-[11px] mt-4" style={{ color: 'rgba(26,23,38,0.4)' }}>
+        10 adımın hepsini bitirince {xpAmount} XP kazanırsın.
+      </p>
     </div>
   )
 }

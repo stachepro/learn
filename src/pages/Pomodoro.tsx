@@ -1,6 +1,7 @@
 import { useApp } from '../context/AppContext'
 import { usePomodoro } from '../context/PomodoroContext'
 import BackBar from '../components/BackBar'
+import TimerDial from '../components/TimerDial'
 import { todayStr, formatSeconds } from '../utils/date'
 
 /* ════════════════════════════════════════════════
@@ -8,12 +9,6 @@ import { todayStr, formatSeconds } from '../utils/date'
    Seans başlayınca "Odak Modu" butonu masa saati
    görünümüne (FocusMode overlay) geçirir.
    ════════════════════════════════════════════════ */
-
-const SIZE = 264
-const CX = SIZE / 2
-const R_ARC = 112     // ilerleme yayı
-const R_TICK_IN = 122 // tik içi
-const R_TICK_OUT = 129
 
 export default function Pomodoro() {
   const { pomodoroSettings, freeSessions } = useApp()
@@ -39,15 +34,7 @@ export default function Pomodoro() {
   const progress = totalSeconds > 0 ? (totalSeconds - secondsLeft) / totalSeconds : 0
   const accent = isBreak ? '#22c55e' : '#f97316'
   const accentSoft = isBreak ? 'rgba(34,197,94,' : 'rgba(249,115,22,'
-
-  // Yay geometrisi
-  const C = 2 * Math.PI * R_ARC
   const showArc = isWork || isBreak
-  const dash = C * (1 - progress)
-  // Yay ucundaki ışıltılı nokta (-90°'den başlar)
-  const headAngle = -Math.PI / 2 + progress * 2 * Math.PI
-  const headX = CX + R_ARC * Math.cos(headAngle)
-  const headY = CX + R_ARC * Math.sin(headAngle)
 
   const phaseLabel = isWorkDone ? 'Çalışma Bitti' : isDone ? 'Mola Bitti' : isWork ? 'Odak' : isBreak ? 'Mola' : 'Hazır'
 
@@ -82,110 +69,34 @@ export default function Pomodoro() {
         <>
           {/* ── Kadran ── */}
           <div className="flex flex-col items-center animate-fade-up">
-            <div className="relative" style={{ width: SIZE, height: SIZE }}>
-              <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
-                {/* 60 tik — her 5.'si uzun ve koyu */}
-                {Array.from({ length: 60 }).map((_, i) => {
-                  const a = (i / 60) * 2 * Math.PI - Math.PI / 2
-                  const major = i % 5 === 0
-                  const rIn = major ? R_TICK_IN - 3 : R_TICK_IN
-                  // Geçilen tikler vurgu rengini alır
-                  const passed = showArc && i / 60 <= progress
-                  return (
-                    <line
-                      key={i}
-                      x1={CX + rIn * Math.cos(a)} y1={CX + rIn * Math.sin(a)}
-                      x2={CX + R_TICK_OUT * Math.cos(a)} y2={CX + R_TICK_OUT * Math.sin(a)}
-                      stroke={passed ? accent : major ? 'rgba(26,23,38,0.22)' : 'rgba(26,23,38,0.1)'}
-                      strokeWidth={major ? 2.5 : 1.5}
-                      strokeLinecap="round"
-                      style={{ transition: 'stroke 0.6s ease' }}
-                    />
-                  )
-                })}
-
-                {/* Ray */}
-                <circle cx={CX} cy={CX} r={R_ARC} fill="none" stroke="rgba(26,23,38,0.06)" strokeWidth="8" />
-
-                {/* İlerleme yayı */}
-                {showArc && (
-                  <g style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}>
-                    <circle
-                      cx={CX} cy={CX} r={R_ARC}
-                      fill="none"
-                      stroke={accent}
-                      strokeWidth="8"
-                      strokeLinecap="round"
-                      strokeDasharray={C}
-                      strokeDashoffset={dash}
-                      style={{
-                        transition: 'stroke-dashoffset 1s linear, stroke 0.4s ease',
-                        filter: `drop-shadow(0 0 8px ${accentSoft}0.7))`,
-                      }}
-                    />
-                  </g>
-                )}
-
-                {/* Yay ucu — parlak nokta */}
-                {showArc && (
-                  <circle
-                    cx={headX} cy={headY} r="6.5"
-                    fill="#fff"
-                    stroke={accent}
-                    strokeWidth="3.5"
-                    style={{
-                      transition: 'cx 1s linear, cy 1s linear, stroke 0.4s ease',
-                      filter: `drop-shadow(0 0 6px ${accentSoft}0.9))`,
-                    }}
-                  />
-                )}
-              </svg>
-
-              {/* Saniye yörüngesi — kadranı canlı tutan minik uydu */}
-              {ticking && (
-                <div className="pom-orbit absolute inset-0 pointer-events-none">
-                  <span
-                    className="absolute rounded-full"
-                    style={{
-                      width: 5, height: 5, left: '50%', top: CX - R_ARC - 17,
-                      marginLeft: -2.5,
-                      background: accent, opacity: 0.75,
-                      boxShadow: `0 0 6px ${accentSoft}0.8)`,
-                    }}
-                  />
-                </div>
+            <TimerDial progress={progress} accent={accent} showArc={showArc} ticking={ticking}>
+              <span
+                key={phaseLabel + String(isPaused)}
+                className="pom-chip px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.18em]"
+                style={{
+                  background: running ? `${accentSoft}0.12)` : 'rgba(26,23,38,0.05)',
+                  color: running ? accent : 'rgba(26,23,38,0.45)',
+                  border: `1px solid ${running ? `${accentSoft}0.3)` : 'rgba(26,23,38,0.08)'}`,
+                }}
+              >
+                {isPaused ? 'Durakladı' : phaseLabel}
+              </span>
+              <span
+                className="display tnum font-extrabold leading-none mt-2.5"
+                style={{
+                  fontSize: 54,
+                  color: running ? '#1a1726' : 'rgba(26,23,38,0.28)',
+                  transition: 'color 0.4s ease',
+                }}
+              >
+                {(isWorkDone || isDone) ? '✓' : formatSeconds(running ? secondsLeft : pomodoroSettings.workDuration * 60)}
+              </span>
+              {running && (
+                <span className="text-[11px] font-semibold mt-2" style={{ color: 'rgba(26,23,38,0.45)' }}>
+                  {sessionCount} seans tamamlandı
+                </span>
               )}
-
-              {/* Merkez */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span
-                  key={phaseLabel + String(isPaused)}
-                  className="pom-chip px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.18em]"
-                  style={{
-                    background: running ? `${accentSoft}0.12)` : 'rgba(26,23,38,0.05)',
-                    color: running ? accent : 'rgba(26,23,38,0.45)',
-                    border: `1px solid ${running ? `${accentSoft}0.3)` : 'rgba(26,23,38,0.08)'}`,
-                  }}
-                >
-                  {isPaused ? 'Durakladı' : phaseLabel}
-                </span>
-                <span
-                  className="display tnum font-extrabold leading-none mt-2.5"
-                  style={{
-                    fontSize: 54,
-                    color: running ? '#1a1726' : 'rgba(26,23,38,0.28)',
-                    transition: 'color 0.4s ease',
-                  }}
-                >
-                  {(isWorkDone || isDone) ? '✓' : formatSeconds(running ? secondsLeft : pomodoroSettings.workDuration * 60)}
-                </span>
-                {running && (
-                  <span className="text-[11px] font-semibold mt-2" style={{ color: 'rgba(26,23,38,0.45)' }}>
-                    {sessionCount} seans tamamlandı
-                  </span>
-                )}
-              </div>
-            </div>
+            </TimerDial>
           </div>
 
           {/* ── Kontroller ── */}

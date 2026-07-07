@@ -417,6 +417,13 @@ input[type="range"] { accent-color: #f59e0b; }
 .focus-ctl-hidden     { opacity: 0; transform: translateY(12px);  pointer-events: none; }
 .focus-ctl-hidden-top { opacity: 0; transform: translateY(-12px); pointer-events: none; }
 
+/* ── Just Start: aktif adım karosu — sıcak nabız ── */
+@keyframes js-step-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
+  50%      { box-shadow: 0 0 14px 2px rgba(249,115,22,0.3); }
+}
+.js-step-glow { animation: js-step-glow 2.2s ease-in-out infinite; }
+
 /* ── Pomodoro sayfası: kadran ── */
 @keyframes pom-orbit { to { transform: rotate(360deg); } }
 .pom-orbit { animation: pom-orbit 60s linear infinite; }
