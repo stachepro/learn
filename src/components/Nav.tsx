@@ -101,6 +101,22 @@ function IconClipboardList({ size = 28, strokeWidth = 1.8, color = 'currentColor
   )
 }
 
+function IconSun({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4" />
+      <line x1="12" y1="2" x2="12" y2="4" />
+      <line x1="12" y1="20" x2="12" y2="22" />
+      <line x1="4.93" y1="4.93" x2="6.34" y2="6.34" />
+      <line x1="17.66" y1="17.66" x2="19.07" y2="19.07" />
+      <line x1="2" y1="12" x2="4" y2="12" />
+      <line x1="20" y1="12" x2="22" y2="12" />
+      <line x1="4.93" y1="19.07" x2="6.34" y2="17.66" />
+      <line x1="17.66" y1="6.34" x2="19.07" y2="4.93" />
+    </svg>
+  )
+}
+
 function IconChart({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -193,9 +209,11 @@ function HubModal({ onClose }: { onClose: () => void }) {
             style={{ paddingTop: 40, paddingBottom: 40, background: '#fdf0d9', border: '1px solid #f5ddb2' }}
           >
             <span
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl leading-none"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
               style={{ background: 'linear-gradient(150deg, #fde68a, #f59e0b)', boxShadow: '0 8px 20px -6px rgba(245,158,11,0.55)' }}
-            >🌅</span>
+            >
+              <IconSun size={24} strokeWidth={2} color="#fff" />
+            </span>
             <div className="text-center">
               <p className="text-sm font-bold" style={{ color: '#8a5206' }}>Uyandım</p>
               <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#b87520' }}>Güne merhaba de</p>
