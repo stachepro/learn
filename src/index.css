@@ -417,6 +417,13 @@ input[type="range"] { accent-color: #f59e0b; }
 .focus-ctl-hidden     { opacity: 0; transform: translateY(12px);  pointer-events: none; }
 .focus-ctl-hidden-top { opacity: 0; transform: translateY(-12px); pointer-events: none; }
 
+/* ── Acele Yok: "Şu An" kartı — sakin, yavaş nefes ── */
+@keyframes norush-breathe {
+  0%, 100% { box-shadow: 0 10px 24px -18px rgba(107,74,53,0.45); }
+  50%      { box-shadow: 0 16px 34px -14px rgba(107,74,53,0.7); }
+}
+.norush-breathe { animation: norush-breathe 4.5s ease-in-out infinite; }
+
 /* ── Just Start: aktif adım karosu — sıcak nabız ── */
 @keyframes js-step-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }

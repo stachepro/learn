@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { storage } from '../utils/storage'
 import { formatHMS } from '../utils/date'
@@ -7,8 +7,15 @@ import { playConfirm } from '../utils/sound'
 import { awardStandaloneBadges } from '../utils/badges'
 import type { NoRushStage, NoRushRecord } from '../types'
 
-function newStage(): NoRushStage {
-  return { id: crypto.randomUUID(), text: '', status: 'pending', elapsedSeconds: 0, startedAt: null }
+/* ════════════════════════════════════════════════
+   ACELE YOK — büyük görevi küçük aşamalara böl,
+   kendi hızında bitir. Kronometre ileri sayar:
+   baskı yok, mola serbest. Çalışan aşama "Şu An"
+   kartında büyük kronometreyle öne çıkar.
+   ════════════════════════════════════════════════ */
+
+function newStage(text = ''): NoRushStage {
+  return { id: crypto.randomUUID(), text, status: 'pending', elapsedSeconds: 0, startedAt: null }
 }
 
 function liveStageSeconds(stage: NoRushStage, now: number): number {
@@ -17,6 +24,11 @@ function liveStageSeconds(stage: NoRushStage, now: number): number {
   }
   return stage.elapsedSeconds
 }
+
+// Kahve/toprak tonları — Hub'daki "Acele Yok" karosuyla aynı kimlik
+const BROWN = '#6b4a35'
+const BROWN_SOFT = '#a8846a'
+const BROWN_TEXT = '#4a3222'
 
 /* ── Icons ── */
 type IconProps = { size?: number; color?: string }
@@ -71,6 +83,31 @@ function IconLock({ size = 14, color = 'currentColor' }: IconProps) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <rect x="4" y="11" width="16" height="10" rx="2" />
       <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  )
+}
+
+function IconPause({ size = 14 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor">
+      <rect x="3" y="2" width="4" height="12" rx="1" />
+      <rect x="9" y="2" width="4" height="12" rx="1" />
+    </svg>
+  )
+}
+
+function IconPlay({ size = 14 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor" style={{ marginLeft: 1 }}>
+      <path d="M4 2.5l10 5.5-10 5.5V2.5z" />
+    </svg>
+  )
+}
+
+function IconPlus({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.4} strokeLinecap="round">
+      <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   )
 }
@@ -133,7 +170,7 @@ function HistoryModal({ onClose }: { onClose: () => void }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate" style={{ color: '#1a1726' }}>{r.title || 'İsimsiz görev'}</p>
                     <p className="text-xs mt-1 ink-45">
-                      {r.stageCount} aşama · {formatHMS(r.totalSeconds)}
+                      {new Date(r.completedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} · {r.stageCount} aşama · {formatHMS(r.totalSeconds)}
                     </p>
                   </div>
                   <button
@@ -181,7 +218,9 @@ function SummaryModal({ title, stages, totalSeconds, onClose }: {
           style={{ borderRadius: 28, border: '1px solid rgba(34,197,94,0.35)' }}
         >
           <div className="px-5 pt-5 pb-2 text-center">
+            <p className="text-2xl leading-none mb-1.5">🎉</p>
             <p className="display text-lg font-bold" style={{ color: '#15803d' }}>{title || 'İsimsiz görev'}</p>
+            <p className="text-xs mt-0.5" style={{ color: 'rgba(21,128,61,0.6)' }}>Acele etmeden, adım adım bitti.</p>
           </div>
 
           <div className="px-5 py-2 space-y-2">
@@ -196,8 +235,11 @@ function SummaryModal({ title, stages, totalSeconds, onClose }: {
                   >
                     <IconCheck />
                   </span>
-                  <span className="text-sm font-medium truncate" style={{ color: '#1a1726' }}>
+                  <span className="flex-1 text-sm font-medium truncate" style={{ color: '#1a1726' }}>
                     {s.text || 'İsimsiz aşama'}
+                  </span>
+                  <span className="tnum text-xs font-mono flex-shrink-0" style={{ color: 'rgba(26,23,38,0.45)' }}>
+                    {formatHMS(s.elapsedSeconds)}
                   </span>
                 </div>
               ))
@@ -213,125 +255,18 @@ function SummaryModal({ title, stages, totalSeconds, onClose }: {
             </p>
           </div>
 
-          <div className="px-5 pb-5 pt-2 text-center space-y-4">
-            <p className="text-base font-bold" style={{ color: '#15803d' }}>🎉 Başardın!</p>
+          <div className="px-5 pb-5 pt-2">
             <button
               onClick={handleClose}
-              className="btn-press w-full py-3 rounded-2xl text-sm font-bold"
-              style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
+              className="btn-press btn-go w-full py-3 text-sm font-bold"
             >
-              Tamam
+              Harika, Bitir
             </button>
           </div>
         </div>
       </div>
     </div>,
     document.body,
-  )
-}
-
-/* ── Stage card ── */
-function StageCard({
-  stage, index, onChangeText, onStart, onFinish, onUndo, onDragStart, onDragOver, onDrop, now, disableStart,
-}: {
-  stage: NoRushStage
-  index: number
-  onChangeText: (text: string) => void
-  onStart: () => void
-  onFinish: () => void
-  onUndo: () => void
-  onDragStart: () => void
-  onDragOver: (e: React.DragEvent) => void
-  onDrop: () => void
-  now: number
-  disableStart: boolean
-}) {
-  const isDone = stage.status === 'done'
-  const isRunning = stage.status === 'running'
-  const seconds = liveStageSeconds(stage, now)
-
-  return (
-    <div
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-      className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 transition-all"
-      style={{
-        background: isDone ? 'rgba(26,23,38,0.05)' : '#ffffff',
-        border: `1.5px solid ${isRunning ? 'rgba(34,197,94,0.7)' : isDone ? 'rgba(26,23,38,0.08)' : 'rgba(26,23,38,0.1)'}`,
-        boxShadow: isRunning ? '0 0 0 3px rgba(34,197,94,0.16)' : 'none',
-        opacity: isDone ? 0.7 : 1,
-      }}
-    >
-      <span style={{ cursor: 'grab', touchAction: 'none' }} className="flex-shrink-0">
-        <IconGrip />
-      </span>
-
-      {isDone ? (
-        <span
-          className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(34,197,94,0.85)', color: '#06210f' }}
-        >
-          <IconCheck size={12} />
-        </span>
-      ) : (
-        <span
-          className="tnum w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-          style={{ background: 'rgba(26,23,38,0.06)', color: 'rgba(26,23,38,0.55)' }}
-        >
-          {index + 1}
-        </span>
-      )}
-
-      <input
-        type="text"
-        value={stage.text}
-        onChange={(e) => onChangeText(e.target.value)}
-        readOnly={isDone}
-        placeholder="Bu aşamada ne yapılacak?"
-        className="flex-1 min-w-0 text-sm bg-transparent outline-none"
-        style={{ color: '#1a1726' }}
-      />
-
-      {(isRunning || isDone) && (
-        <span className="tnum text-xs font-mono font-semibold flex-shrink-0" style={{ color: isRunning ? '#c2410c' : 'rgba(26,23,38,0.4)' }}>
-          {formatHMS(seconds)}
-        </span>
-      )}
-
-      {isDone ? (
-        <button
-          onClick={() => { playConfirm(); onUndo() }}
-          aria-label="Geri Al"
-          title="Geri Al"
-          className="ctrl btn-press w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-        >
-          <IconUndo />
-        </button>
-      ) : isRunning ? (
-        <button
-          onClick={() => { playConfirm(); onFinish() }}
-          className="btn-press px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0"
-          style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
-        >
-          Bitirdim
-        </button>
-      ) : (
-        <button
-          onClick={() => { playConfirm(); onStart() }}
-          disabled={disableStart}
-          title={disableStart ? 'Önce çalışan aşamayı bitir' : undefined}
-          className="btn-press px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 disabled:cursor-not-allowed"
-          style={{
-            background: disableStart ? 'rgba(26,23,38,0.07)' : 'rgba(59,130,246,0.9)',
-            color: disableStart ? 'rgba(26,23,38,0.32)' : '#fff',
-          }}
-        >
-          Başladım
-        </button>
-      )}
-    </div>
   )
 }
 
@@ -352,60 +287,144 @@ export default function NoRush() {
   const [title, setTitle] = useState(() => loadActive().title)
   const [stages, setStages] = useState<NoRushStage[]>(() => loadActive().stages)
   const [now, setNow] = useState(() => Date.now())
+  const [draft, setDraft] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const [showSummary, setShowSummary] = useState(false)
-  const dragIndex = useRef<number | null>(null)
 
   useEffect(() => {
     localStorage.setItem(LS_ACTIVE, JSON.stringify({ title, stages }))
   }, [title, stages])
 
-  const hasRunning = stages.some((s) => s.status === 'running')
+  const runningStage = stages.find((s) => s.status === 'running') ?? null
+  const runningIdx = runningStage ? stages.indexOf(runningStage) : -1
+  // Mola: status 'running' kalır ama startedAt null — süre birikmez
+  const isPaused = runningStage !== null && runningStage.startedAt === null
+  const isTicking = runningStage !== null && !isPaused
   const doneCount = stages.filter((s) => s.status === 'done').length
   const allStagesDone = stages.length > 0 && doneCount === stages.length
+  const progress = stages.length > 0 ? doneCount / stages.length : 0
 
   useEffect(() => {
-    if (!hasRunning) return
+    if (!isTicking) return
     const id = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(id)
-  }, [hasRunning])
+  }, [isTicking])
 
   const totalSeconds = stages.reduce((acc, s) => acc + liveStageSeconds(s, now), 0)
 
-  const addStage = () => setStages((prev) => [...prev, newStage()])
+  const addDraft = () => {
+    const text = draft.trim()
+    if (!text) return
+    playConfirm()
+    setStages((prev) => [...prev, newStage(text)])
+    setDraft('')
+  }
 
   const updateStageText = (id: string, text: string) =>
     setStages((prev) => prev.map((s) => s.id === id ? { ...s, text } : s))
 
-  const startStage = (id: string) =>
-    setStages((prev) => prev.map((s) => s.id === id ? { ...s, status: 'running', startedAt: Date.now() } : s))
+  const removeStage = (id: string) => {
+    playConfirm()
+    setStages((prev) => prev.filter((s) => s.id !== id))
+  }
 
-  const finishStage = (id: string) =>
+  const startStage = (id: string) => {
+    playConfirm()
+    setNow(Date.now())
+    setStages((prev) => prev.map((s) => s.id === id ? { ...s, status: 'running', startedAt: Date.now() } : s))
+  }
+
+  const pauseResumeStage = () => {
+    if (!runningStage) return
+    playConfirm()
+    const t = Date.now()
+    setNow(t)
+    setStages((prev) => prev.map((s) => {
+      if (s.id !== runningStage.id) return s
+      if (s.startedAt != null) {
+        // Mola: o ana kadarki süreyi bankala
+        return { ...s, elapsedSeconds: liveStageSeconds(s, t), startedAt: null }
+      }
+      return { ...s, startedAt: t }
+    }))
+  }
+
+  const finishStage = (id: string) => {
+    playConfirm()
     setStages((prev) => prev.map((s) => {
       if (s.id !== id) return s
       const banked = liveStageSeconds(s, Date.now())
       return { ...s, status: 'done', elapsedSeconds: banked, startedAt: null }
     }))
-
-  const undoStage = (id: string) =>
-    setStages((prev) => prev.map((s) => s.id === id ? { ...s, status: 'pending', startedAt: null } : s))
-
-  const handleDragStart = (index: number) => { dragIndex.current = index }
-  const handleDragOver = (e: React.DragEvent) => e.preventDefault()
-  const handleDrop = (index: number) => {
-    const from = dragIndex.current
-    dragIndex.current = null
-    if (from === null || from === index) return
-    setStages((prev) => {
-      const next = [...prev]
-      const [moved] = next.splice(from, 1)
-      next.splice(index, 0, moved)
-      return next
-    })
   }
 
-  const finishTask = () => {
-    setShowSummary(true)
+  const undoStage = (id: string) => {
+    playConfirm()
+    setStages((prev) => prev.map((s) => s.id === id ? { ...s, status: 'pending', startedAt: null } : s))
+  }
+
+  // ── Dokunmatik uyumlu sürükle-sırala ──
+  // HTML5 drag olayları telefonda çalışmaz; pointer olaylarıyla tutamaçtan
+  // sürüklenir. Sürüklenen satır parmağı izler, diğerleri yer açar.
+  const listRef = useRef<HTMLDivElement | null>(null)
+  const dragRef = useRef<{ from: number; startY: number } | null>(null)
+  const [dragFrom, setDragFrom] = useState<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
+  const [dragDy, setDragDy] = useState(0)
+  const [rowStep, setRowStep] = useState(58)
+
+  const onGripDown = (e: React.PointerEvent, index: number) => {
+    if (stages.length < 2) return
+    const first = listRef.current?.children[0] as HTMLElement | undefined
+    setRowStep(first ? first.offsetHeight + 8 : 58)
+    dragRef.current = { from: index, startY: e.clientY }
+    setDragFrom(index)
+    setDragOver(index)
+    setDragDy(0)
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch { /* sentetik/eski pointer */ }
+  }
+
+  const onGripMove = (e: React.PointerEvent) => {
+    const st = dragRef.current
+    if (!st) return
+    const dy = e.clientY - st.startY
+    setDragDy(dy)
+    const target = Math.min(stages.length - 1, Math.max(0, st.from + Math.round(dy / rowStep)))
+    setDragOver(target)
+  }
+
+  const onGripUp = () => {
+    const st = dragRef.current
+    dragRef.current = null
+    if (st && dragOver !== null && dragOver !== st.from) {
+      setStages((prev) => {
+        const next = [...prev]
+        const [moved] = next.splice(st.from, 1)
+        next.splice(dragOver, 0, moved)
+        return next
+      })
+    }
+    setDragFrom(null)
+    setDragOver(null)
+    setDragDy(0)
+  }
+
+  const dragStyle = (index: number): CSSProperties => {
+    if (dragFrom === null || dragOver === null) return {}
+    if (index === dragFrom) {
+      return {
+        transform: `translateY(${dragDy}px) scale(1.02)`,
+        zIndex: 5, position: 'relative',
+        boxShadow: '0 14px 28px -10px rgba(26,23,38,0.3)',
+      }
+    }
+    if (dragFrom < dragOver && index > dragFrom && index <= dragOver) {
+      return { transform: `translateY(-${rowStep}px)`, transition: 'transform 0.18s ease' }
+    }
+    if (dragFrom > dragOver && index >= dragOver && index < dragFrom) {
+      return { transform: `translateY(${rowStep}px)`, transition: 'transform 0.18s ease' }
+    }
+    return { transition: 'transform 0.18s ease' }
   }
 
   const closeSummary = () => {
@@ -420,37 +439,44 @@ export default function NoRush() {
     setShowSummary(false)
     setTitle('')
     setStages([])
+    setDraft('')
     localStorage.removeItem(LS_ACTIVE)
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pt-6 pb-40">
-      <BackBar />
+    <div className="max-w-md mx-auto px-4 pt-6 pb-40">
       {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
       {showSummary && (
         <SummaryModal title={title} stages={stages} totalSeconds={totalSeconds} onClose={closeSummary} />
       )}
 
-      {/* Top bar */}
-      <div className="flex items-center justify-between mb-6">
+      {/* Üst şerit: geri + geçmiş */}
+      <div className="flex items-start justify-between">
+        <BackBar />
         <button
           onClick={() => { playConfirm(); setShowHistory(true) }}
-          className="ctrl btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+          className="ctrl btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
         >
-          <IconHistory /> Geçmiş Görevler
+          <IconHistory size={14} /> Geçmiş
         </button>
-        <div className="text-right">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] ink-45">Geçen Vakit</p>
-          <p className="tnum text-base font-mono font-bold" style={{ color: '#1a1726' }}>{formatHMS(totalSeconds)}</p>
-        </div>
       </div>
 
-      {/* Section 1 — Ne yapıyoruz? */}
+      {/* Başlık */}
+      <div className="mb-6 text-center">
+        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#1a1726' }}>
+          Acele Yok
+        </h1>
+        <p className="text-xs mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
+          Küçük adımlar, senin hızında · süre ileri sayar
+        </p>
+      </div>
+
+      {/* ── Görev kartı: isim + ilerleme + toplam süre ── */}
       <div
-        className="glass g-cream mb-6 px-5 py-4"
+        className="glass g-cream mb-4 px-5 py-4 animate-fade-up"
         style={{ borderRadius: 22, boxShadow: '0 10px 26px -18px rgba(180,120,30,0.55), 0 1px 2px rgba(26,23,38,0.04)' }}
       >
-        <p className="text-[11px] font-bold uppercase tracking-[0.16em] mb-2" style={{ color: '#b45309' }}>
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] mb-1.5" style={{ color: '#b45309' }}>
           Ne yapıyoruz?
         </p>
         <input
@@ -461,66 +487,268 @@ export default function NoRush() {
           className="w-full text-xl font-bold bg-transparent outline-none"
           style={{ color: '#1a1726' }}
         />
+        {stages.length > 0 && (
+          <>
+            <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(65,36,2,0.1)' }}>
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${progress * 100}%`,
+                  background: allStagesDone
+                    ? 'linear-gradient(90deg, #22c55e, #4ade80)'
+                    : `linear-gradient(90deg, ${BROWN_SOFT}, ${BROWN})`,
+                }}
+              />
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-[11px] font-bold" style={{ color: allStagesDone ? '#15803d' : '#8a5e2a' }}>
+                {doneCount}/{stages.length} aşama
+              </span>
+              <span className="tnum text-[11px] font-mono font-bold" style={{ color: '#8a5e2a' }}>
+                ⏱ {formatHMS(totalSeconds)}
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Section 2 — Aşamalar */}
-      <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <h2 className="display text-lg font-bold" style={{ color: '#1a1726' }}>Aşamalar</h2>
-          {stages.length > 0 && (
-            <span className="tnum text-sm font-bold" style={{ color: 'rgba(26,23,38,0.45)' }}>
-              {doneCount}/{stages.length}
-            </span>
-          )}
-        </div>
-        <p className="text-sm mb-4" style={{ color: 'rgba(26,23,38,0.55)' }}>
-          Yapacağın şeyler gözünde büyüyor olabilir. Sorun değil. Onları küçük parçalara bölelim ve sırasıyla bitirelim.
-        </p>
-
-        <div className="space-y-2 mb-4">
-          {stages.map((stage, index) => (
-            <StageCard
-              key={stage.id}
-              stage={stage}
-              index={index}
-              now={now}
-              onChangeText={(text) => updateStageText(stage.id, text)}
-              onStart={() => startStage(stage.id)}
-              onFinish={() => finishStage(stage.id)}
-              onUndo={() => undoStage(stage.id)}
-              onDragStart={() => handleDragStart(index)}
-              onDragOver={handleDragOver}
-              onDrop={() => handleDrop(index)}
-              disableStart={hasRunning && stage.status !== 'running'}
-            />
-          ))}
-        </div>
-
-        <div className="flex justify-center mb-8">
-          <button
-            onClick={() => { playConfirm(); addStage() }}
-            aria-label="Aşama ekle"
-            className="btn-press w-11 h-11 rounded-full flex items-center justify-center text-xl font-bold"
-            style={{ background: 'rgba(26,23,38,0.06)', color: '#1a1726', border: '1px solid rgba(26,23,38,0.1)' }}
-          >
-            +
-          </button>
-        </div>
-
-        <button
-          onClick={() => { if (allStagesDone) { playConfirm(); finishTask() } }}
-          disabled={!allStagesDone}
-          title={!allStagesDone ? 'Önce tüm aşamaları tamamla' : undefined}
-          className="btn-press w-full py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+      {/* ── "Şu An" kartı — çalışan aşamanın büyük kronometresi ── */}
+      {runningStage && (
+        <div
+          className={`mb-4 px-5 py-5 text-center animate-fade-up ${isPaused ? '' : 'norush-breathe'}`}
           style={{
-            background: allStagesDone ? 'rgba(34,197,94,0.9)' : 'rgba(26,23,38,0.08)',
-            color: allStagesDone ? '#06210f' : 'rgba(26,23,38,0.35)',
+            borderRadius: 22,
+            background: '#efe7db',
+            border: '1px solid #ddccb0',
           }}
         >
-          {!allStagesDone && <IconLock size={14} />}
-          Bitir
+          <div className="flex items-center justify-center gap-2">
+            {!isPaused && (
+              <span className="animate-live inline-block rounded-full" style={{ width: 6, height: 6, background: BROWN }} />
+            )}
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: isPaused ? 'rgba(74,50,34,0.5)' : BROWN }}>
+              {isPaused ? 'Molada' : 'Şu An'} · {runningIdx + 1}. aşama
+            </span>
+          </div>
+          <p className="text-base font-bold mt-1.5 truncate" style={{ color: BROWN_TEXT }}>
+            {runningStage.text || 'İsimsiz aşama'}
+          </p>
+          <p
+            className="display tnum font-extrabold leading-none mt-3"
+            style={{ fontSize: 42, color: BROWN_TEXT, opacity: isPaused ? 0.45 : 1, transition: 'opacity 0.3s ease' }}
+          >
+            {formatHMS(liveStageSeconds(runningStage, now))}
+          </p>
+          <div className="flex gap-2.5 mt-4">
+            <button
+              onClick={pauseResumeStage}
+              className="btn-press flex-1 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-1.5"
+              style={{
+                background: isPaused ? `linear-gradient(150deg, ${BROWN_SOFT}, ${BROWN})` : 'rgba(74,50,34,0.08)',
+                color: isPaused ? '#fbf7f0' : BROWN_TEXT,
+                border: isPaused ? 'none' : '1px solid rgba(74,50,34,0.14)',
+              }}
+            >
+              {isPaused ? <><IconPlay /> Devam Et</> : <><IconPause /> Mola</>}
+            </button>
+            <button
+              onClick={() => finishStage(runningStage.id)}
+              className="btn-press flex-1 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-1.5"
+              style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
+            >
+              <IconCheck size={13} /> Bitirdim
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Aşamalar ── */}
+      <div className="flex items-center justify-between mb-2 px-0.5">
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(26,23,38,0.45)' }}>
+          Aşamalar
+        </span>
+        {stages.length > 1 && (
+          <span className="text-[10px] font-semibold" style={{ color: 'rgba(26,23,38,0.35)' }}>
+            ⠿ tutamaçtan sürükleyip sıralayabilirsin
+          </span>
+        )}
+      </div>
+
+      {stages.length === 0 && (
+        <div
+          className="rounded-2xl px-5 py-6 text-center mb-3 animate-fade-up"
+          style={{ background: 'rgba(26,23,38,0.03)', border: '1.5px dashed rgba(26,23,38,0.14)' }}
+        >
+          <p className="text-sm font-semibold" style={{ color: 'rgba(26,23,38,0.6)' }}>
+            Gözünde büyüyen işi küçücük parçalara böl.
+          </p>
+          <p className="text-xs mt-1.5" style={{ color: 'rgba(26,23,38,0.4)' }}>
+            "Kitabı masaya koy" kadar küçük olabilir — aşağıdan ilk aşamayı ekle.
+          </p>
+        </div>
+      )}
+
+      <div ref={listRef} className="space-y-2">
+        {stages.map((stage, index) => {
+          const isDone = stage.status === 'done'
+          const isRunning = stage.status === 'running'
+          const isStagePaused = isRunning && stage.startedAt === null
+          return (
+            <div
+              key={stage.id}
+              className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
+              style={{
+                background: isDone ? 'rgba(26,23,38,0.04)' : '#ffffff',
+                border: `1.5px solid ${isRunning ? 'rgba(34,197,94,0.6)' : isDone ? 'rgba(26,23,38,0.07)' : 'rgba(26,23,38,0.1)'}`,
+                boxShadow: isRunning ? '0 0 0 3px rgba(34,197,94,0.13)' : 'none',
+                opacity: isDone ? 0.65 : 1,
+                ...dragStyle(index),
+              }}
+            >
+              <span
+                onPointerDown={(e) => onGripDown(e, index)}
+                onPointerMove={onGripMove}
+                onPointerUp={onGripUp}
+                onPointerCancel={onGripUp}
+                className="flex-shrink-0 -m-1 p-1"
+                style={{ cursor: 'grab', touchAction: 'none' }}
+              >
+                <IconGrip />
+              </span>
+
+              {isDone ? (
+                <span
+                  className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(34,197,94,0.85)', color: '#06210f' }}
+                >
+                  <IconCheck size={12} />
+                </span>
+              ) : (
+                <span
+                  className="tnum w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                  style={{
+                    background: isRunning ? 'rgba(34,197,94,0.14)' : 'rgba(26,23,38,0.06)',
+                    color: isRunning ? '#15803d' : 'rgba(26,23,38,0.55)',
+                  }}
+                >
+                  {index + 1}
+                </span>
+              )}
+
+              <input
+                type="text"
+                value={stage.text}
+                onChange={(e) => updateStageText(stage.id, e.target.value)}
+                readOnly={isDone}
+                placeholder="Bu aşamada ne yapılacak?"
+                className="flex-1 min-w-0 text-sm bg-transparent outline-none"
+                style={{ color: '#1a1726' }}
+              />
+
+              {(isRunning || isDone) && (
+                <span
+                  className="tnum text-xs font-mono font-semibold flex-shrink-0"
+                  style={{ color: isRunning ? (isStagePaused ? 'rgba(26,23,38,0.4)' : '#15803d') : 'rgba(26,23,38,0.4)' }}
+                >
+                  {formatHMS(liveStageSeconds(stage, now))}
+                </span>
+              )}
+
+              {isDone ? (
+                <button
+                  onClick={() => undoStage(stage.id)}
+                  aria-label="Geri Al"
+                  title="Geri Al"
+                  className="ctrl btn-press w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                >
+                  <IconUndo />
+                </button>
+              ) : isRunning ? (
+                <span
+                  className="px-2.5 py-1 rounded-full text-[10px] font-bold flex-shrink-0"
+                  style={{
+                    background: isStagePaused ? 'rgba(245,158,11,0.14)' : 'rgba(34,197,94,0.14)',
+                    color: isStagePaused ? '#b45309' : '#15803d',
+                  }}
+                >
+                  {isStagePaused ? '⏸ molada' : '▶ sürüyor'}
+                </span>
+              ) : (
+                <>
+                  <button
+                    onClick={() => startStage(stage.id)}
+                    disabled={runningStage !== null}
+                    title={runningStage !== null ? 'Önce çalışan aşamayı bitir' : undefined}
+                    className="btn-press px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 disabled:cursor-not-allowed"
+                    style={{
+                      background: runningStage !== null ? 'rgba(26,23,38,0.06)' : `linear-gradient(150deg, ${BROWN_SOFT}, ${BROWN})`,
+                      color: runningStage !== null ? 'rgba(26,23,38,0.3)' : '#fbf7f0',
+                    }}
+                  >
+                    Başladım
+                  </button>
+                  <button
+                    onClick={() => removeStage(stage.id)}
+                    aria-label="Aşamayı sil"
+                    title="Aşamayı sil"
+                    className="btn-press w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ color: 'rgba(26,23,38,0.3)' }}
+                  >
+                    <IconX size={13} />
+                  </button>
+                </>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Hızlı aşama ekleme — Enter ya da + */}
+      <div
+        className="flex items-center gap-2.5 rounded-2xl px-3 py-2 mt-2"
+        style={{ background: 'rgba(255,255,255,0.6)', border: '1.5px dashed rgba(26,23,38,0.18)' }}
+      >
+        <span className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ color: 'rgba(26,23,38,0.35)' }}>
+          <IconPlus size={14} />
+        </span>
+        <input
+          type="text"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') addDraft() }}
+          placeholder="Yeni aşama ekle…"
+          className="flex-1 min-w-0 text-sm bg-transparent outline-none py-1"
+          style={{ color: '#1a1726' }}
+        />
+        <button
+          onClick={addDraft}
+          disabled={!draft.trim()}
+          aria-label="Aşama ekle"
+          className="btn-press px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 disabled:opacity-30"
+          style={{ background: '#1a1726', color: '#fbf7f0' }}
+        >
+          Ekle
         </button>
       </div>
+
+      {/* Görevi bitir */}
+      <button
+        onClick={() => { if (allStagesDone) { playConfirm(); setShowSummary(true) } }}
+        disabled={!allStagesDone}
+        title={!allStagesDone ? 'Önce tüm aşamaları tamamla' : undefined}
+        className="btn-press w-full py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 disabled:cursor-not-allowed mt-6"
+        style={{
+          background: allStagesDone ? 'rgba(34,197,94,0.9)' : 'rgba(26,23,38,0.07)',
+          color: allStagesDone ? '#06210f' : 'rgba(26,23,38,0.35)',
+        }}
+      >
+        {!allStagesDone && <IconLock size={14} />}
+        Görevi Bitir
+      </button>
+
+      <p className="text-center text-[11px] mt-4" style={{ color: 'rgba(26,23,38,0.4)' }}>
+        Süre geriye değil ileriye sayar — acele ettiren kimse yok.
+      </p>
     </div>
   )
 }
