@@ -5,6 +5,7 @@ import { playBell } from '../utils/sound'
 import { todayStr } from '../utils/date'
 import BackBar from '../components/BackBar'
 import TimerDial from '../components/TimerDial'
+import Confetti from '../components/Confetti'
 import { scheduleTimerNotification, cancelTimerNotification, NOTIF_JUSTSTART } from '../utils/timerNotifications'
 
 /* ════════════════════════════════════════════════
@@ -132,38 +133,6 @@ function Embers({ accent }: { accent: string }) {
             background: accent,
             boxShadow: `0 0 6px ${accent}`,
             '--dur': `${e.dur}s`, '--delay': `${e.delay}s`,
-          } as CSSProperties}
-        />
-      ))}
-    </div>
-  )
-}
-
-/* ── Gün sonu konfetisi — tüm adımlar bitince bir kez yağar ── */
-const CONFETTI_COLORS = ['#22c55e', '#f59e0b', '#f97316', '#38bdf8', '#a78bfa', '#f472b6']
-const CONFETTI = Array.from({ length: 26 }).map((_, i) => ({
-  left: (i * 37 + 13) % 100,
-  delay: (i % 9) * 0.16,
-  dur: 2.2 + ((i * 7) % 10) / 8,
-  dx: ((i % 5) - 2) * 34,
-  rot: 360 + (i % 4) * 180,
-  w: 6 + (i % 3) * 2,
-  h: 9 + ((i + 1) % 3) * 3,
-  color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-}))
-
-function Confetti() {
-  return (
-    <div className="fixed inset-0 pointer-events-none z-[60] overflow-hidden" aria-hidden>
-      {CONFETTI.map((c, i) => (
-        <span
-          key={i}
-          className="js-confetti"
-          style={{
-            left: `${c.left}%`, width: c.w, height: c.h,
-            background: c.color, borderRadius: 2,
-            '--dx': `${c.dx}px`, '--rot': `${c.rot}deg`,
-            '--dur': `${c.dur}s`, '--delay': `${c.delay}s`,
           } as CSSProperties}
         />
       ))}
