@@ -357,6 +357,77 @@ input[type="range"] { accent-color: #f59e0b; }
     inset -90px 0  100px -40px rgba(245, 158, 11, 0.1);
 }
 
+/* ════════════════════════════════════════════════
+   ODAK MODU — masa saati. Simsiyah zemin, gri tonlar.
+   Animasyonlar transform/opacity ile sınırlı (pil dostu).
+   ════════════════════════════════════════════════ */
+.focus-overlay { animation: fade-in 0.4s ease both; }
+
+@keyframes focus-zoom-in {
+  from { opacity: 0; transform: scale(1.06); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.focus-stage { animation: focus-zoom-in 0.55s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* Dev saat rakamları — ince, tabular, hafif ışıma */
+.focus-time {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-weight: 200;
+  font-variant-numeric: tabular-nums;
+  font-size: min(23vw, 36vh);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: #e7e7ec;
+  text-shadow: 0 0 70px rgba(255,255,255,0.14);
+}
+
+/* Rakam değişimi: alttan kayarak netleşir (key remount tetikler) */
+@keyframes focus-digit-in {
+  from { opacity: 0; transform: translateY(0.16em); filter: blur(5px); }
+  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.focus-digit {
+  display: inline-block;
+  width: 1ch;
+  text-align: center;
+  animation: focus-digit-in 0.45s cubic-bezier(0.16,1,0.3,1) both;
+}
+.focus-colon {
+  display: inline-block;
+  width: 0.52ch;
+  text-align: center;
+  transform: translateY(-0.05em);
+}
+@keyframes focus-colon-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0.22; } }
+.focus-colon-blink { animation: focus-colon-blink 2s steps(1) infinite; }
+
+/* Arka plandaki nefes alan halo — tek katman, çok düşük opaklık */
+@keyframes focus-breathe {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.06); }
+}
+.focus-halo { animation: focus-breathe 8s ease-in-out infinite; }
+
+/* Canlı nokta — yavaş nabız */
+@keyframes focus-dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+.focus-live-dot { animation: focus-dot-pulse 2.6s ease-in-out infinite; }
+
+/* Kontrollerin belirme/gizlenme geçişi */
+.focus-ctl { transition: opacity 0.35s ease, transform 0.35s ease; }
+.focus-ctl-hidden     { opacity: 0; transform: translateY(12px);  pointer-events: none; }
+.focus-ctl-hidden-top { opacity: 0; transform: translateY(-12px); pointer-events: none; }
+
+/* ── Pomodoro sayfası: kadran ── */
+@keyframes pom-orbit { to { transform: rotate(360deg); } }
+.pom-orbit { animation: pom-orbit 60s linear infinite; }
+.pom-orbit-paused { animation-play-state: paused; }
+
+@keyframes pom-chip-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.pom-chip { animation: pom-chip-in 0.3s cubic-bezier(0.34,1.4,0.5,1) both; }
+
 /* ── Başarım bildirimi — üstten iner, hafif seker, yukarı çıkar ── */
 @keyframes ach-drop-in {
   0%   { transform: translateY(-130%); opacity: 0; }

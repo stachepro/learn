@@ -3,15 +3,27 @@ import { usePomodoro } from '../context/PomodoroContext'
 import BackBar from '../components/BackBar'
 import { todayStr, formatSeconds } from '../utils/date'
 
+/* ════════════════════════════════════════════════
+   POMODORO — tikli kadran + ışıltılı ilerleme yayı.
+   Seans başlayınca "Odak Modu" butonu masa saati
+   görünümüne (FocusMode overlay) geçirir.
+   ════════════════════════════════════════════════ */
+
+const SIZE = 264
+const CX = SIZE / 2
+const R_ARC = 112     // ilerleme yayı
+const R_TICK_IN = 122 // tik içi
+const R_TICK_OUT = 129
+
 export default function Pomodoro() {
   const { pomodoroSettings, freeSessions } = useApp()
   const {
     phase, secondsLeft, totalSeconds, sessionCount,
     isPaused, isFree, soundEnabled,
-    startFree, pauseResume, startBreak, skipBreak, stopTimer, toggleSound,
+    startFree, pauseResume, startBreak, skipBreak, stopTimer, toggleSound, toggleFocusMode,
   } = usePomodoro()
 
-  // A non-free habit Pomodoro is occupying the shared timer
+  // Paylaşılan sayaçta bir alışkanlık Pomodoro'su çalışıyor
   const otherActive = phase !== 'idle' && !isFree
 
   const isWork = isFree && phase === 'work'
@@ -19,27 +31,32 @@ export default function Pomodoro() {
   const isWorkDone = isFree && phase === 'work-done'
   const isDone = isFree && phase === 'break-done'
   const running = isWork || isBreak || isWorkDone || isDone
+  const ticking = (isWork || isBreak) && !isPaused
 
   const today = todayStr()
   const todayCount = freeSessions.filter((s) => s.date === today).length
 
-  const progress = totalSeconds > 0 ? ((totalSeconds - secondsLeft) / totalSeconds) * 100 : 0
-  const accent = isWork ? '#f97316' : '#22c55e'
-  const accentDark = isWork ? '#c2410c' : '#15803d'
+  const progress = totalSeconds > 0 ? (totalSeconds - secondsLeft) / totalSeconds : 0
+  const accent = isBreak ? '#22c55e' : '#f97316'
+  const accentSoft = isBreak ? 'rgba(34,197,94,' : 'rgba(249,115,22,'
 
-  // SVG ring geometry
-  const R = 86
-  const C = 2 * Math.PI * R
-  const showRingProgress = isWork || isBreak
-  const dash = showRingProgress ? C * (1 - progress / 100) : C
+  // Yay geometrisi
+  const C = 2 * Math.PI * R_ARC
+  const showArc = isWork || isBreak
+  const dash = C * (1 - progress)
+  // Yay ucundaki ışıltılı nokta (-90°'den başlar)
+  const headAngle = -Math.PI / 2 + progress * 2 * Math.PI
+  const headX = CX + R_ARC * Math.cos(headAngle)
+  const headY = CX + R_ARC * Math.sin(headAngle)
 
-  const phaseLabel = isWorkDone ? 'Çalışma Bitti' : isDone ? 'Mola Bitti' : isWork ? 'Odak' : isBreak ? 'Mola' : ''
+  const phaseLabel = isWorkDone ? 'Çalışma Bitti' : isDone ? 'Mola Bitti' : isWork ? 'Odak' : isBreak ? 'Mola' : 'Hazır'
 
   return (
     <div className="max-w-sm mx-auto px-4 pt-6 pb-40">
       <BackBar />
-      {/* Header */}
-      <div className="mb-6 text-center">
+
+      {/* Başlık */}
+      <div className="mb-7 text-center">
         <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#1a1726' }}>
           Pomodoro
         </h1>
@@ -49,7 +66,6 @@ export default function Pomodoro() {
       </div>
 
       {otherActive ? (
-        /* Another (habit) Pomodoro is running on the shared timer */
         <div
           className="glass g-neutral rounded-2xl px-5 py-8 text-center space-y-2 animate-fade-up"
           style={{ border: '1px solid rgba(26,23,38,0.1)' }}
@@ -64,132 +80,213 @@ export default function Pomodoro() {
         </div>
       ) : (
         <>
-          {/* Timer ring */}
-          <div className="flex flex-col items-center">
-            <div className="relative" style={{ width: 200, height: 200 }}>
-              <svg width="200" height="200" viewBox="0 0 200 200" className="-rotate-90">
-                <circle
-                  cx="100" cy="100" r={R}
-                  fill="none"
-                  stroke="rgba(26,23,38,0.07)"
-                  strokeWidth="10"
-                />
-                {showRingProgress && (
+          {/* ── Kadran ── */}
+          <div className="flex flex-col items-center animate-fade-up">
+            <div className="relative" style={{ width: SIZE, height: SIZE }}>
+              <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
+                {/* 60 tik — her 5.'si uzun ve koyu */}
+                {Array.from({ length: 60 }).map((_, i) => {
+                  const a = (i / 60) * 2 * Math.PI - Math.PI / 2
+                  const major = i % 5 === 0
+                  const rIn = major ? R_TICK_IN - 3 : R_TICK_IN
+                  // Geçilen tikler vurgu rengini alır
+                  const passed = showArc && i / 60 <= progress
+                  return (
+                    <line
+                      key={i}
+                      x1={CX + rIn * Math.cos(a)} y1={CX + rIn * Math.sin(a)}
+                      x2={CX + R_TICK_OUT * Math.cos(a)} y2={CX + R_TICK_OUT * Math.sin(a)}
+                      stroke={passed ? accent : major ? 'rgba(26,23,38,0.22)' : 'rgba(26,23,38,0.1)'}
+                      strokeWidth={major ? 2.5 : 1.5}
+                      strokeLinecap="round"
+                      style={{ transition: 'stroke 0.6s ease' }}
+                    />
+                  )
+                })}
+
+                {/* Ray */}
+                <circle cx={CX} cy={CX} r={R_ARC} fill="none" stroke="rgba(26,23,38,0.06)" strokeWidth="8" />
+
+                {/* İlerleme yayı */}
+                {showArc && (
+                  <g style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}>
+                    <circle
+                      cx={CX} cy={CX} r={R_ARC}
+                      fill="none"
+                      stroke={accent}
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray={C}
+                      strokeDashoffset={dash}
+                      style={{
+                        transition: 'stroke-dashoffset 1s linear, stroke 0.4s ease',
+                        filter: `drop-shadow(0 0 8px ${accentSoft}0.7))`,
+                      }}
+                    />
+                  </g>
+                )}
+
+                {/* Yay ucu — parlak nokta */}
+                {showArc && (
                   <circle
-                    cx="100" cy="100" r={R}
-                    fill="none"
+                    cx={headX} cy={headY} r="6.5"
+                    fill="#fff"
                     stroke={accent}
-                    strokeWidth="10"
-                    strokeLinecap="round"
-                    strokeDasharray={C}
-                    strokeDashoffset={dash}
+                    strokeWidth="3.5"
                     style={{
-                      transition: 'stroke-dashoffset 1s linear',
-                      filter: `drop-shadow(0 0 6px ${accent}aa)`,
+                      transition: 'cx 1s linear, cy 1s linear, stroke 0.4s ease',
+                      filter: `drop-shadow(0 0 6px ${accentSoft}0.9))`,
                     }}
                   />
                 )}
               </svg>
-              {/* Center content */}
+
+              {/* Saniye yörüngesi — kadranı canlı tutan minik uydu */}
+              {ticking && (
+                <div className="pom-orbit absolute inset-0 pointer-events-none">
+                  <span
+                    className="absolute rounded-full"
+                    style={{
+                      width: 5, height: 5, left: '50%', top: CX - R_ARC - 17,
+                      marginLeft: -2.5,
+                      background: accent, opacity: 0.75,
+                      boxShadow: `0 0 6px ${accentSoft}0.8)`,
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Merkez */}
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                {running ? (
-                  <>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: accentDark }}>
-                      {phaseLabel}
-                    </span>
-                    <span
-                      className="tnum text-5xl font-mono font-bold leading-none mt-1"
-                      style={{ color: '#1a1726' }}
-                    >
-                      {(isWorkDone || isDone) ? '✓' : formatSeconds(secondsLeft)}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-4xl leading-none">🧘</span>
-                    <span className="text-xs mt-2 font-semibold" style={{ color: 'rgba(26,23,38,0.5)' }}>
-                      Hazır
-                    </span>
-                  </>
+                <span
+                  key={phaseLabel + String(isPaused)}
+                  className="pom-chip px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.18em]"
+                  style={{
+                    background: running ? `${accentSoft}0.12)` : 'rgba(26,23,38,0.05)',
+                    color: running ? accent : 'rgba(26,23,38,0.45)',
+                    border: `1px solid ${running ? `${accentSoft}0.3)` : 'rgba(26,23,38,0.08)'}`,
+                  }}
+                >
+                  {isPaused ? 'Durakladı' : phaseLabel}
+                </span>
+                <span
+                  className="display tnum font-extrabold leading-none mt-2.5"
+                  style={{
+                    fontSize: 54,
+                    color: running ? '#1a1726' : 'rgba(26,23,38,0.28)',
+                    transition: 'color 0.4s ease',
+                  }}
+                >
+                  {(isWorkDone || isDone) ? '✓' : formatSeconds(running ? secondsLeft : pomodoroSettings.workDuration * 60)}
+                </span>
+                {running && (
+                  <span className="text-[11px] font-semibold mt-2" style={{ color: 'rgba(26,23,38,0.45)' }}>
+                    {sessionCount} seans tamamlandı
+                  </span>
                 )}
               </div>
             </div>
-
-            {running && (
-              <p className="text-[11px] font-semibold mt-3" style={{ color: 'rgba(26,23,38,0.5)' }}>
-                {sessionCount} seans tamamlandı · {isPaused ? 'Durakladı' : 'Devam ediyor'}
-              </p>
-            )}
           </div>
 
-          {/* Controls */}
-          <div className="mt-8 space-y-3">
+          {/* ── Kontroller ── */}
+          <div className="mt-7 space-y-3">
             {phase === 'idle' && (
               <button
                 onClick={startFree}
-                className="btn-press w-full py-3.5 rounded-2xl text-sm font-bold"
-                style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
+                className="btn-press btn-go w-full py-4 text-[15px] font-bold animate-fade-up"
               >
-                Başlat
+                ▶ Odaklanmaya Başla
               </button>
             )}
 
             {(isWork || isBreak) && (
-              <div className="flex gap-2">
+              <div className="flex gap-2.5 animate-fade-up">
                 <button
                   onClick={pauseResume}
-                  className="btn-press flex-1 py-3 rounded-2xl text-sm font-bold"
+                  className="btn-press flex-1 py-3.5 rounded-2xl text-sm font-bold"
                   style={{
-                    background: isPaused ? 'rgba(34,197,94,0.9)' : 'rgba(26,23,38,0.07)',
+                    background: isPaused ? 'rgba(34,197,94,0.9)' : 'rgba(26,23,38,0.06)',
                     color: isPaused ? '#06210f' : '#1a1726',
+                    border: '1px solid rgba(26,23,38,0.08)',
                   }}
                 >
                   {isPaused ? '▶ Devam Et' : '⏸ Duraklat'}
                 </button>
-                {isBreak && (
-                  <button
-                    onClick={skipBreak}
-                    className="ctrl btn-press px-4 py-3 rounded-2xl text-xs font-semibold flex-shrink-0"
-                  >
-                    Molayı Atla
-                  </button>
-                )}
+                {/* Odak Modu — masa saati görünümü */}
+                <button
+                  onClick={toggleFocusMode}
+                  className="btn-press flex-1 py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2"
+                  style={{
+                    background: '#1a1726',
+                    color: '#fbf7f0',
+                    boxShadow: '0 10px 22px -10px rgba(26,23,38,0.55)',
+                  }}
+                >
+                  <ExpandIcon /> Odak Modu
+                </button>
               </div>
             )}
 
             {isWorkDone && (
-              <button
-                onClick={startBreak}
-                className="btn-press w-full py-3.5 rounded-2xl text-sm font-bold"
-                style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
-              >
-                Mola Başlat
-              </button>
+              <div className="flex gap-2.5 animate-fade-up">
+                <button
+                  onClick={startBreak}
+                  className="btn-press btn-go flex-1 py-3.5 text-sm font-bold"
+                >
+                  ☕ Mola Başlat
+                </button>
+                <button
+                  onClick={toggleFocusMode}
+                  aria-label="Odak Modu"
+                  className="btn-press w-[52px] rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: '#1a1726', color: '#fbf7f0' }}
+                >
+                  <ExpandIcon />
+                </button>
+              </div>
             )}
 
             {isDone && (
-              <button
-                onClick={skipBreak}
-                className="btn-press w-full py-3.5 rounded-2xl text-sm font-bold"
-                style={{ background: '#f97316', color: '#fff5f2' }}
-              >
-                Çalışmaya Başla
-              </button>
+              <div className="flex gap-2.5 animate-fade-up">
+                <button
+                  onClick={skipBreak}
+                  className="btn-press flex-1 py-3.5 rounded-2xl text-sm font-bold"
+                  style={{ background: '#f97316', color: '#fff5f2', boxShadow: '0 10px 22px -10px rgba(249,115,22,0.55)' }}
+                >
+                  🔥 Çalışmaya Başla
+                </button>
+                <button
+                  onClick={toggleFocusMode}
+                  aria-label="Odak Modu"
+                  className="btn-press w-[52px] rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: '#1a1726', color: '#fbf7f0' }}
+                >
+                  <ExpandIcon />
+                </button>
+              </div>
             )}
 
-            {/* Secondary row: sound + cancel */}
+            {/* İkincil satır: ses + molayı atla + iptal */}
             {running && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 animate-fade-up">
                 <button
                   onClick={toggleSound}
                   className="ctrl btn-press flex-1 py-2.5 rounded-2xl text-xs font-semibold"
                 >
                   {soundEnabled ? '🔔 Ses açık' : '🔕 Ses kapalı'}
                 </button>
+                {isBreak && (
+                  <button
+                    onClick={skipBreak}
+                    className="ctrl btn-press flex-1 py-2.5 rounded-2xl text-xs font-semibold"
+                  >
+                    ⏭ Molayı Atla
+                  </button>
+                )}
                 <button
                   onClick={stopTimer}
                   className="btn-press flex-1 py-2.5 rounded-2xl text-xs font-bold"
-                  style={{ background: 'rgba(225,90,60,0.14)', color: '#b3422a', boxShadow: 'inset 0 0 0 1px rgba(225,90,60,0.35)' }}
+                  style={{ background: 'rgba(225,90,60,0.12)', color: '#b3422a', boxShadow: 'inset 0 0 0 1px rgba(225,90,60,0.3)' }}
                 >
                   İptal Et
                 </button>
@@ -197,24 +294,19 @@ export default function Pomodoro() {
             )}
           </div>
 
-          {/* Today's free sessions */}
-          <div className="flex items-center justify-center gap-8 py-6 mt-2">
-            <div className="text-center">
-              <p className="text-2xl font-bold tnum" style={{ color: '#1a1726' }}>{todayCount}</p>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
-                Bugünkü Seans
-              </p>
+          {/* ── İstatistikler ── */}
+          <div className="grid grid-cols-2 gap-3 mt-6">
+            <div className="glass g-flame rounded-2xl px-4 py-4 text-center animate-fade-up" style={{ animationDelay: '0.05s' }}>
+              <p className="display text-3xl font-extrabold tnum" style={{ color: 'rgb(var(--txt))' }}>{todayCount}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1 ink-60">Bugünkü Seans</p>
             </div>
-            <div className="w-px h-8" style={{ background: 'rgba(26,23,38,0.07)' }} />
-            <div className="text-center">
-              <p className="text-2xl font-bold tnum" style={{ color: '#1a1726' }}>{freeSessions.length}</p>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
-                Toplam Seans
-              </p>
+            <div className="glass g-neutral rounded-2xl px-4 py-4 text-center animate-fade-up" style={{ animationDelay: '0.1s' }}>
+              <p className="display text-3xl font-extrabold tnum" style={{ color: '#1a1726' }}>{freeSessions.length}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>Toplam Seans</p>
             </div>
           </div>
 
-          <p className="text-center text-[11px]" style={{ color: 'rgba(26,23,38,0.4)' }}>
+          <p className="text-center text-[11px] mt-5" style={{ color: 'rgba(26,23,38,0.4)' }}>
             Her tamamlanan serbest seans 10 XP kazandırır.
           </p>
         </>
@@ -222,3 +314,12 @@ export default function Pomodoro() {
     </div>
   )
 }
+
+const ExpandIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 3 21 3 21 9" />
+    <polyline points="9 21 3 21 3 15" />
+    <line x1="21" y1="3" x2="14" y2="10" />
+    <line x1="3" y1="21" x2="10" y2="14" />
+  </svg>
+)

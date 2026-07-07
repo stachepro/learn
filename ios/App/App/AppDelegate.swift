@@ -11,6 +11,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
+    // ScreenOrientation eklentisinin kilidi tüm pencereye uygulansın diye
+    // desteklenen yönler Capacitor köprü denetleyicisinden okunur.
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        if let bridgeVC = self.window?.rootViewController as? CAPBridgeViewController {
+            return UIInterfaceOrientationMask(rawValue: bridgeVC.supportedInterfaceOrientations.rawValue)
+        }
+        return .portrait
+    }
+
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.

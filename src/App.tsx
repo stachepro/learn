@@ -6,6 +6,7 @@ import Nav from './components/Nav'
 import AchievementToast from './components/AchievementToast'
 import PomodoroBar from './components/PomodoroBar'
 import PomodoroAmbience from './components/PomodoroAmbience'
+import FocusMode from './components/FocusMode'
 import Dashboard from './pages/Dashboard'
 import Habits from './pages/Habits'
 import History from './pages/History'
@@ -65,6 +66,8 @@ function Layout() {
         </div>
         <PomodoroBar />
       </div>
+      {/* Odak modu — masa saati; tüm arayüzün üstünü kaplar */}
+      <FocusMode />
     </div>
   )
 }

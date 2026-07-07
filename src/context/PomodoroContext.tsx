@@ -7,6 +7,7 @@ import { playBell } from '../utils/sound'
 import { getHabitMode, getHabitGoal } from '../types'
 import { storage } from '../utils/storage'
 import { scheduleTimerNotification, cancelTimerNotification, NOTIF_POMODORO } from '../utils/timerNotifications'
+import { enterFocusNative, exitFocusNative } from '../utils/focusMode'
 
 export const FREE_ID = '__free__'
 // 'work-done' = work finished, waiting for the user to start the break (manual mode)
@@ -26,6 +27,8 @@ interface PomodoroContextValue {
   isBoostSession: boolean
   isExtraSession: boolean
   soundEnabled: boolean
+  isFocusMode: boolean
+  toggleFocusMode: () => void
   startPomodoro: (habitId: string) => void
   startFree: () => void
   pauseResume: () => void
@@ -53,6 +56,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   const [isBoostSession, setIsBoostSession] = useState(false)
   const [isExtraSession, setIsExtraSession] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(() => storage.getSoundEnabled())
+  const [isFocusMode, setIsFocusMode] = useState(false)
 
   const settingsRef = useRef(pomodoroSettings)
   const activeHabitIdRef = useRef<string | null>(null)
@@ -80,6 +84,22 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   useEffect(() => { soundEnabledRef.current = soundEnabled }, [soundEnabled])
 
   const isFree = activeHabitId === FREE_ID
+
+  // ── Odak modu (masa saati) ──
+  // Native yan etkiler tek yerden yönetilir: girişte rotasyon serbest +
+  // ekran uyanık + durum çubuğu gizli; çıkışta (veya unmount'ta) hepsi geri.
+  useEffect(() => {
+    if (!isFocusMode) return
+    void enterFocusNative()
+    return () => { void exitFocusNative() }
+  }, [isFocusMode])
+
+  // Sayaç tamamen durunca odak modundan otomatik çık
+  useEffect(() => {
+    if (phase === 'idle') setIsFocusMode(false)
+  }, [phase])
+
+  const toggleFocusMode = useCallback(() => setIsFocusMode((f) => !f), [])
 
   const completedFocusSec = (() => {
     const dayLog = logs[today]
@@ -377,7 +397,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     <PomodoroContext.Provider value={{
       activeHabitId, phase, secondsLeft, totalSeconds, sessionCount,
       isVisible, isPaused, todayFocusSeconds, isFree, isBoostSession, isExtraSession,
-      soundEnabled,
+      soundEnabled, isFocusMode, toggleFocusMode,
       startPomodoro, startFree, pauseResume, startBreak, skipBreak, finishEarly, stopTimer, toggleSound,
       showBar: () => setIsVisible(true),
       hideBar: () => setIsVisible(false),
