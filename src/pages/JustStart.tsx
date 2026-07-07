@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from 'react'
 import { useApp } from '../context/AppContext'
 import { usePomodoro } from '../context/PomodoroContext'
 import { playBell } from '../utils/sound'
@@ -9,8 +9,11 @@ import { scheduleTimerNotification, cancelTimerNotification, NOTIF_JUSTSTART } f
 
 /* ════════════════════════════════════════════════
    JUST START — 1 dakikayla başla, 30'a kadar tırman.
-   Pomodoro ile aynı kadran dili: aktif adımda geri
-   sayım, beklemede günün toplam ilerlemesi görünür.
+   Kadran merkezi kayan rakamlarla işler; çalışırken
+   kadrandan kor taneleri yükselir. Her biten adım
+   ✓ çizimi + "+X dk" pop'uyla kutlanır; gün bitince
+   konfeti yağar. Amaç: her adımı küçük bir zafer
+   gibi hissettirmek.
    ════════════════════════════════════════════════ */
 
 const STEPS = [1, 2, 3, 4, 5, 10, 15, 20, 25, 30]
@@ -65,9 +68,112 @@ function saveStats(today: number, allTime: number) {
   }))
 }
 
+// Adım süresine göre teşvik cümlesi — sayaç işlerken kadranın altında
+function encourage(min: number): string {
+  if (min <= 1) return 'Sadece 1 dakika — en zor kısmı hallettin, başladın.'
+  if (min <= 5) return 'Isınıyorsun, ritim gelmeye başladı.'
+  if (min <= 15) return 'Momentum sende — akışta kal.'
+  return 'Derin çalışma bölgesindesin, harika gidiyorsun.'
+}
+
+/* ── Kayan rakamlı sayaç — her rakam değişince alttan süzülür ── */
+function AnimatedTime({ text, color, dim, blink }: {
+  text: string; color: string; dim: boolean; blink: boolean
+}) {
+  return (
+    <div
+      className="display tnum font-extrabold leading-none"
+      style={{ fontSize: 54, color, opacity: dim ? 0.35 : 1, transition: 'opacity 0.35s ease, color 0.4s ease' }}
+    >
+      {[...text].map((ch, i) =>
+        ch === ':' ? (
+          <span key={`c${i}`} className={`focus-colon ${blink ? 'focus-colon-blink' : ''}`}>:</span>
+        ) : (
+          <span key={`${i}-${ch}`} className="focus-digit">{ch}</span>
+        ),
+      )}
+    </div>
+  )
+}
+
+/* ── Çizilerek beliren onay işareti ── */
+function CheckDraw({ size = 15, color = 'currentColor', strokeWidth = 2.4 }: {
+  size?: number; color?: string; strokeWidth?: number
+}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <polyline className="js-check-draw" points="2.5 8.5 6.5 12.5 13.5 4" />
+    </svg>
+  )
+}
+
+/* ── Kadrandan yükselen kor taneleri — sayaç işlerken ── */
+const EMBERS = [
+  { left: 16, delay: 0.0, dur: 3.4, size: 4 },
+  { left: 30, delay: 1.2, dur: 2.9, size: 3 },
+  { left: 47, delay: 0.5, dur: 3.8, size: 5 },
+  { left: 60, delay: 1.8, dur: 3.1, size: 3 },
+  { left: 73, delay: 0.8, dur: 3.6, size: 4 },
+  { left: 84, delay: 2.3, dur: 3.2, size: 3 },
+  { left: 24, delay: 2.7, dur: 3.0, size: 3 },
+  { left: 55, delay: 3.1, dur: 3.5, size: 4 },
+]
+
+function Embers({ accent }: { accent: string }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none" aria-hidden>
+      {EMBERS.map((e, i) => (
+        <span
+          key={i}
+          className="js-ember"
+          style={{
+            left: `${e.left}%`, bottom: 36,
+            width: e.size, height: e.size,
+            background: accent,
+            boxShadow: `0 0 6px ${accent}`,
+            '--dur': `${e.dur}s`, '--delay': `${e.delay}s`,
+          } as CSSProperties}
+        />
+      ))}
+    </div>
+  )
+}
+
+/* ── Gün sonu konfetisi — tüm adımlar bitince bir kez yağar ── */
+const CONFETTI_COLORS = ['#22c55e', '#f59e0b', '#f97316', '#38bdf8', '#a78bfa', '#f472b6']
+const CONFETTI = Array.from({ length: 26 }).map((_, i) => ({
+  left: (i * 37 + 13) % 100,
+  delay: (i % 9) * 0.16,
+  dur: 2.2 + ((i * 7) % 10) / 8,
+  dx: ((i % 5) - 2) * 34,
+  rot: 360 + (i % 4) * 180,
+  w: 6 + (i % 3) * 2,
+  h: 9 + ((i + 1) % 3) * 3,
+  color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+}))
+
+function Confetti() {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[60] overflow-hidden" aria-hidden>
+      {CONFETTI.map((c, i) => (
+        <span
+          key={i}
+          className="js-confetti"
+          style={{
+            left: `${c.left}%`, width: c.w, height: c.h,
+            background: c.color, borderRadius: 2,
+            '--dx': `${c.dx}px`, '--rot': `${c.rot}deg`,
+            '--dur': `${c.dur}s`, '--delay': `${c.delay}s`,
+          } as CSSProperties}
+        />
+      ))}
+    </div>
+  )
+}
+
 export default function JustStart() {
   const { pomodoroSettings, addJustStartXP } = useApp()
-  const { soundEnabled } = usePomodoro()
+  const { soundEnabled, toggleSound } = usePomodoro()
   const soundRef = useRef(soundEnabled)
   useEffect(() => { soundRef.current = soundEnabled }, [soundEnabled])
 
@@ -83,15 +189,24 @@ export default function JustStart() {
   const [flash, setFlash] = useState<number | null>(null)
   const [stats, setStats] = useState(loadStats)
   const [confirmReset, setConfirmReset] = useState(false)
+  // Adım bitti kutlaması: kadran merkezinde ✓ + "+X dk" (1.8 sn)
+  const [celebrate, setCelebrate] = useState<{ min: number } | null>(null)
+  const [showConfetti, setShowConfetti] = useState(false)
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const endAtRef = useRef<number | null>(init.endAt)
   const pausedRemainingRef = useRef<number | null>(init.pausedRemaining)
+  const celebrateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const confettiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const clearTick = useCallback(() => {
     if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null }
   }, [])
 
-  useEffect(() => () => clearTick(), [clearTick])
+  useEffect(() => () => {
+    clearTick()
+    if (celebrateTimerRef.current) clearTimeout(celebrateTimerRef.current)
+    if (confettiTimerRef.current) clearTimeout(confettiTimerRef.current)
+  }, [clearTick])
 
   // Oturum durumunu kalıcılaştır — uygulama kapansa bile devam edebilsin
   useEffect(() => {
@@ -117,6 +232,10 @@ export default function JustStart() {
         if (soundRef.current) playBell()
         setFlash(idx)
         setTimeout(() => setFlash(null), 700)
+        // Kutlama: kadran merkezinde kısa bir zafer anı
+        setCelebrate({ min: STEPS[idx] })
+        if (celebrateTimerRef.current) clearTimeout(celebrateTimerRef.current)
+        celebrateTimerRef.current = setTimeout(() => setCelebrate(null), 1800)
         setDone(prev => { const n = [...prev]; n[idx] = true; return n })
         setActive(null)
       }
@@ -134,8 +253,21 @@ export default function JustStart() {
   const completedCount = done.filter(Boolean).length
   const xpAmount = Math.round(TOTAL_MINUTES / pomodoroSettings.workDuration * 10)
 
+  // Gün oturum içinde tamamlanınca (sayfa yüklenirken değil) konfeti yağar
+  const prevAllDoneRef = useRef(allDone)
+  useEffect(() => {
+    if (allDone && !prevAllDoneRef.current) {
+      setShowConfetti(true)
+      if (confettiTimerRef.current) clearTimeout(confettiTimerRef.current)
+      confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 3600)
+    }
+    prevAllDoneRef.current = allDone
+  }, [allDone])
+
   const startNext = () => {
     if (active !== null || allDone || nextIdx === -1) return
+    setCelebrate(null)
+    if (celebrateTimerRef.current) clearTimeout(celebrateTimerRef.current)
     clearTick()
     const secsTotal = STEPS[nextIdx] * 60
     endAtRef.current = Date.now() + secsTotal * 1000
@@ -192,6 +324,7 @@ export default function JustStart() {
     setPaused(false)
     setXpClaimed(false)
     setConfirmReset(false)
+    setCelebrate(null)
   }
 
   const claimXP = () => {
@@ -221,10 +354,64 @@ export default function JustStart() {
     : `Sıradaki · ${STEPS[nextIdx]} dk`
 
   const hasProgress = done.some(Boolean) || active !== null || xpClaimed
+  const celebrating = active === null && celebrate !== null
+
+  /* Adım karosu — iki anlamlı satır halinde çizilir: Isınma / Tırmanış */
+  const renderTile = (min: number, i: number) => {
+    const isDone = done[i]
+    const isActive = active === i
+    const isNext = !isDone && !isActive && i === nextIdx && active === null
+    const isFlashing = flash === i
+    return (
+      <button
+        key={i}
+        onClick={isNext ? startNext : undefined}
+        disabled={!isNext}
+        className={`animate-cell-pop relative overflow-hidden flex flex-col items-center justify-center rounded-2xl py-3 ${isNext ? 'btn-press ring-pulse' : ''} ${isActive ? 'js-step-glow' : ''} ${isFlashing ? 'animate-done-flash' : ''}`}
+        style={{
+          animationDelay: `${i * 0.03}s`,
+          background: isDone ? 'rgba(34,197,94,0.14)'
+            : isActive ? 'rgba(249,115,22,0.08)'
+            : isNext ? '#ffffff'
+            : 'rgba(26,23,38,0.04)',
+          border: `1.5px solid ${
+            isDone ? 'rgba(34,197,94,0.45)'
+            : isActive ? 'rgba(249,115,22,0.55)'
+            : isNext ? 'rgba(26,23,38,0.18)'
+            : 'rgba(26,23,38,0.07)'
+          }`,
+          color: isDone ? '#15803d'
+            : isActive ? '#c2410c'
+            : isNext ? '#1a1726'
+            : 'rgba(26,23,38,0.28)',
+          cursor: isNext ? 'pointer' : 'default',
+        }}
+      >
+        {/* Aktif karoda alttan dolan ilerleme */}
+        {isActive && (
+          <span
+            className="absolute inset-x-0 bottom-0"
+            style={{
+              height: `${stepProgress * 100}%`,
+              background: 'rgba(249,115,22,0.16)',
+              transition: 'height 1s linear',
+            }}
+          />
+        )}
+        <span className="relative text-base font-bold leading-none h-4 flex items-center">
+          {isDone ? <CheckDraw size={15} /> : isActive ? '▶' : min}
+        </span>
+        <span className="relative text-[9px] font-semibold mt-1 leading-none" style={{ opacity: 0.6 }}>
+          {isDone || isActive ? `${min}dk` : 'dk'}
+        </span>
+      </button>
+    )
+  }
 
   return (
     <div className="max-w-sm mx-auto px-4 pt-6 pb-40">
       <BackBar />
+      {showConfetti && <Confetti />}
 
       {/* Başlık */}
       <div className="mb-7 text-center">
@@ -238,36 +425,80 @@ export default function JustStart() {
 
       {/* ── Kadran ── */}
       <div className="flex flex-col items-center animate-fade-up">
-        <TimerDial progress={dialProgress} accent={accent} showArc={showArc} ticking={ticking}>
-          <span
-            key={chipLabel}
-            className="pom-chip px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.18em]"
-            style={{
-              background: `${accentSoft}0.12)`,
-              color: active !== null ? '#c2410c' : '#15803d',
-              border: `1px solid ${accentSoft}0.3)`,
-            }}
+        <div className="relative">
+          <TimerDial progress={dialProgress} accent={accent} showArc={showArc} ticking={ticking}>
+            {celebrating ? (
+              <>
+                {/* Patlama halkası + zafer anı */}
+                <span
+                  className="js-burst-ring absolute rounded-full pointer-events-none"
+                  style={{ inset: 22, border: '3px solid rgba(34,197,94,0.55)' }}
+                />
+                <div className="js-celebrate flex flex-col items-center">
+                  <span
+                    className="w-14 h-14 rounded-full flex items-center justify-center"
+                    style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f', boxShadow: '0 10px 26px -8px rgba(34,197,94,0.6)' }}
+                  >
+                    <CheckDraw size={26} strokeWidth={2.6} />
+                  </span>
+                  <span className="display text-2xl font-extrabold mt-2.5" style={{ color: '#15803d' }}>
+                    +{celebrate.min} dk
+                  </span>
+                  <span className="text-[11px] font-semibold mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
+                    adım tamamlandı
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <span
+                  key={chipLabel}
+                  className="pom-chip px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.18em]"
+                  style={{
+                    background: `${accentSoft}0.12)`,
+                    color: active !== null ? '#c2410c' : '#15803d',
+                    border: `1px solid ${accentSoft}0.3)`,
+                  }}
+                >
+                  {chipLabel}
+                </span>
+                {allDone ? (
+                  <span className="display tnum font-extrabold leading-none mt-2.5" style={{ fontSize: 54, color: '#15803d' }}>
+                    ✓
+                  </span>
+                ) : (
+                  <div className="mt-2.5">
+                    <AnimatedTime
+                      text={fmt(active !== null ? secs : STEPS[nextIdx] * 60)}
+                      color={active !== null ? '#1a1726' : 'rgba(26,23,38,0.28)'}
+                      dim={paused}
+                      blink={ticking}
+                    />
+                  </div>
+                )}
+                <span className="text-[11px] font-semibold mt-2" style={{ color: 'rgba(26,23,38,0.45)' }}>
+                  {completedCount}/10 adım tamamlandı
+                </span>
+              </>
+            )}
+          </TimerDial>
+          {ticking && <Embers accent={accent} />}
+        </div>
+
+        {/* Teşvik satırı — sayaç işlerken */}
+        {active !== null && (
+          <p
+            key={`${active}-${paused}`}
+            className="animate-fade-in text-xs mt-3 text-center px-6"
+            style={{ color: 'rgba(26,23,38,0.5)' }}
           >
-            {chipLabel}
-          </span>
-          <span
-            className="display tnum font-extrabold leading-none mt-2.5"
-            style={{
-              fontSize: 54,
-              color: active !== null ? '#1a1726' : allDone ? '#15803d' : 'rgba(26,23,38,0.28)',
-              transition: 'color 0.4s ease',
-            }}
-          >
-            {allDone ? '✓' : fmt(active !== null ? secs : STEPS[nextIdx] * 60)}
-          </span>
-          <span className="text-[11px] font-semibold mt-2" style={{ color: 'rgba(26,23,38,0.45)' }}>
-            {completedCount}/10 adım tamamlandı
-          </span>
-        </TimerDial>
+            {paused ? 'Nefes al — acele yok, kaldığın yerden devam edersin.' : encourage(STEPS[active])}
+          </p>
+        )}
       </div>
 
       {/* ── Kontroller ── */}
-      <div className="mt-7 space-y-3">
+      <div className="mt-6 space-y-3">
         {active === null && !allDone && (
           <button
             onClick={startNext}
@@ -290,13 +521,21 @@ export default function JustStart() {
             >
               {paused ? '▶ Devam Et' : '⏸ Duraklat'}
             </button>
-            <button
-              onClick={cancelStep}
-              className="btn-press w-full py-2.5 rounded-2xl text-xs font-bold animate-fade-up"
-              style={{ background: 'rgba(225,90,60,0.12)', color: '#b3422a', boxShadow: 'inset 0 0 0 1px rgba(225,90,60,0.3)' }}
-            >
-              Adımı İptal Et
-            </button>
+            <div className="flex gap-2 animate-fade-up">
+              <button
+                onClick={toggleSound}
+                className="ctrl btn-press flex-1 py-2.5 rounded-2xl text-xs font-semibold"
+              >
+                {soundEnabled ? '🔔 Ses açık' : '🔕 Ses kapalı'}
+              </button>
+              <button
+                onClick={cancelStep}
+                className="btn-press flex-1 py-2.5 rounded-2xl text-xs font-bold"
+                style={{ background: 'rgba(225,90,60,0.12)', color: '#b3422a', boxShadow: 'inset 0 0 0 1px rgba(225,90,60,0.3)' }}
+              >
+                Adımı İptal Et
+              </button>
+            </div>
           </>
         )}
 
@@ -318,7 +557,7 @@ export default function JustStart() {
               </button>
             ) : (
               <>
-                <p className="text-sm font-semibold" style={{ color: '#15803d', opacity: 0.75 }}>
+                <p className="text-sm font-semibold animate-check" style={{ color: '#15803d', opacity: 0.75 }}>
                   ✓ {xpAmount} XP kazanıldı
                 </p>
                 <button
@@ -333,7 +572,7 @@ export default function JustStart() {
         )}
       </div>
 
-      {/* ── Adım yolculuğu ── */}
+      {/* ── Adım yolculuğu: Isınma → Tırmanış ── */}
       <div className="mt-7">
         <div className="flex items-center justify-between mb-2.5 px-0.5">
           <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(26,23,38,0.45)' }}>
@@ -343,47 +582,21 @@ export default function JustStart() {
             {completedMins}/{TOTAL_MINUTES} dk
           </span>
         </div>
+
+        <p className="text-[9px] font-bold uppercase tracking-[0.16em] mb-1.5 px-0.5" style={{ color: 'rgba(26,23,38,0.3)' }}>
+          Isınma
+        </p>
         <div className="grid grid-cols-5 gap-2">
-          {STEPS.map((min, i) => {
-            const isDone = done[i]
-            const isActive = active === i
-            const isNext = !isDone && !isActive && i === nextIdx && active === null
-            const isFlashing = flash === i
-            return (
-              <button
-                key={i}
-                onClick={isNext ? startNext : undefined}
-                disabled={!isNext}
-                className={`animate-cell-pop flex flex-col items-center justify-center rounded-2xl py-3 ${isNext ? 'btn-press ring-pulse' : ''} ${isActive ? 'js-step-glow' : ''} ${isFlashing ? 'animate-done-flash' : ''}`}
-                style={{
-                  animationDelay: `${i * 0.03}s`,
-                  background: isDone ? 'rgba(34,197,94,0.14)'
-                    : isActive ? 'rgba(249,115,22,0.14)'
-                    : isNext ? '#ffffff'
-                    : 'rgba(26,23,38,0.04)',
-                  border: `1.5px solid ${
-                    isDone ? 'rgba(34,197,94,0.45)'
-                    : isActive ? 'rgba(249,115,22,0.55)'
-                    : isNext ? 'rgba(26,23,38,0.18)'
-                    : 'rgba(26,23,38,0.07)'
-                  }`,
-                  color: isDone ? '#15803d'
-                    : isActive ? '#c2410c'
-                    : isNext ? '#1a1726'
-                    : 'rgba(26,23,38,0.28)',
-                  cursor: isNext ? 'pointer' : 'default',
-                }}
-              >
-                <span className="text-base font-bold leading-none">
-                  {isDone ? '✓' : isActive ? '▶' : min}
-                </span>
-                <span className="text-[9px] font-semibold mt-1 leading-none" style={{ opacity: 0.6 }}>
-                  {isDone || isActive ? `${min}dk` : 'dk'}
-                </span>
-              </button>
-            )
-          })}
+          {STEPS.slice(0, 5).map((min, i) => renderTile(min, i))}
         </div>
+
+        <p className="text-[9px] font-bold uppercase tracking-[0.16em] mt-3 mb-1.5 px-0.5" style={{ color: 'rgba(26,23,38,0.3)' }}>
+          Tırmanış
+        </p>
+        <div className="grid grid-cols-5 gap-2">
+          {STEPS.slice(5).map((min, i) => renderTile(min, i + 5))}
+        </div>
+
         {!allDone && active === null && (
           <p className="text-center text-[11px] mt-3" style={{ color: 'rgba(26,23,38,0.4)' }}>
             {done.some(Boolean)
@@ -396,11 +609,15 @@ export default function JustStart() {
       {/* ── İstatistikler ── */}
       <div className="grid grid-cols-2 gap-3 mt-6">
         <div className="glass g-lime rounded-2xl px-4 py-4 text-center animate-fade-up" style={{ animationDelay: '0.05s' }}>
-          <p className="display text-3xl font-extrabold tnum" style={{ color: 'rgb(var(--txt))' }}>{stats.today}</p>
+          <p key={stats.today} className="display text-3xl font-extrabold tnum animate-value-pop" style={{ color: 'rgb(var(--txt))' }}>
+            {stats.today}
+          </p>
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1 ink-60">Bugünkü Tur</p>
         </div>
         <div className="glass g-neutral rounded-2xl px-4 py-4 text-center animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <p className="display text-3xl font-extrabold tnum" style={{ color: '#1a1726' }}>{stats.allTime}</p>
+          <p key={stats.allTime} className="display text-3xl font-extrabold tnum animate-value-pop" style={{ color: '#1a1726' }}>
+            {stats.allTime}
+          </p>
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>Toplam Tur</p>
         </div>
       </div>

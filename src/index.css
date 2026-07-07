@@ -381,7 +381,9 @@ input[type="range"] { accent-color: #f59e0b; }
   text-shadow: 0 0 70px rgba(255,255,255,0.14);
 }
 
-/* Rakam değişimi: alttan kayarak netleşir (key remount tetikler) */
+/* Rakam değişimi: alttan kayarak netleşir (key remount tetikler).
+   Not: .focus-digit ve .focus-colon renkten bağımsızdır; Just Start
+   kadran merkezi gibi açık temalı sayaçlarda da paylaşılır. */
 @keyframes focus-digit-in {
   from { opacity: 0; transform: translateY(0.16em); filter: blur(5px); }
   to   { opacity: 1; transform: translateY(0); filter: blur(0); }
@@ -430,6 +432,54 @@ input[type="range"] { accent-color: #f59e0b; }
   50%      { box-shadow: 0 0 14px 2px rgba(249,115,22,0.3); }
 }
 .js-step-glow { animation: js-step-glow 2.2s ease-in-out infinite; }
+
+/* ── Just Start: kadrandan yükselen kor parçacıkları ── */
+@keyframes js-ember {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  15%  { opacity: 0.75; }
+  100% { transform: translateY(-150px) scale(0.4); opacity: 0; }
+}
+.js-ember {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform, opacity;
+  animation: js-ember var(--dur, 3.2s) ease-out var(--delay, 0s) infinite;
+}
+
+/* ── Just Start: adım bitti kutlaması ── */
+@keyframes js-celebrate-pop {
+  0%   { transform: scale(0.3); opacity: 0; }
+  55%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.js-celebrate { animation: js-celebrate-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+@keyframes js-burst-ring {
+  0%   { transform: scale(0.55); opacity: 0.9; }
+  100% { transform: scale(1.18); opacity: 0; }
+}
+.js-burst-ring { animation: js-burst-ring 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* Çizilerek beliren onay işareti */
+@keyframes js-check-draw { to { stroke-dashoffset: 0; } }
+.js-check-draw {
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  animation: js-check-draw 0.45s cubic-bezier(0.65,0,0.35,1) 0.08s forwards;
+}
+
+/* ── Just Start: gün sonu konfetisi ── */
+@keyframes js-confetti {
+  0%   { transform: translate3d(0, -6vh, 0) rotate(0deg); opacity: 1; }
+  92%  { opacity: 1; }
+  100% { transform: translate3d(var(--dx, 0px), 106vh, 0) rotate(var(--rot, 540deg)); opacity: 0; }
+}
+.js-confetti {
+  position: absolute;
+  top: 0;
+  will-change: transform, opacity;
+  animation: js-confetti var(--dur, 2.6s) cubic-bezier(0.3, 0.35, 0.6, 1) var(--delay, 0s) both;
+}
 
 /* ── Pomodoro sayfası: kadran ── */
 @keyframes pom-orbit { to { transform: rotate(360deg); } }
