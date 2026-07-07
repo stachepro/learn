@@ -572,6 +572,34 @@ export default function JustStart() {
         )}
       </div>
 
+      {/* ── Süreç çubuğu: her adım %10 — ortada yüzde etiketi ── */}
+      <div className="mt-6 animate-fade-up">
+        <div className="well relative h-7 rounded-full overflow-hidden">
+          {/* Dolgu — parlayan enerji şeridi, %100'de yeşile döner.
+              Not: .energy-fill kendi position'ını kurduğu için akışta kalır. */}
+          <div
+            className={`progress-fill h-full rounded-full ${completedCount === STEPS.length ? 'acc-fill' : 'energy-fill'}`}
+            style={{ width: `${completedCount * 10}%` }}
+          />
+          {/* %10'luk dilim ayraçları — her kutucuk eşit pay */}
+          {Array.from({ length: 9 }).map((_, i) => (
+            <span
+              key={i}
+              className="absolute inset-y-1.5"
+              style={{ left: `${(i + 1) * 10}%`, width: 1, background: 'rgba(26,23,38,0.1)' }}
+            />
+          ))}
+          {/* Ortadaki yüzde etiketi */}
+          <span
+            key={completedCount}
+            className="animate-value-pop absolute inset-0 flex items-center justify-center text-[11px] font-bold tnum"
+            style={{ color: completedCount === STEPS.length ? '#06210f' : '#1a1726' }}
+          >
+            %{completedCount * 10} tamamlandı
+          </span>
+        </div>
+      </div>
+
       {/* ── Adım yolculuğu: Isınma → Tırmanış ── */}
       <div className="mt-7">
         <div className="flex items-center justify-between mb-2.5 px-0.5">
