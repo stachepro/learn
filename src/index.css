@@ -318,6 +318,10 @@ input[type="range"] { accent-color: #f59e0b; }
   .stat-modal-card { border-radius: 28px; }
 }
 
+/* ── Özet sayfası: ↻ butonuna basınca ikon bir tur döner (key remount tetikler) ── */
+@keyframes replay-spin { from { transform: rotate(-360deg); } to { transform: rotate(0deg); } }
+.animate-replay-spin { animation: replay-spin 0.5s cubic-bezier(0.34,1.2,0.5,1); }
+
 /* ── iOS tarzı alt sayfa (sheet) giriş/çıkış ──
    Mobilde: ekranın tam altından kayarak gelir/gider (native modal his).
    Genişte (sm+): merkezi diyalog gibi hafifçe büyüyerek/küçülerek belirir/kaybolur. */

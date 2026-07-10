@@ -157,6 +157,7 @@ export interface TodoItem {
   color: string       // random outline color, fixed at creation
   done: boolean
   createdAt: string
+  completedAt?: string // ISO; Günlük Özet "o gün tamamlananlar"ı buradan bulur
 }
 
 // Su takibi — her yudum/bardak ayrı bir kayıt, tarih+saat damgasıyla

@@ -177,7 +177,11 @@ export default function Todo() {
 
   const toggle = (id: string) => {
     playConfirm()
-    persist(todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t)))
+    persist(todos.map((t) => (
+      t.id === id
+        ? { ...t, done: !t.done, completedAt: !t.done ? new Date().toISOString() : undefined }
+        : t
+    )))
   }
 
   // Silme: önce kısa çıkış animasyonu, sonra listeden düşür

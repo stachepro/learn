@@ -156,6 +156,9 @@ export const storage = {
 
   getWaterGoalMl: (): number => read<number>(KEYS.WATER_GOAL_ML, DEFAULT_WATER_GOAL_ML),
   setWaterGoalMl: (ml: number) => write(KEYS.WATER_GOAL_ML, ml),
+  // Günlük Özet su bölümünü yalnızca hedef gerçekten girilmişse gösterir —
+  // getWaterGoalMl varsayılan döndürdüğü için "girilmiş mi" sorusuna cevap veremez
+  hasWaterGoal: (): boolean => read<number | null>(KEYS.WATER_GOAL_ML, null) != null,
 }
 
 /* Açılışta, React render edilmeden önce çalışır.
