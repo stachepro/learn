@@ -21,6 +21,7 @@ const KEYS = {
   WATER_ENTRIES: 'luupi_water_entries',
   WATER_BOTTLE_ML: 'luupi_water_bottle_ml',
   WATER_GOAL_ML: 'luupi_water_goal_ml',
+  STORY_SEEN: 'luupi_story_seen',
 } as const
 
 export const DEFAULT_WATER_BOTTLE_ML = 200
@@ -159,6 +160,10 @@ export const storage = {
   // Günlük Özet su bölümünü yalnızca hedef gerçekten girilmişse gösterir —
   // getWaterGoalMl varsayılan döndürdüğü için "girilmiş mi" sorusuna cevap veremez
   hasWaterGoal: (): boolean => read<number | null>(KEYS.WATER_GOAL_ML, null) != null,
+
+  // Özet story'si günde bir kez otomatik oynar; izlenen günün tarihi burada
+  getStorySeenDate: (): string | null => read<string | null>(KEYS.STORY_SEEN, null),
+  setStorySeenDate: (date: string) => write(KEYS.STORY_SEEN, date),
 }
 
 /* Açılışta, React render edilmeden önce çalışır.

@@ -1,37 +1,58 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { useApp } from '../context/AppContext'
-import { FREE_ID } from '../context/PomodoroContext'
+import SummaryStory from '../components/SummaryStory'
 import { storage } from '../utils/storage'
-import { isHabitScheduledFor } from '../utils/habitSchedule'
-import { migrateHabitLog } from '../utils/habitLog'
-import { dayTotalMl, formatMl } from '../utils/water'
+import { collectDaySummary, summaryHasAnything, sessionLabel, type DaySummary } from '../utils/daySummary'
+import { formatMl } from '../utils/water'
 import { todayStr, formatDisplayDate, formatMinutes, formatHMS } from '../utils/date'
-import type { PomodoroSession } from '../types'
 
 /* Günlük Özet — bugünün dökümü tek sayfada:
    - Alışkanlıklar: hepsi, ✓/✗ durumuyla
    - Su & Uyanma: yalnızca hedef girilmişse
    - Pomodoro / Acele Yok / To-do: yalnızca bugün TAMAMLANANLAR
-     (yarım kalan ya da hiç dokunulmayan iş burada görünmez)
-   Üstteki ↻ butonu içerik ağacını yeniden monte eder: tüm giriş
-   animasyonları baştan oynar. */
+   Güne ilk girişte (ve ↻ ile istenince) tam ekran story oynar;
+   bitince bu statik sayfaya dönülür. */
 
 export default function DailySummary() {
+  const { habits, todayLog, freeSessions } = useApp()
   const [mounted, setMounted] = useState(false)
   const [replayKey, setReplayKey] = useState(0)
-  useEffect(() => { setMounted(true) }, [])
+  const [storySummary, setStorySummary] = useState<DaySummary | null>(null)
+
+  const openStory = () => {
+    setStorySummary(collectDaySummary(habits, todayLog, freeSessions ?? [], todayStr()))
+  }
+
+  useEffect(() => {
+    setMounted(true)
+    // Güne ilk girişte story otomatik oynar; aynı gün tekrar girişte yalnızca ↻ ile
+    const today = todayStr()
+    const s = collectDaySummary(habits, todayLog, freeSessions ?? [], today)
+    if (summaryHasAnything(s) && storage.getStorySeenDate() !== today) {
+      storage.setStorySeenDate(today)
+      setStorySummary(s)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className={`max-w-3xl mx-auto px-4 py-6 pb-40 sm:pb-8 ${mounted ? 'page-enter' : 'opacity-0'}`}>
+      {storySummary && (
+        <SummaryStory
+          summary={storySummary}
+          onClose={() => { setStorySummary(null); setReplayKey((k) => k + 1) }}
+        />
+      )}
+
       <div className="flex items-start justify-between mb-5">
         <div>
           <h1 className="display text-3xl font-extrabold" style={{ color: '#1a1726' }}>Özet</h1>
           <p className="text-sm mt-1" style={{ color: 'rgba(26,23,38,0.55)' }}>{formatDisplayDate(new Date())}</p>
         </div>
         <button
-          onClick={() => setReplayKey((k) => k + 1)}
-          aria-label="Animasyonu tekrar oynat"
-          title="Animasyonu tekrar oynat"
+          onClick={openStory}
+          aria-label="Özet gösterisini oynat"
+          title="Özet gösterisini oynat"
           className="ctrl btn-press w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
         >
           <svg key={replayKey} width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="animate-replay-spin">
@@ -41,7 +62,7 @@ export default function DailySummary() {
         </button>
       </div>
 
-      {/* key değişince alt ağaç yeniden kurulur → animasyonlar tekrar oynar */}
+      {/* key değişince (story kapanışı dahil) statik içerik yeniden kurulur → animasyonlar oynar */}
       <SummaryContent key={replayKey} />
     </div>
   )
@@ -50,6 +71,7 @@ export default function DailySummary() {
 function SummaryContent() {
   const { habits, todayLog, freeSessions, categories } = useApp()
   const today = todayStr()
+  const s = collectDaySummary(habits, todayLog, freeSessions ?? [], today)
 
   // Progress bar'lar mount'tan bir kare sonra dolmaya başlasın
   const [grown, setGrown] = useState(false)
@@ -58,49 +80,10 @@ function SummaryContent() {
     return () => cancelAnimationFrame(raf)
   }, [])
 
-  /* ── Alışkanlıklar: bugüne planlı olanların tamamı ── */
-  const habitEntries = habits
-    .filter((h) => isHabitScheduledFor(h, today))
-    .map((h) => ({ habit: h, log: migrateHabitLog(todayLog.habits[h.id] ?? {}) }))
-  const doneCount = habitEntries.filter(({ log }) => log.completed).length
+  const waterPct = s.water && s.water.goal > 0 ? Math.min(100, (s.water.actual / s.water.goal) * 100) : 0
+  const waterMet = !!s.water && s.water.actual >= s.water.goal
 
-  /* ── Su: yalnızca hedef girilmişse ── */
-  const showWater = storage.hasWaterGoal()
-  const waterGoal = storage.getWaterGoalMl()
-  const waterActual = showWater ? dayTotalMl(storage.getWaterEntries(), today) : 0
-  const waterPct = waterGoal > 0 ? Math.min(100, (waterActual / waterGoal) * 100) : 0
-
-  /* ── Uyanma: yalnızca hedef girilmişse ── */
-  const wakeGoal = storage.getWakeGoal()
-  const wakeRecord = wakeGoal ? storage.getWakeRecords().find((r) => r.date === today) : undefined
-  const wokeOnTime = !!wakeRecord && !!wakeGoal && wakeRecord.time <= wakeGoal
-
-  /* ── Pomodoro: bugün biten oturumlar ── */
-  const habitSessions: PomodoroSession[] = Object.values(todayLog.habits)
-    .flatMap((raw) => migrateHabitLog(raw).pomodoroSessions)
-  const freeToday = (freeSessions ?? []).filter((s) => s.date === today)
-  const sessions = [...habitSessions, ...freeToday].sort((a, b) => a.timestamp.localeCompare(b.timestamp))
-  const totalPomMin = sessions.reduce((acc, s) => acc + s.workDuration, 0)
-
-  const sessionLabel = (s: PomodoroSession): { emoji: string; name: string } => {
-    if (s.habitId === FREE_ID) return { emoji: '🧘', name: 'Serbest odak' }
-    const h = habits.find((x) => x.id === s.habitId)
-    return h ? { emoji: h.emoji, name: h.name } : { emoji: '🍅', name: 'Pomodoro' }
-  }
-
-  /* ── Acele Yok: bugün tamamlanan kayıtlar ── */
-  const noRushToday = storage.getNoRushHistory()
-    .filter((r) => r.completedAt.startsWith(today))
-
-  /* ── To-do: bugün tamamlananlar ── */
-  const todosToday = storage.getTodos()
-    .filter((t) => t.done && t.completedAt?.startsWith(today))
-
-  const anythingToShow =
-    habitEntries.length > 0 || showWater || !!wakeGoal ||
-    sessions.length > 0 || noRushToday.length > 0 || todosToday.length > 0
-
-  if (!anythingToShow) {
+  if (!summaryHasAnything(s)) {
     return (
       <div className="glass g-neutral p-10 text-center animate-pop" style={{ borderRadius: 24 }}>
         <p className="text-3xl mb-3">🌤️</p>
@@ -117,15 +100,15 @@ function SummaryContent() {
   return (
     <div className="space-y-4">
       {/* ── Alışkanlıklar ── */}
-      {habitEntries.length > 0 && (
+      {s.habitEntries.length > 0 && (
         <SectionCard
           emoji="✅"
           title="Alışkanlıklar"
-          right={<span className="text-xs font-bold tnum ink-45">{doneCount}/{habitEntries.length}</span>}
+          right={<span className="text-xs font-bold tnum ink-45">{s.doneCount}/{s.habitEntries.length}</span>}
           delay={nextDelay()}
         >
           <div className="space-y-1.5">
-            {habitEntries.map(({ habit, log }, i) => {
+            {s.habitEntries.map(({ habit, log }, i) => {
               const cat = categories.find((c) => c.id === habit.categoryId)
               return (
                 <div
@@ -161,13 +144,13 @@ function SummaryContent() {
       )}
 
       {/* ── Su Takibi — yalnızca hedef girilmişse ── */}
-      {showWater && (
+      {s.water && (
         <SectionCard
           emoji="💧"
           title="Su Takibi"
           right={
-            <span className="text-xs font-bold tnum" style={{ color: waterActual >= waterGoal ? '#15803d' : '#1d4ed8' }}>
-              {formatMl(waterActual)} / {formatMl(waterGoal)}
+            <span className="text-xs font-bold tnum" style={{ color: waterMet ? '#15803d' : '#1d4ed8' }}>
+              {formatMl(s.water.actual)} / {formatMl(s.water.goal)}
             </span>
           }
           delay={nextDelay()}
@@ -177,65 +160,65 @@ function SummaryContent() {
               className="h-full rounded-full progress-fill"
               style={{
                 width: grown ? `${waterPct}%` : '0%',
-                background: waterActual >= waterGoal
+                background: waterMet
                   ? 'linear-gradient(90deg, #34d36f, #1f9d4d)'
                   : 'linear-gradient(90deg, #60a5fa, #2563eb)',
               }}
             />
           </div>
           <p className="text-[11px] mt-2 ink-45">
-            {waterActual >= waterGoal
+            {waterMet
               ? 'Hedef tamamlandı 🎉'
-              : `Hedefe ${formatMl(waterGoal - waterActual)} kaldı`}
+              : `Hedefe ${formatMl(s.water.goal - s.water.actual)} kaldı`}
           </p>
         </SectionCard>
       )}
 
       {/* ── Uyanma — yalnızca hedef girilmişse ── */}
-      {wakeGoal && (
+      {s.wake && (
         <SectionCard
           emoji="🌅"
           title="Uyanma"
-          right={wakeRecord && (
-            <span className="text-xs font-bold" style={{ color: wokeOnTime ? '#15803d' : '#b87520' }}>
-              {wokeOnTime ? 'hedefinde ✓' : 'hedef sonrası'}
+          right={s.wake.actualTime && (
+            <span className="text-xs font-bold" style={{ color: s.wake.onTime ? '#15803d' : '#b87520' }}>
+              {s.wake.onTime ? 'hedefinde ✓' : 'hedef sonrası'}
             </span>
           )}
           delay={nextDelay()}
         >
           <div className="flex items-center gap-3">
-            <TimeBox label="Hedef" value={wakeGoal} />
+            <TimeBox label="Hedef" value={s.wake.goal} />
             <span className="ink-35 text-lg">→</span>
             <TimeBox
               label="Uyanış"
-              value={wakeRecord?.time ?? '--:--'}
-              color={wakeRecord ? (wokeOnTime ? '#15803d' : '#b87520') : undefined}
+              value={s.wake.actualTime ?? '--:--'}
+              color={s.wake.actualTime ? (s.wake.onTime ? '#15803d' : '#b87520') : undefined}
             />
           </div>
         </SectionCard>
       )}
 
       {/* ── Pomodoro — yalnızca bugün bitenler ── */}
-      {sessions.length > 0 && (
+      {s.sessions.length > 0 && (
         <SectionCard
           emoji="🍅"
           title="Pomodoro"
-          right={<span className="text-xs font-bold tnum ink-45">{sessions.length} oturum · {formatMinutes(totalPomMin)}</span>}
+          right={<span className="text-xs font-bold tnum ink-45">{s.sessions.length} oturum · {formatMinutes(s.totalPomMin)}</span>}
           delay={nextDelay()}
         >
           <div className="space-y-1.5">
-            {sessions.map((s, i) => {
-              const { emoji, name } = sessionLabel(s)
-              const time = new Date(s.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+            {s.sessions.map((sess, i) => {
+              const { emoji, name } = sessionLabel(sess, habits)
+              const time = new Date(sess.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
               return (
                 <div
-                  key={s.id}
+                  key={sess.id}
                   className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 animate-pop"
                   style={{ animationDelay: `${120 + i * 45}ms`, background: 'rgba(26,23,38,0.03)', border: '1px solid rgba(26,23,38,0.05)' }}
                 >
                   <span className="text-base leading-none flex-shrink-0">{emoji}</span>
                   <p className="text-xs font-semibold flex-1 min-w-0" style={{ overflowWrap: 'anywhere' }}>{name}</p>
-                  <span className="text-[11px] font-bold tnum flex-shrink-0" style={{ color: '#a33418' }}>{formatMinutes(s.workDuration)}</span>
+                  <span className="text-[11px] font-bold tnum flex-shrink-0" style={{ color: '#a33418' }}>{formatMinutes(sess.workDuration)}</span>
                   <span className="text-[10px] tnum flex-shrink-0 ink-45">{time}</span>
                 </div>
               )
@@ -245,10 +228,10 @@ function SummaryContent() {
       )}
 
       {/* ── Acele Yok — yalnızca bugün bitenler ── */}
-      {noRushToday.length > 0 && (
+      {s.noRush.length > 0 && (
         <SectionCard emoji="☕" title="Acele Yok" delay={nextDelay()}>
           <div className="space-y-1.5">
-            {noRushToday.map((r, i) => (
+            {s.noRush.map((r, i) => (
               <div
                 key={r.id}
                 className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 animate-pop"
@@ -264,15 +247,15 @@ function SummaryContent() {
       )}
 
       {/* ── Klasik To-do — yalnızca bugün tamamlananlar ── */}
-      {todosToday.length > 0 && (
+      {s.todos.length > 0 && (
         <SectionCard
           emoji="📝"
           title="Klasik To-do"
-          right={<span className="text-xs font-bold tnum ink-45">{todosToday.length} tamam</span>}
+          right={<span className="text-xs font-bold tnum ink-45">{s.todos.length} tamam</span>}
           delay={nextDelay()}
         >
           <div className="space-y-1.5">
-            {todosToday.map((t, i) => (
+            {s.todos.map((t, i) => (
               <div
                 key={t.id}
                 className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 animate-pop"

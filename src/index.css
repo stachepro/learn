@@ -322,6 +322,84 @@ input[type="range"] { accent-color: #f59e0b; }
 @keyframes replay-spin { from { transform: rotate(-360deg); } to { transform: rotate(0deg); } }
 .animate-replay-spin { animation: replay-spin 0.5s cubic-bezier(0.34,1.2,0.5,1); }
 
+/* ════════════════════════════════════════════════
+   GÜNLÜK ÖZET STORY — tam ekran slayt animasyonları.
+   Kural: slayt içi TÜM koreografi CSS animasyonu +
+   animation-delay ile kurulur ki basılı tutunca
+   .story-paused hepsini tek kalemde dondurabilsin.
+   ════════════════════════════════════════════════ */
+.story-paused *, .story-paused *::before, .story-paused *::after {
+  animation-play-state: paused !important;
+}
+
+/* Üstteki segment: kalan süre boyunca doğrusal dolar */
+@keyframes story-seg { from { width: 0%; } to { width: 100%; } }
+.story-seg-fill { width: 0%; animation: story-seg linear both; }
+
+/* Slayt geçişi: hafif zoom + netleşme */
+@keyframes story-slide { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: scale(1); } }
+.story-slide-in { animation: story-slide 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* Metin girişleri: alttan süzülerek belirir (delay inline verilir) */
+@keyframes story-up-kf {
+  from { opacity: 0; transform: translateY(26px); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.story-up { opacity: 0; animation: story-up-kf 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* Öğe rozetleri: yaylanarak, hafif dönerek düşer (Spotify Wrapped hissi) */
+@keyframes story-chip-kf {
+  0%   { opacity: 0; transform: scale(0.3) rotate(-7deg) translateY(24px); }
+  60%  { opacity: 1; transform: scale(1.07) rotate(2deg) translateY(-3px); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg) translateY(0); }
+}
+.story-chip { opacity: 0; animation: story-chip-kf 0.55s cubic-bezier(0.34,1.4,0.5,1) both; }
+
+/* Slayt maskotu: yaylanıp süzülmeye durur */
+@keyframes story-hero-kf {
+  0%   { opacity: 0; transform: scale(0.2) rotate(-16deg); }
+  55%  { opacity: 1; transform: scale(1.18) rotate(5deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+.story-hero-emoji {
+  animation: story-hero-kf 0.7s cubic-bezier(0.34,1.4,0.5,1) both,
+             story-float-kf 3s ease-in-out 0.7s infinite;
+}
+@keyframes story-float-kf { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+
+/* Su slaytı: seviye hedefe oranla yükselir, yüzey dalgalanır, kabarcık çıkar */
+@keyframes story-rise-kf { from { height: 0%; } to { height: var(--level, 50%); } }
+.story-rise { height: 0%; animation: story-rise-kf 1.6s cubic-bezier(0.22,1,0.36,1) both; }
+@keyframes story-wave-kf { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.story-wave { animation: story-wave-kf 2.4s linear infinite; }
+@keyframes story-bubble-kf {
+  0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+  20%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-130px) scale(1.1); }
+}
+.story-bubble { opacity: 0; animation: story-bubble-kf 2.6s ease-in infinite; }
+
+/* Uyanma slaytı: güneş doğar, yıldızlar söner */
+@keyframes story-sun-kf { from { transform: translate(-50%, 90px) scale(0.7); } to { transform: translate(-50%, 0) scale(1); } }
+.story-sun { transform: translate(-50%, 90px) scale(0.7); animation: story-sun-kf 1.8s cubic-bezier(0.34,1.2,0.5,1) both; }
+@keyframes story-star-kf { 0% { opacity: 0.9; } 100% { opacity: 0; transform: translateY(-10px); } }
+.story-star { animation: story-star-kf 2.2s ease both; }
+
+/* Puan slaytı: halka puana kadar çizilir, sayı yaylanır, arkada nabız ışıması */
+@keyframes story-ring-kf { from { stroke-dashoffset: var(--ring-from); } to { stroke-dashoffset: var(--ring-to); } }
+.story-ring { stroke-dashoffset: var(--ring-from); animation: story-ring-kf 1.7s cubic-bezier(0.22,1,0.36,1) both; }
+@keyframes story-num-kf {
+  0%   { opacity: 0; transform: scale(0.2); }
+  60%  { opacity: 1; transform: scale(1.25); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.story-num { opacity: 0; animation: story-num-kf 0.65s cubic-bezier(0.34,1.4,0.5,1) both; }
+@keyframes story-glow-kf {
+  0%,100% { box-shadow: 0 0 60px 8px rgba(251,191,36,0.18); }
+  50%     { box-shadow: 0 0 90px 22px rgba(251,191,36,0.34); }
+}
+.story-score-glow { animation: story-glow-kf 2.6s ease-in-out infinite; }
+
 /* ── iOS tarzı alt sayfa (sheet) giriş/çıkış ──
    Mobilde: ekranın tam altından kayarak gelir/gider (native modal his).
    Genişte (sm+): merkezi diyalog gibi hafifçe büyüyerek/küçülerek belirir/kaybolur. */
