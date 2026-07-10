@@ -125,43 +125,47 @@ export default function Habits() {
               const cat = categories.find((c) => c.id === h.categoryId)
               const colors = getCategoryColor(cat?.color ?? '#6b7280')
               return (
-                <div key={h.id} className="glass g-neutral flex items-center gap-3 pl-4 pr-4 py-3.5 animate-pop" style={{ borderRadius: 20, animationDelay: `${Math.min(i * 50, 300)}ms` }}>
+                <div key={h.id} className="glass g-neutral flex flex-col sm:flex-row sm:items-center gap-3 pl-4 pr-4 py-3.5 animate-pop" style={{ borderRadius: 20, animationDelay: `${Math.min(i * 50, 300)}ms` }}>
                   <div
                     className="absolute left-0 top-0 bottom-0 w-1.5 z-[1]"
                     style={{ background: colors.text, opacity: 0.85 }}
                   />
-                  <span className="text-xl">{h.emoji}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{h.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {cat && (
-                        <span className="text-[11px] font-semibold" style={{ color: colors.text }}>
-                          {cat.emoji} {cat.name}
+                  {/* Emoji + name/meta — kendi satırında, isim asla kesilmez, gerekirse iki satıra sarar */}
+                  <div className="flex items-start gap-3 min-w-0">
+                    <span className="text-xl flex-shrink-0 leading-tight">{h.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold leading-snug" style={{ overflowWrap: 'anywhere' }}>{h.name}</p>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        {cat && (
+                          <span className="text-[11px] font-semibold" style={{ color: colors.text }}>
+                            {cat.emoji} {cat.name}
+                          </span>
+                        )}
+                        <span className="text-[11px] ink-35">·</span>
+                        <span className="text-[11px] ink-45">
+                          {new Date(h.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
                         </span>
-                      )}
-                      <span className="text-[11px] ink-35">·</span>
-                      <span className="text-[11px] ink-45">
-                        {new Date(h.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
-                      </span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* Aksiyonlar — mobilde alt satırda sağa yaslı, genişte isim satırıyla aynı hizada */}
+                  <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
                     <button
                       onClick={() => navigate(`/habit/${h.id}/stats`)}
-                      className="chip btn-press text-xs px-3 py-1.5"
+                      className="chip btn-press text-xs px-3 py-1.5 whitespace-nowrap"
                     >
                       İstatistik
                     </button>
                     <button
                       onClick={() => setEditHabit(h)}
-                      className="chip btn-press text-xs px-3 py-1.5"
+                      className="chip btn-press text-xs px-3 py-1.5 whitespace-nowrap"
                     >
                       Düzenle
                     </button>
                     <button
                       onClick={() => setConfirmDelete(h)}
-                      className="btn-press text-xs px-3 py-1.5 rounded-full font-semibold soft-trans"
+                      className="btn-press text-xs px-3 py-1.5 rounded-full font-semibold soft-trans whitespace-nowrap"
                       style={{ background: 'rgba(26,23,38,0.05)', color: 'rgba(204,60,40,0.9)', border: '1px solid rgba(26,23,38,0.08)' }}
                     >
                       Sil
