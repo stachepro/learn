@@ -17,6 +17,25 @@ export function yesterdayStr(): string {
   return dateStr(d)
 }
 
+// YYYY-MM-DD dizgesine gün ekler/çıkarır — saf, "şu an"dan bağımsız
+export function addDaysStr(date: string, days: number): string {
+  const [y, m, d] = date.split('-').map(Number)
+  const dt = new Date(y, m - 1, d + days)
+  return dateStr(dt)
+}
+
+// İki tarih arasındaki günler, ikisi de HARİÇ. after >= before ise boş döner.
+// Seri boşluğunu saymak için: datesBetween(lastActiveDate, today) = kaçırılan günler.
+export function datesBetween(after: string, before: string): string[] {
+  const out: string[] = []
+  let cur = addDaysStr(after, 1)
+  while (cur < before) {
+    out.push(cur)
+    cur = addDaysStr(cur, 1)
+  }
+  return out
+}
+
 export function formatMinutes(minutes: number): string {
   if (minutes === 0) return '0dk'
   const h = Math.floor(minutes / 60)

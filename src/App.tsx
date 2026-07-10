@@ -2,8 +2,10 @@ import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-
 import { useEffect, useRef } from 'react'
 import { AppProvider } from './context/AppContext'
 import { PomodoroProvider } from './context/PomodoroContext'
+import ErrorBoundary from './components/ErrorBoundary'
 import Nav from './components/Nav'
 import AchievementToast from './components/AchievementToast'
+import StreakToast from './components/StreakToast'
 import PomodoroBar from './components/PomodoroBar'
 import PomodoroAmbience from './components/PomodoroAmbience'
 import FocusMode from './components/FocusMode'
@@ -50,6 +52,7 @@ function Layout() {
       <PomodoroAmbience />
       <div className="relative z-10 flex flex-col h-full">
         <AchievementToast />
+        <StreakToast />
         <Nav />
         {/* iOS çentik altı buzlu şerit — içerik kayarken durum çubuğu okunur kalır */}
         <div
@@ -74,27 +77,30 @@ function Layout() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <BrowserRouter basename={import.meta.env.BASE_URL}>
-        <PomodoroProvider>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="habits" element={<Habits />} />
-              <Route path="history" element={<History />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="just-start" element={<JustStart />} />
-              <Route path="stats" element={<Stats />} />
-              <Route path="pomodoro" element={<Pomodoro />} />
-              <Route path="acele-yok" element={<NoRush />} />
-              <Route path="todo" element={<Todo />} />
-              <Route path="uyandim" element={<WakeUp />} />
-              <Route path="su-takibi" element={<WaterTracker />} />
-              <Route path="habit/:id/stats" element={<HabitStats />} />
-            </Route>
-          </Routes>
-        </PomodoroProvider>
-      </BrowserRouter>
-    </AppProvider>
+    // En dışta: sağlayıcılardan biri açılışta çökerse de hata ekranı görünsün
+    <ErrorBoundary>
+      <AppProvider>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
+          <PomodoroProvider>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="habits" element={<Habits />} />
+                <Route path="history" element={<History />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="just-start" element={<JustStart />} />
+                <Route path="stats" element={<Stats />} />
+                <Route path="pomodoro" element={<Pomodoro />} />
+                <Route path="acele-yok" element={<NoRush />} />
+                <Route path="todo" element={<Todo />} />
+                <Route path="uyandim" element={<WakeUp />} />
+                <Route path="su-takibi" element={<WaterTracker />} />
+                <Route path="habit/:id/stats" element={<HabitStats />} />
+              </Route>
+            </Routes>
+          </PomodoroProvider>
+        </BrowserRouter>
+      </AppProvider>
+    </ErrorBoundary>
   )
 }

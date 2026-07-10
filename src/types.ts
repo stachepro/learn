@@ -84,9 +84,19 @@ export interface UserProfile {
   longestStreak: number
   totalExp: number
   justStartXP?: number
+  // Silinen alışkanlıkların kazandırdığı XP. Silme günlük kayıtları temizler ama
+  // o gün gerçekten yapıldığı için XP geri alınmaz; buraya taşınır.
+  bankedExp?: number
   level: number
   badges: string[]
   lastActiveDate: string
+  // Seri dondurma: kaçırılan bir günü otomatik kapatan hak (maks 3).
+  streakFreezes?: number
+  // Son hak kazanımından bu yana biriken kesintisiz aktif gün (0–6).
+  // 7'ye ulaşınca +1 dondurma; haklar doluyken (3/3) sayaç ilerlemez.
+  freezeProgress?: number
+  // Dondurma ile kapatılan günler (YYYY-MM-DD) — takvimde buz olarak gösterilir.
+  frozenDates?: string[]
 }
 
 export interface PomodoroSettings {

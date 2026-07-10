@@ -2,7 +2,9 @@ import {
   createContext, useContext, useState, useCallback, useEffect, type ReactNode,
 } from 'react'
 import { storage } from '../utils/storage'
-import { getLevelFromExp, calcHabitExp } from '../utils/exp'
+import { getLevelFromExp, calcHabitExp, calcTotalExp, DEFAULT_SESSION_EXP } from '../utils/exp'
+import { defaultHabitLog, migrateHabitLog } from '../utils/habitLog'
+import { applyCompletionStreak, reconcileStreak, getFreezes } from '../utils/streak'
 import { checkBadges, announceNewBadges } from '../utils/badges'
 import { todayStr, yesterdayStr } from '../utils/date'
 import { scheduleHabitReminder, cancelHabitReminder, syncHabitReminders, scheduleStreakRiskReminder } from '../utils/reminderNotifications'
@@ -38,32 +40,6 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null)
 
-function defaultHabitLog(): HabitLog {
-  return { completed: false, boostMode: false, boostUsed: false, notes: '', pomodoroSessions: [], completionCount: 0 }
-}
-
-function migrateHabitLog(raw: Partial<HabitLog>): HabitLog {
-  return {
-    completed: raw.completed ?? false,
-    boostMode: (raw as { hardMode?: boolean }).hardMode ?? raw.boostMode ?? false,
-    boostUsed: raw.boostUsed ?? false,
-    notes: raw.notes ?? '',
-    pomodoroSessions: raw.pomodoroSessions ?? [],
-    completedAt: raw.completedAt,
-    completionCount: raw.completionCount ?? 0,
-  }
-}
-
-function recalcExp(logs: DailyLogs, justStartXP = 0): number {
-  let total = justStartXP
-  for (const day of Object.values(logs))
-    for (const h of Object.values(day.habits)) {
-      const hl = migrateHabitLog(h)
-      if (hl.completed) total += calcHabitExp(hl.pomodoroSessions)
-    }
-  return total
-}
-
 export function AppProvider({ children }: { children: ReactNode }) {
   const [habits, setHabitsState] = useState<Habit[]>(() => storage.getHabits())
   const [logs, setLogsState] = useState<DailyLogs>(() => storage.getDailyLogs())
@@ -93,13 +69,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     void scheduleStreakRiskReminder(profile.lastActiveDate === today)
   }, [today, profile.lastActiveDate])
 
+  // Açılışta / gün değişiminde seri muhasebesi: kaçırılan günler varsa
+  // dondurma haklarıyla kapatılır, yetmiyorsa seri sıfırlanır.
   useEffect(() => {
-    const p = storage.getUserProfile()
-    const yesterday = yesterdayStr()
-    if (p.lastActiveDate && p.lastActiveDate !== today && p.lastActiveDate !== yesterday) {
-      const updated = { ...p, streak: 0 }
-      storage.setUserProfile(updated)
-      setProfileState(updated)
+    const result = reconcileStreak(storage.getUserProfile(), today, yesterdayStr())
+    if (result.changed) {
+      storage.setUserProfile(result.profile)
+      setProfileState(result.profile)
+      if (result.freezesSpent > 0) {
+        window.dispatchEvent(new CustomEvent('luupi-streak', {
+          detail: { type: 'freeze-used', count: result.freezesSpent, left: getFreezes(result.profile) },
+        }))
+      } else if (result.streakBroken) {
+        window.dispatchEvent(new CustomEvent('luupi-streak', { detail: { type: 'streak-lost' } }))
+      }
     }
   }, [today])
 
@@ -116,8 +99,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Günün ilk tamamlaması: seriyi ilerletir; 7 günlük sayaç dolup yeni bir
+  // dondurma hakkı kazanıldıysa bunu duyurur (StreakToast dinler).
+  const advanceStreak = (p: UserProfile): UserProfile => {
+    const next = applyCompletionStreak(p, today, yesterdayStr())
+    if (getFreezes(next) > getFreezes(p)) {
+      window.dispatchEvent(new CustomEvent('luupi-streak', {
+        detail: { type: 'freeze-earned', left: getFreezes(next) },
+      }))
+    }
+    return next
+  }
+
   const syncProfile = (newLogs: DailyLogs, base: UserProfile): UserProfile => {
-    const totalExp = recalcExp(newLogs, base.justStartXP ?? 0)
+    const totalExp = calcTotalExp(newLogs, base, storage.getFreeSessions())
     const p = { ...base, totalExp, level: getLevelFromExp(totalExp) }
     const newBadges = checkBadges(p, newLogs)
     announceNewBadges(base.badges, newBadges)
@@ -151,12 +146,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const deleteHabit = useCallback((id: string) => {
     saveHabits(habits.filter((h) => h.id !== id))
     void cancelHabitReminder(id)
-    // Purge all per-day stats history for this habit so deletion is permanent
+    // Purge all per-day stats history for this habit so deletion is permanent.
+    // Kazanılan XP silinmez: kayıt temizlenmeden önce bankaya taşınır, çünkü
+    // alışkanlığı silmek onu geçmişte yapmış olma gerçeğini değiştirmez.
     let touched = false
+    let banked = 0
     const newLogs: DailyLogs = {}
     for (const [dateKey, day] of Object.entries(logs)) {
-      if (day.habits[id]) {
+      const raw = day.habits[id]
+      if (raw) {
         touched = true
+        banked += calcHabitExp(migrateHabitLog(raw))
         const { [id]: _removed, ...rest } = day.habits
         newLogs[dateKey] = { ...day, habits: rest }
       } else {
@@ -165,7 +165,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     if (touched) {
       saveLogs(newLogs)
-      saveProfile(syncProfile(newLogs, profile))
+      saveProfile(syncProfile(newLogs, { ...profile, bankedExp: (profile.bankedExp ?? 0) + banked }))
     }
   }, [habits, logs, profile])
 
@@ -199,19 +199,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       completedAt: nowCompleted ? new Date().toISOString() : undefined,
     })
     saveLogs(newLogs)
-    let p = { ...profile }
-    if (nowCompleted) {
-      const yesterday = yesterdayStr()
-      if (p.lastActiveDate === today) { /* already today */ }
-      else if (p.lastActiveDate === yesterday || !p.lastActiveDate) {
-        p.streak = (p.streak || 0) + 1
-        if (p.streak > p.longestStreak) p.longestStreak = p.streak
-      } else {
-        p.streak = 1
-        if (1 > p.longestStreak) p.longestStreak = 1
-      }
-      p.lastActiveDate = today
-    }
+    // Tamamlama geri alınırsa seri geri alınmaz: o gün uygulamaya girilip işlem yapıldı
+    const p = nowCompleted ? advanceStreak(profile) : profile
     saveProfile(syncProfile(newLogs, p))
   }, [logs, profile, today])
 
@@ -228,22 +217,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...(nowCompleted ? { completed: true, completedAt: new Date().toISOString() } : {}),
     })
     saveLogs(newLogs)
-    let p = { ...profile }
     if (nowCompleted) {
-      const yesterday = yesterdayStr()
-      if (p.lastActiveDate !== today) {
-        if (p.lastActiveDate === yesterday || !p.lastActiveDate) {
-          p.streak = (p.streak || 0) + 1
-          if (p.streak > p.longestStreak) p.longestStreak = p.streak
-        } else {
-          p.streak = 1
-          if (1 > p.longestStreak) p.longestStreak = 1
-        }
-        p.lastActiveDate = today
-      }
-      saveProfile(syncProfile(newLogs, p))
-    } else {
-      saveProfile(p)
+      saveProfile(syncProfile(newLogs, advanceStreak(profile)))
     }
   }, [habits, logs, profile, today])
 
@@ -271,39 +246,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       [today]: { ...currentDay, habits: { ...currentDay.habits, [session.habitId]: newHL } },
     }
     saveLogs(newLogs)
-    let p = { ...profile }
-    if (autoComplete) {
-      const yesterday = yesterdayStr()
-      if (p.lastActiveDate !== today) {
-        if (p.lastActiveDate === yesterday || !p.lastActiveDate) {
-          p.streak = (p.streak || 0) + 1
-          if (p.streak > p.longestStreak) p.longestStreak = p.streak
-        } else {
-          p.streak = 1
-          if (1 > p.longestStreak) p.longestStreak = 1
-        }
-        p.lastActiveDate = today
-      }
-      saveProfile(syncProfile(newLogs, p))
-    } else {
-      const newExp = p.totalExp + xpAmount
-      p = { ...p, totalExp: newExp, level: getLevelFromExp(newExp) }
-      const newBadges = checkBadges(p, newLogs)
-      announceNewBadges(p.badges, newBadges)
-      p.badges = newBadges
-      saveProfile(p)
-    }
+    // Oturumun XP'si kaydın içinde (xp: xpAmount) tutulduğu için syncProfile onu
+    // yeniden hesaplar; totalExp'e ayrıca elle eklemek çift sayıma yol açardı.
+    const p = autoComplete ? advanceStreak(profile) : profile
+    saveProfile(syncProfile(newLogs, p))
   }, [logs, profile, today])
 
   const addFreeSession = useCallback((session: PomodoroSession) => {
-    storage.addFreeSession(session)
+    // XP'yi oturuma yaz: recalcExp serbest oturumları buradan toplar
+    storage.addFreeSession({ ...session, xp: session.xp ?? DEFAULT_SESSION_EXP })
     setFreeSessionsState(storage.getFreeSessions())
-    const p = { ...profile, totalExp: profile.totalExp + 10 }
-    p.level = getLevelFromExp(p.totalExp)
-    const newBadges = checkBadges(p, logs)
-    announceNewBadges(p.badges, newBadges)
-    p.badges = newBadges
-    saveProfile(p)
+    saveProfile(syncProfile(logs, profile))
   }, [profile, logs])
 
   const updateUsername = useCallback((name: string) => { saveProfile({ ...profile, username: name }) }, [profile])

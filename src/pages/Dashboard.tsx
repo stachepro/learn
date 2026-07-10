@@ -6,6 +6,11 @@ import AddHabitModal from '../components/AddHabitModal'
 import HabitCreateChooser from '../components/HabitCreateChooser'
 import PresetHabitsModal, { type PresetHabit } from '../components/PresetHabitsModal'
 import PresetCustomizeModal from '../components/PresetCustomizeModal'
+import StreakFlame from '../components/StreakFlame'
+import StreakModal from '../components/StreakModal'
+import LevelModal from '../components/LevelModal'
+import TodayModal from '../components/TodayModal'
+import { getFlameState, getFreezes } from '../utils/streak'
 import { formatDisplayDate, formatMinutes, yesterdayStr, dateStr } from '../utils/date'
 import { isHabitScheduledFor, getWindowStatus } from '../utils/habitSchedule'
 import type { HabitLog, TimeOfDay } from '../types'
@@ -26,6 +31,7 @@ export default function Dashboard() {
   const { habits, profile, todayLog, logs, freeSessions } = useApp()
   const [createStep, setCreateStep] = useState<'chooser' | 'presets' | 'preset-customize' | 'form' | null>(null)
   const [presetInitial, setPresetInitial] = useState<PresetHabit | null>(null)
+  const [statModal, setStatModal] = useState<'streak' | 'level' | 'today' | null>(null)
   const [mounted, setMounted] = useState(false)
   const [now, setNow] = useState(() => new Date())
   const yesterday = yesterdayStr()
@@ -118,6 +124,9 @@ export default function Dashboard() {
   const total = scheduledHabits.length
   const allDone = total > 0 && completed === total && missedEntries.length === 0
 
+  const flameState = getFlameState(profile, todayDateStr, yesterday)
+  const freezes = getFreezes(profile)
+
   const todayWork = habitEntries.reduce(
     (acc, { log }) => acc + log.pomodoroSessions.reduce((s, p) => s + p.workDuration, 0), 0)
   const todayFreeWork = (freeSessions ?? [])
@@ -159,6 +168,10 @@ export default function Dashboard() {
       )}
       {createStep === 'form' && <AddHabitModal onClose={() => setCreateStep(null)} />}
 
+      {statModal === 'streak' && <StreakModal onClose={() => setStatModal(null)} />}
+      {statModal === 'level' && <LevelModal onClose={() => setStatModal(null)} />}
+      {statModal === 'today' && <TodayModal onClose={() => setStatModal(null)} />}
+
       <div className={`max-w-3xl mx-auto px-4 py-6 pb-36 sm:pb-24 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
         {/* Greeting */}
         <div className="flex items-center justify-between">
@@ -178,32 +191,77 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Thin stat strip — gamification, compact */}
+        {/* Thin stat strip — gamification, compact. Üçü de tıklanır: detay penceresi açar */}
         <div className="grid grid-cols-3 gap-2.5">
-          {/* Streak */}
-          <div className="rounded-2xl flame-glow tile-press flex items-center gap-2.5 px-3 py-2.5" style={{ background: '#faecd6', border: '1px solid #f3dcb0' }}>
-            <FlameIcon size={22} />
+          {/* Streak — alev durumu güne göre değişir: yanıyor / bekliyor / buzda / sönük */}
+          <button
+            onClick={() => setStatModal('streak')}
+            aria-label={`Seri: ${profile.streak} gün — detayları aç`}
+            className={`relative rounded-2xl tile-press soft-trans flex items-center gap-2.5 px-3 py-2.5 text-left ${flameState === 'lit' ? 'flame-glow' : flameState === 'frozen' ? 'ice-glow' : ''}`}
+            style={
+              flameState === 'frozen'
+                ? { background: '#e3f3fd', border: '1px solid #bae6fd' }
+                : flameState === 'lit'
+                  ? { background: '#faecd6', border: '1px solid #f3dcb0' }
+                  : { background: '#f1ede4', border: '1px solid rgba(26,23,38,0.08)' }
+            }
+          >
+            <StreakFlame state={flameState} size={22} />
             <div className="min-w-0">
-              <p key={profile.streak} className="display text-xl font-black tnum leading-none animate-value-pop" style={{ color: '#9a4d0a' }}>{profile.streak}</p>
-              <p className="text-[10px] font-bold uppercase tracking-wide mt-0.5" style={{ color: '#b87520' }}>seri</p>
+              <p
+                key={`${profile.streak}-${flameState}`}
+                className="display text-xl font-black tnum leading-none animate-value-pop"
+                style={{ color: flameState === 'frozen' ? '#0369a1' : flameState === 'lit' ? '#9a4d0a' : 'rgba(26,23,38,0.45)' }}
+              >
+                {profile.streak}
+              </p>
+              <p
+                className="text-[10px] font-bold uppercase tracking-wide mt-0.5"
+                style={{ color: flameState === 'frozen' ? '#38a3e0' : flameState === 'lit' ? '#b87520' : 'rgba(26,23,38,0.35)' }}
+              >
+                {flameState === 'frozen' ? 'buzda' : 'seri'}
+              </p>
             </div>
-          </div>
+            {freezes > 0 && (
+              <span
+                className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center text-[9px] font-black tnum animate-pop"
+                style={{
+                  background: 'linear-gradient(150deg, #bae6fd, #38bdf8)',
+                  color: '#0c4a6e',
+                  border: '1.5px solid #fbf7f0',
+                  boxShadow: '0 4px 8px -3px rgba(14,165,233,0.5)',
+                }}
+              >
+                ❄{freezes}
+              </span>
+            )}
+          </button>
           {/* Level */}
-          <div className="rounded-2xl tile-press flex items-center gap-2.5 px-3 py-2.5" style={{ background: '#e7f4d8', border: '1px solid #cfe7af' }}>
+          <button
+            onClick={() => setStatModal('level')}
+            aria-label={`Seviye ${profile.level} — detayları aç`}
+            className="rounded-2xl tile-press flex items-center gap-2.5 px-3 py-2.5 text-left"
+            style={{ background: '#e7f4d8', border: '1px solid #cfe7af' }}
+          >
             <BoltIcon size={22} />
             <div className="min-w-0 flex-1">
               <p key={profile.level} className="display text-xl font-black tnum leading-none animate-value-pop" style={{ color: '#3b6d11' }}>{profile.level}</p>
               <div className="mt-1"><ExpBar totalExp={profile.totalExp} level={profile.level} compact tiny /></div>
             </div>
-          </div>
+          </button>
           {/* Today */}
-          <div className="rounded-2xl tile-press flex items-center gap-2.5 px-3 py-2.5 soft-trans" style={allDone ? { background: '#e7f4d8', border: '1px solid #cfe7af' } : { background: '#e6f0fb', border: '1px solid #c5ddf6' }}>
+          <button
+            onClick={() => setStatModal('today')}
+            aria-label={`Bugün ${completed}/${total} tamamlandı — detayları aç`}
+            className="rounded-2xl tile-press flex items-center gap-2.5 px-3 py-2.5 soft-trans text-left"
+            style={allDone ? { background: '#e7f4d8', border: '1px solid #cfe7af' } : { background: '#e6f0fb', border: '1px solid #c5ddf6' }}
+          >
             <CheckRingIcon size={22} done={allDone} />
             <div className="min-w-0">
               <p key={completed} className="display text-xl font-black tnum leading-none animate-value-pop" style={{ color: allDone ? '#3b6d11' : '#185fa5' }}>{completed}/{total}</p>
               <p className="text-[10px] font-bold uppercase tracking-wide mt-0.5" style={{ color: allDone ? '#4e8a1e' : '#3f7bc0' }}>{allDone ? 'bitti' : 'bugün'}</p>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* Habits header */}
@@ -339,17 +397,6 @@ export default function Dashboard() {
 
       </div>
     </>
-  )
-}
-
-function FlameIcon({ size = 24, className }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-      <path
-        d="M12 2c.5 3 2.5 4.5 4 6.5C17.5 10.5 18 12.3 18 14a6 6 0 1 1-12 0c0-1.8.7-3.3 1.8-4.5C8.5 8.8 9 7.8 9 6.5c1.2.8 2 2 2.2 3.3C12.2 8.4 12.5 5.7 12 2z"
-        fill="rgb(249,115,22)"
-      />
-    </svg>
   )
 }
 

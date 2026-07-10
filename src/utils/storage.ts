@@ -1,8 +1,11 @@
 import type { Habit, DailyLogs, UserProfile, PomodoroSettings, Category, PomodoroSession, NoRushRecord, TodoItem, ActivePomodoroState, WakeRecord, WaterEntry } from '../types'
 import { DEFAULT_CATEGORIES } from './categories'
 import { persistNative } from './nativeStorage'
+import { captureError } from './errorReporting'
+import { SCHEMA_VERSION, migrationsToRun, type MigrationOutcome } from './schema'
 
 const KEYS = {
+  SCHEMA_VERSION: 'luupi_schema_version',
   HABITS: 'luupi_habits',
   DAILY_LOGS: 'luupi_daily_logs',
   USER_PROFILE: 'luupi_user_profile',
@@ -30,31 +33,37 @@ function read<T>(key: string, fallback: T): T {
   } catch { return fallback }
 }
 
+// localStorage doluysa setItem QuotaExceededError fırlatır. Yakalanmazsa yazma
+// çağrısının geldiği yer (bir tamamlama, bir not) uygulamayı çökertir.
+// Native'de kalıcı depo Preferences olduğu için önce oraya yazılır: localStorage
+// başarısız olsa bile veri hayatta kalır.
 function write<T>(key: string, value: T): void {
   const raw = JSON.stringify(value)
-  localStorage.setItem(key, raw)
   persistNative(key, raw)
+  try {
+    localStorage.setItem(key, raw)
+  } catch (err) {
+    captureError(err, 'manual')
+    window.dispatchEvent(new CustomEvent('luupi-storage-full', { detail: key }))
+  }
 }
 
-function migrateHabit(h: Partial<Habit> & { id: string; name: string; createdAt: string }): Habit {
+// Kayıtlı alışkanlığı okurken eksik alanları tamamlar. Tüm alanları tek tek
+// saymak yerine yayılım kullanır: aksi halde Habit'e eklenen her yeni alan
+// (labelColor, timeOfDay gibi) burada listelenmediği için sessizce silinir.
+export function migrateHabit(h: Partial<Habit> & { id: string; name: string; createdAt: string }): Habit {
   return {
-    id: h.id,
-    name: h.name,
-    createdAt: h.createdAt,
+    ...h,
     emoji: h.emoji ?? '⭐',
     categoryId: h.categoryId ?? 'diger',
-    ...(h.completionMode != null && { completionMode: h.completionMode }),
-    ...(h.completionGoal != null && { completionGoal: h.completionGoal }),
-    ...(h.pomodoroEnabled != null && { pomodoroEnabled: h.pomodoroEnabled }),
-    ...(h.pomodoroGoal != null && { pomodoroGoal: h.pomodoroGoal }),
-    ...(h.recurrence != null && { recurrence: h.recurrence }),
-    ...(h.recurrenceDays != null && { recurrenceDays: h.recurrenceDays }),
-    ...(h.timeWindow != null && { timeWindow: h.timeWindow }),
-    ...(h.createdDate != null && { createdDate: h.createdDate }),
   }
 }
 
 export const storage = {
+  // null = hiç damgalanmamış (ilk kurulum ya da sürümlemeden önceki veri)
+  getSchemaVersion: (): number | null => read<number | null>(KEYS.SCHEMA_VERSION, null),
+  setSchemaVersion: (v: number) => write(KEYS.SCHEMA_VERSION, v),
+
   getHabits: (): Habit[] => {
     const raw = read<Partial<Habit>[]>(KEYS.HABITS, [])
     return raw.map((h) => migrateHabit(h as Partial<Habit> & { id: string; name: string; createdAt: string }))
@@ -147,4 +156,38 @@ export const storage = {
 
   getWaterGoalMl: (): number => read<number>(KEYS.WATER_GOAL_ML, DEFAULT_WATER_GOAL_ML),
   setWaterGoalMl: (ml: number) => write(KEYS.WATER_GOAL_ML, ml),
+}
+
+/* Açılışta, React render edilmeden önce çalışır.
+
+   Damga yoksa iki ihtimal var: gerçek ilk kurulum (hiç veri yok) damgalanıp
+   geçilir; veri var ama damga yoksa bu, sürümleme öncesi kayıttır — v1 biçimiyle
+   birebir aynıdır (eski alan adlarını okuma sırasında migrateHabit ve
+   migrateHabitLog çeviriyor), v1 sayılır ve sonraki adımlar çalıştırılır.
+
+   Veri uygulamadan yeniyse (kullanıcı sürüm düşürdü) hiçbir şeye dokunulmaz —
+   anlamadığımız bir biçimi bozmaktansa okumaya çalışmak yeğdir. */
+export function runMigrations(): MigrationOutcome {
+  let current = storage.getSchemaVersion()
+
+  if (current == null) {
+    const hasData =
+      read<unknown>(KEYS.USER_PROFILE, null) != null ||
+      read<unknown>(KEYS.HABITS, null) != null
+    if (!hasData) {
+      storage.setSchemaVersion(SCHEMA_VERSION)
+      return { status: 'fresh' }
+    }
+    current = 1
+  }
+  if (current > SCHEMA_VERSION) {
+    captureError(new Error(`Kayıtlı veri sürümü ${current}, uygulama ${SCHEMA_VERSION} bekliyor`), 'manual')
+    return { status: 'downgrade', from: current }
+  }
+  if (current === SCHEMA_VERSION) return { status: 'current' }
+
+  const steps = migrationsToRun(current)
+  for (const step of steps) step.run()
+  storage.setSchemaVersion(SCHEMA_VERSION)
+  return { status: 'migrated', from: current, ran: steps.map((s) => s.to) }
 }
