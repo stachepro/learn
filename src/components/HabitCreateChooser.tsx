@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { useModalDismiss } from '../utils/useModalDismiss'
 
 /* ── Lucide-style inline icons ── */
 function IconListPlus({ size = 26, color = 'currentColor' }: { size?: number; color?: string }) {
@@ -31,27 +31,19 @@ interface Props {
 }
 
 export default function HabitCreateChooser({ onClose, onPreset, onCreate }: Props) {
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', handler)
-    return () => {
-      document.body.style.overflow = ''
-      document.removeEventListener('keydown', handler)
-    }
-  }, [onClose])
+  const { isExiting, close } = useModalDismiss(onClose)
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 animate-fade-in"
+        className={`fixed inset-0 ${isExiting ? 'animate-fade-out' : 'animate-fade-in'}`}
         style={{ background: 'rgba(0,0,0,0.66)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
-        onClick={onClose}
+        onClick={close}
       />
 
       {/* Card */}
-      <div className="glass g-neutral relative w-full max-w-md animate-fade-up" style={{ borderRadius: 28 }}>
+      <div className={`glass g-neutral relative w-full max-w-md ${isExiting ? 'animate-fade-down' : 'animate-fade-up'}`} style={{ borderRadius: 28 }}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
           <div>
@@ -59,7 +51,7 @@ export default function HabitCreateChooser({ onClose, onPreset, onCreate }: Prop
             <p className="text-xs mt-0.5" style={{ color: 'rgba(26,23,38,0.45)' }}>Nasıl başlamak istersin?</p>
           </div>
           <button
-            onClick={onClose}
+            onClick={close}
             aria-label="Kapat"
             className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm"
           >

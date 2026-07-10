@@ -318,6 +318,18 @@ input[type="range"] { accent-color: #f59e0b; }
   .stat-modal-card { border-radius: 28px; }
 }
 
+/* ── iOS tarzı alt sayfa (sheet) giriş/çıkış ──
+   Mobilde: ekranın tam altından kayarak gelir/gider (native modal his).
+   Genişte (sm+): merkezi diyalog gibi hafifçe büyüyerek/küçülerek belirir/kaybolur. */
+@keyframes sheet-slide-in  { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes sheet-slide-out { from { transform: translateY(0); } to { transform: translateY(100%); } }
+.sheet-enter { animation: sheet-slide-in  0.36s cubic-bezier(0.16,1,0.3,1) both; }
+.sheet-exit  { animation: sheet-slide-out 0.28s cubic-bezier(0.4,0,1,1) both; }
+@media (min-width: 640px) {
+  .sheet-enter { animation: fade-up   0.28s cubic-bezier(0.16,1,0.3,1) both; }
+  .sheet-exit  { animation: fade-down 0.17s cubic-bezier(0.4,0,1,1)   both; }
+}
+
 /* ── Motion: page + element entrances ── */
 @keyframes page-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 .page-enter { animation: page-in 0.34s cubic-bezier(0.16,1,0.3,1) both; }

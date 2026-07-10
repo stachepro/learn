@@ -1,8 +1,10 @@
-import { useEffect, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { useModalDismiss } from '../utils/useModalDismiss'
 
 /* Ana sayfa istatistik kutularının (seri / seviye / bugün) ortak pencere kabuğu:
-   karartılmış bulanık arka plan, üstte başlık + kapat, içerik kaydırılabilir. */
+   karartılmış bulanık arka plan, üstte başlık + kapat, içerik kaydırılabilir.
+   Mobilde ekranın altından gerçek bir "sheet" gibi kayarak açılır/kapanır. */
 
 interface Props {
   title: string
@@ -13,26 +15,18 @@ interface Props {
 }
 
 export default function StatModalShell({ title, subtitle, onClose, children, headerIcon }: Props) {
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', handler)
-    return () => {
-      document.body.style.overflow = ''
-      document.removeEventListener('keydown', handler)
-    }
-  }, [onClose])
+  const { isExiting, close } = useModalDismiss(onClose, 300)
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
       <div
-        className="fixed inset-0 animate-fade-in"
+        className={`fixed inset-0 ${isExiting ? 'animate-fade-out' : 'animate-fade-in'}`}
         style={{ background: 'rgba(0,0,0,0.66)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
-        onClick={onClose}
+        onClick={close}
       />
 
       <div
-        className="glass g-neutral stat-modal-card relative w-full max-w-md animate-fade-up flex flex-col"
+        className={`glass g-neutral stat-modal-card relative w-full max-w-md flex flex-col ${isExiting ? 'sheet-exit' : 'sheet-enter'}`}
         style={{ maxHeight: 'calc(100dvh - env(safe-area-inset-top) - 40px)' }}
       >
         <div className="flex items-center justify-between px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
@@ -44,7 +38,7 @@ export default function StatModalShell({ title, subtitle, onClose, children, hea
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={close}
             aria-label="Kapat"
             className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
           >

@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useApp } from '../context/AppContext'
 import { getCategoryColor } from '../utils/categories'
+import { useModalDismiss } from '../utils/useModalDismiss'
 
 export interface PresetHabit {
   emoji: string
@@ -47,18 +48,9 @@ interface Props {
 
 export default function PresetHabitsModal({ onClose, onBack, onSelect }: Props) {
   const { categories } = useApp()
+  const { isExiting, close } = useModalDismiss(onClose)
   // Single selection — tapping a row selects it; "Seç" confirms
   const [selected, setSelected] = useState<string | null>(null)
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', handler)
-    return () => {
-      document.body.style.overflow = ''
-      document.removeEventListener('keydown', handler)
-    }
-  }, [onClose])
 
   const handleConfirm = () => {
     const p = PRESET_HABITS.find((h) => h.name === selected)
@@ -69,13 +61,13 @@ export default function PresetHabitsModal({ onClose, onBack, onSelect }: Props) 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 animate-fade-in"
+        className={`fixed inset-0 ${isExiting ? 'animate-fade-out' : 'animate-fade-in'}`}
         style={{ background: 'rgba(0,0,0,0.66)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
-        onClick={onClose}
+        onClick={close}
       />
 
       {/* Card */}
-      <div className="glass g-neutral relative w-full max-w-md animate-fade-up flex flex-col" style={{ borderRadius: 28, maxHeight: '85vh' }}>
+      <div className={`glass g-neutral relative w-full max-w-md flex flex-col ${isExiting ? 'animate-fade-down' : 'animate-fade-up'}`} style={{ borderRadius: 28, maxHeight: '85vh' }}>
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
           <button
@@ -90,7 +82,7 @@ export default function PresetHabitsModal({ onClose, onBack, onSelect }: Props) 
             <p className="text-xs mt-0.5" style={{ color: 'rgba(26,23,38,0.45)' }}>Bir alışkanlık seç, ardından "Seç"e bas</p>
           </div>
           <button
-            onClick={onClose}
+            onClick={close}
             aria-label="Kapat"
             className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
           >
@@ -142,7 +134,7 @@ export default function PresetHabitsModal({ onClose, onBack, onSelect }: Props) 
           >
             Seç
           </button>
-          <button onClick={onClose} className="chip btn-press w-full py-3 text-sm">
+          <button onClick={close} className="chip btn-press w-full py-3 text-sm">
             Kapat
           </button>
         </div>

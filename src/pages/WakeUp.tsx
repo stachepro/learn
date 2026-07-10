@@ -4,6 +4,7 @@ import { storage } from '../utils/storage'
 import { todayStr, formatShortDate } from '../utils/date'
 import { scheduleWakeGoalReminder } from '../utils/reminderNotifications'
 import { awardStandaloneBadges } from '../utils/badges'
+import { useModalDismiss } from '../utils/useModalDismiss'
 import type { WakeRecord } from '../types'
 
 function timeToMinutes(t: string): number {
@@ -62,15 +63,16 @@ function SunriseOverlay() {
 
 /* ── "Kaçta uyanıyorum?" istatistik modalı ── */
 function WakeStatsModal({ records, goal, onClose, onReset }: { records: WakeRecord[]; goal: string | null; onClose: () => void; onReset: () => void }) {
+  const { isExiting, close } = useModalDismiss(onClose)
   const [confirmReset, setConfirmReset] = useState(false)
   const sorted = [...records].sort((a, b) => b.date.localeCompare(a.date))
   const avg = averageWakeTime(records)
   const goalMins = goal ? timeToMinutes(goal) : null
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 animate-fade-in" style={{ background: 'rgba(26,23,38,0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div className={`fixed inset-0 ${isExiting ? 'animate-fade-out' : 'animate-fade-in'}`} style={{ background: 'rgba(26,23,38,0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} onClick={close} />
       <div className="relative min-h-full flex items-center justify-center p-4">
-        <div className="glass g-neutral animate-pop w-full max-w-sm" style={{ borderRadius: 24 }}>
+        <div className={`glass g-neutral w-full max-w-sm ${isExiting ? 'animate-fade-down' : 'animate-pop'}`} style={{ borderRadius: 24 }}>
           <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
             <p className="display text-base font-bold">Kaçta uyanıyorum?</p>
             <div className="flex items-center gap-2">
@@ -83,7 +85,7 @@ function WakeStatsModal({ records, goal, onClose, onReset }: { records: WakeReco
                   Sıfırla
                 </button>
               )}
-              <button onClick={onClose} aria-label="Kapat" className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm">✕</button>
+              <button onClick={close} aria-label="Kapat" className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm">✕</button>
             </div>
           </div>
 
