@@ -1,5 +1,7 @@
-import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useRef } from 'react'
+import { Capacitor } from '@capacitor/core'
+import { LocalNotifications } from '@capacitor/local-notifications'
 import { AppProvider } from './context/AppContext'
 import { PomodoroProvider } from './context/PomodoroContext'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -47,11 +49,28 @@ function AnimatedOutlet() {
   )
 }
 
+/* Bildirime dokununca hedef sayfaya götürür — gece 00:00 "günün özeti hazır"
+   bildirimi extra.route = '/ozet' taşır. Router bağlamı gerektiği için Layout
+   içinde görünmez bir bileşen olarak yaşar; web'de sessizce devre dışıdır. */
+function NotificationRouter() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+    const sub = LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
+      const route = (action.notification.extra as { route?: string } | undefined)?.route
+      if (route) navigate(route)
+    })
+    return () => { void sub.then((s) => s.remove()) }
+  }, [navigate])
+  return null
+}
+
 function Layout() {
   return (
     <div className="h-full relative">
       <PomodoroAmbience />
       <div className="relative z-10 flex flex-col h-full">
+        <NotificationRouter />
         <AchievementToast />
         <StreakToast />
         <Nav />

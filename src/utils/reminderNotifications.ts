@@ -125,6 +125,30 @@ export async function scheduleWakeGoalReminder(time: string | null): Promise<voi
   } catch { /* ignore */ }
 }
 
+// Her gece 00:00'da tekrarlayan "günün özeti hazır" bildirimi. `on` takvimi
+// Capacitor'da kendiliğinden tekrarlar; bir kez kurulur, açılışta tazelenir.
+// extra.route: bildirime dokununca NotificationRouter bu sayfaya götürür.
+const NOTIF_DAILY_SUMMARY = 20_000_003
+
+export async function scheduleDailySummaryNotification(): Promise<void> {
+  if (!isNative) return
+  await LocalNotifications.cancel({ notifications: [{ id: NOTIF_DAILY_SUMMARY }] }).catch(() => { /* ignore */ })
+  if (!(await ensurePermission())) return
+
+  try {
+    await LocalNotifications.schedule({
+      notifications: [{
+        id: NOTIF_DAILY_SUMMARY,
+        title: '🎬 Günün özeti hazır',
+        body: 'Bugünün hikayesi seni bekliyor — izlemek için dokun.',
+        schedule: { on: { hour: 0, minute: 0 }, allowWhileIdle: true },
+        sound: 'default',
+        extra: { route: '/ozet' },
+      }],
+    })
+  } catch { /* ignore */ }
+}
+
 // Gün bitmeden streak uyarısı: o gün hiç alışkanlık tamamlanmadıysa akşam saatinde
 // tek seferlik bildirim gönderilir; tamamlanınca o günkü bildirim iptal edilir.
 const NOTIF_STREAK_RISK = 20_000_002

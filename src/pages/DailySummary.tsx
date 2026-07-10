@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { useApp } from '../context/AppContext'
 import SummaryStory from '../components/SummaryStory'
 import { storage } from '../utils/storage'
@@ -19,20 +19,37 @@ export default function DailySummary() {
   const [replayKey, setReplayKey] = useState(0)
   const [storySummary, setStorySummary] = useState<DaySummary | null>(null)
 
+  // Görünürlük dinleyicisi bayat veriyle çalışmasın diye güncel hali ref'te tut
+  const dataRef = useRef({ habits, todayLog, freeSessions })
+  dataRef.current = { habits, todayLog, freeSessions }
+  const storyOpenRef = useRef(false)
+  storyOpenRef.current = storySummary !== null
+
+  // ↻ butonu: istenildiği kadar tekrar izletir; "izlendi" damgasına dokunmaz
   const openStory = () => {
     setStorySummary(collectDaySummary(habits, todayLog, freeSessions ?? [], todayStr()))
   }
 
   useEffect(() => {
     setMounted(true)
-    // Güne ilk girişte story otomatik oynar; aynı gün tekrar girişte yalnızca ↻ ile
-    const today = todayStr()
-    const s = collectDaySummary(habits, todayLog, freeSessions ?? [], today)
-    if (summaryHasAnything(s) && storage.getStorySeenDate() !== today) {
+    // O güne ait gösteri izlenmediyse otomatik başlar; izlenince damgalanır ve o gün
+    // bir daha kendiliğinden açılmaz. Damga tarih olduğu için yeni günde kendiliğinden
+    // "izlenmedi"ye döner. Sayfa açıkken gece yarısı geçilir ya da uygulama arka
+    // plandan dönerse (gece 00:00 bildirimine dokunma senaryosu) aynı kontrol
+    // görünürlük değişiminde de koşar.
+    const maybeAutoPlay = () => {
+      if (document.visibilityState !== 'visible' || storyOpenRef.current) return
+      const today = todayStr()
+      if (storage.getStorySeenDate() === today) return
+      const { habits, todayLog, freeSessions } = dataRef.current
+      const s = collectDaySummary(habits, todayLog, freeSessions ?? [], today)
+      if (!summaryHasAnything(s)) return
       storage.setStorySeenDate(today)
       setStorySummary(s)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    maybeAutoPlay()
+    document.addEventListener('visibilitychange', maybeAutoPlay)
+    return () => document.removeEventListener('visibilitychange', maybeAutoPlay)
   }, [])
 
   return (

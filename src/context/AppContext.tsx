@@ -7,7 +7,7 @@ import { defaultHabitLog, migrateHabitLog } from '../utils/habitLog'
 import { applyCompletionStreak, reconcileStreak, getFreezes } from '../utils/streak'
 import { checkBadges, announceNewBadges } from '../utils/badges'
 import { todayStr, yesterdayStr } from '../utils/date'
-import { scheduleHabitReminder, cancelHabitReminder, syncHabitReminders, scheduleStreakRiskReminder } from '../utils/reminderNotifications'
+import { scheduleHabitReminder, cancelHabitReminder, syncHabitReminders, scheduleStreakRiskReminder, scheduleDailySummaryNotification } from '../utils/reminderNotifications'
 import type {
   Habit, DailyLogs, DayLog, HabitLog, UserProfile,
   PomodoroSession, PomodoroSettings, Category, CompletionMode, ScheduleOptions,
@@ -60,8 +60,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const todayLog: DayLog = logs[today] ?? { date: today, habits: {} }
 
-  // Uygulama her açıldığında saat aralığı tanımlı alışkanlıkların bildirimlerini tazele
-  useEffect(() => { syncHabitReminders(habits) }, [])
+  // Uygulama her açıldığında saat aralığı tanımlı alışkanlıkların bildirimlerini
+  // ve gece 00:00 "günün özeti hazır" bildirimini tazele
+  useEffect(() => {
+    syncHabitReminders(habits)
+    void scheduleDailySummaryNotification()
+  }, [])
 
   // Gün henüz hiç alışkanlık tamamlanmadan akşama yaklaşıyorsa streak uyarısı gönder;
   // bugün bir tamamlama yapılınca (lastActiveDate güncellenince) bildirim iptal edilir
