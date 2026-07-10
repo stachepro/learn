@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
+import BackBar from '../components/BackBar'
 import { getDaysInMonth, getFirstDayOfMonth, dateStr, formatMinutes, trMonthName, TR_DAY_SHORTS } from '../utils/date'
 
 export default function History() {
@@ -51,6 +52,7 @@ export default function History() {
 
   return (
     <div className={`max-w-3xl mx-auto px-4 py-6 pb-40 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
+      <BackBar />
       <div>
         <h1 className="display text-3xl font-extrabold" style={{ color: '#1a1726' }}>Geçmiş</h1>
         <p className="text-sm mt-1" style={{ color: 'rgba(26,23,38,0.55)' }}>Alışkanlık geçmişin</p>

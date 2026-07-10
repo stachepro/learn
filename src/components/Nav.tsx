@@ -149,14 +149,14 @@ function IconChart({ size = 28, strokeWidth = 1.8, color = 'currentColor' }: Ico
 const links = [
   { to: '/', label: 'Bugün' },
   { to: '/habits', label: 'Alışkanlıklar' },
-  { to: '/history', label: 'Geçmiş' },
+  { to: '/ozet', label: 'Özet' },
   { to: '/profile', label: 'Profil' },
 ]
 
 const mobileItems = [
   { to: '/', label: 'Bugün', Icon: IconCalendar },
   { to: '/habits', label: 'Alışkanlık', Icon: IconListChecks },
-  { to: '/history', label: 'Geçmiş', Icon: IconBarChart },
+  { to: '/ozet', label: 'Özet', Icon: IconBarChart },
   { to: '/profile', label: 'Profil', Icon: IconUser },
 ]
 

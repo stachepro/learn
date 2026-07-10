@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { ALL_BADGES } from '../utils/badges'
 import { formatMinutes } from '../utils/date'
@@ -7,6 +8,7 @@ import { storage } from '../utils/storage'
 import { formatMl } from '../utils/water'
 
 export default function Profile() {
+  const navigate = useNavigate()
   const { profile, logs, freeSessions, updateUsername, pomodoroSettings, updatePomodoroSettings } = useApp()
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState(profile.username)
@@ -110,6 +112,25 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Geçmiş — takvim + günlük döküm sayfasına git */}
+      <button
+        onClick={() => navigate('/history')}
+        className="glass g-neutral glass-lift tile-press btn-press w-full flex items-center gap-3.5 px-5 py-4 text-left"
+        style={{ borderRadius: 22 }}
+      >
+        <span
+          className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
+          style={{ background: 'linear-gradient(150deg, #60a5fa, #2563eb)', boxShadow: '0 8px 20px -6px rgba(37,99,235,0.55)' }}
+        >
+          📅
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold" style={{ color: '#1a1726' }}>Geçmiş</p>
+          <p className="text-xs mt-0.5 ink-60">Takvim ve günlük dökümü görüntüle</p>
+        </div>
+        <span className="text-lg flex-shrink-0 ink-35">›</span>
+      </button>
 
       {/* Stats */}
       <div>

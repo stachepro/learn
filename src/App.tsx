@@ -21,8 +21,9 @@ import NoRush from './pages/NoRush'
 import Todo from './pages/Todo'
 import WakeUp from './pages/WakeUp'
 import WaterTracker from './pages/WaterTracker'
+import DailySummary from './pages/DailySummary'
 
-const ROUTE_ORDER = ['/', '/habits', '/history', '/profile', '/just-start', '/stats', '/pomodoro', '/acele-yok', '/todo', '/uyandim', '/su-takibi']
+const ROUTE_ORDER = ['/', '/habits', '/ozet', '/profile', '/just-start', '/stats', '/pomodoro', '/acele-yok', '/todo', '/uyandim', '/su-takibi', '/history']
 
 function AnimatedOutlet() {
   const location = useLocation()
@@ -86,6 +87,7 @@ export default function App() {
               <Route element={<Layout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="habits" element={<Habits />} />
+                <Route path="ozet" element={<DailySummary />} />
                 <Route path="history" element={<History />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="just-start" element={<JustStart />} />
