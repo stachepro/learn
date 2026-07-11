@@ -174,22 +174,22 @@ export default function Dashboard() {
       {statModal === 'level' && <LevelModal onClose={() => setStatModal(null)} />}
       {statModal === 'today' && <TodayModal onClose={() => setStatModal(null)} />}
 
-      <div className={`max-w-3xl mx-auto px-4 py-6 pb-36 sm:pb-24 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
+      <div className={`apple-surface max-w-3xl mx-auto px-4 py-6 pb-36 sm:pb-24 space-y-7 ${mounted ? 'page-enter' : 'opacity-0'}`}>
         {/* Greeting */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-end justify-between pt-1">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: 'rgb(var(--ink) / 0.42)' }}>
+            <p className="text-[13px] font-medium tracking-tight" style={{ color: 'rgb(var(--ink) / 0.5)' }}>
               {formatDisplayDate(logicalNow())}
             </p>
-            <h1 className="display text-[26px] sm:text-3xl font-extrabold mt-1 leading-tight" style={{ color: 'rgb(var(--ink))' }}>
+            <h1 className="display text-[30px] sm:text-[38px] font-bold mt-1.5 leading-[1.05]" style={{ color: 'rgb(var(--ink))' }}>
               Merhaba, {profile.username}
             </h1>
           </div>
           <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(150deg, #fbbf24, #f97316)', boxShadow: '0 8px 18px -8px rgba(249,115,22,0.5)' }}
+            className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: 'linear-gradient(150deg, #fbbf24, #f97316)', boxShadow: 'rgba(0, 0, 0, 0.22) 3px 5px 30px' }}
           >
-            <span className="display font-black" style={{ color: '#2a1402' }}>{profile.username.charAt(0).toUpperCase()}</span>
+            <span className="display font-bold text-lg" style={{ color: '#2a1402' }}>{profile.username.charAt(0).toUpperCase()}</span>
           </div>
         </div>
 
@@ -268,12 +268,12 @@ export default function Dashboard() {
 
         {/* Habits header */}
         <div className="flex items-center justify-between pt-1">
-          <h2 className="display text-lg font-extrabold" style={{ color: 'rgb(var(--ink))' }}>
+          <h2 className="display text-[22px] font-bold" style={{ color: 'rgb(var(--ink))' }}>
             Bugün
           </h2>
           <button
             onClick={() => setCreateStep('chooser')}
-            className="btn-ink btn-press flex items-center gap-1 text-xs px-4 py-2"
+            className="btn-apple btn-press flex items-center gap-1 text-[13px] px-4 py-2"
           >
             + Ekle
           </button>

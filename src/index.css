@@ -28,7 +28,7 @@ body {
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
   color: rgb(var(--ink));
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, 'SF Pro Text', 'SF Pro Display', BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'Inter', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   background:
     radial-gradient(120% 80% at 50% -8%, rgba(249,115,22,0.05) 0%, transparent 42%),
@@ -61,8 +61,8 @@ input, textarea, [contenteditable] {
 
 /* Display face for headings + big numbers — geometric, confident */
 .display {
-  font-family: 'Outfit', 'Inter', sans-serif;
-  letter-spacing: -0.02em;
+  font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'Inter', Arial, sans-serif;
+  letter-spacing: -0.028em;
 }
 .tnum { font-variant-numeric: tabular-nums; }
 
@@ -76,6 +76,7 @@ input, textarea, [contenteditable] {
   --energy2: 249 115 22;
   --ink: 26 23 38;        /* primary dark text (light theme) */
   --canvas: 251 247 240;  /* warm cream page (light theme) */
+  --action-blue: #0066cc; /* Apple birincil aksan — tek CTA rengi */
 }
 
 /* ════════════════ KARANLIK TEMA ════════════════
@@ -84,6 +85,7 @@ input, textarea, [contenteditable] {
 :root[data-theme="dark"] {
   --ink: 228 228 238;
   --canvas: 15 16 21;
+  --action-blue: #2f8bff;
 }
 
 /* Nötr (aksan olmayan) sabit-renkli karolar için token — açık temada krem,
@@ -176,8 +178,8 @@ input, textarea, [contenteditable] {
 :root[data-theme="dark"] .ctrl:hover { background: rgba(255,255,255,0.13); color: rgb(var(--ink) / 0.95); }
 
 /* Koyu-mürekkep birincil düğme açık temada koyu; karanlıkta ters çevrilir */
-:root[data-theme="dark"] .btn-ink { background: #ece9f4; color: #1a1726; border-color: rgba(255,255,255,0.15); box-shadow: 0 8px 18px -10px rgba(0,0,0,0.7); }
-:root[data-theme="dark"] .btn-ink:hover { background: #ffffff; }
+:root[data-theme="dark"] .btn-ink { background: var(--action-blue); color: #ffffff; border-color: transparent; box-shadow: 0 8px 18px -10px rgba(0,0,0,0.7); }
+:root[data-theme="dark"] .btn-ink:hover { filter: brightness(1.1); background: var(--action-blue); }
 :root[data-theme="dark"] .btn-dark { background: #2a2b36; color: rgb(var(--ink)); border-color: rgba(255,255,255,0.12); }
 :root[data-theme="dark"] .btn-dark:hover { background: #34353f; }
 
@@ -287,16 +289,17 @@ input[type="range"] { accent-color: #f59e0b; }
 }
 .chip:hover { background: rgba(26,23,38,0.09); }
 
-/* Dark ink lozenge — the primary CTA (e.g. "Ekle") */
+/* Action Blue lozenge — the primary CTA (e.g. "Ekle"). Apple: tek mavi pill. */
 .btn-ink {
   border-radius: 999px;
-  font-weight: 700;
-  background: #1a1726;
-  color: #fbf7f0;
-  border: 1px solid rgba(26,23,38,0.2);
-  box-shadow: 0 8px 18px -10px rgba(26,23,38,0.55);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  background: var(--action-blue);
+  color: #ffffff;
+  border: 1px solid transparent;
+  box-shadow: 0 8px 18px -10px rgba(0,102,204,0.5);
 }
-.btn-ink:hover { background: #2a2640; }
+.btn-ink:hover { filter: brightness(1.08); }
 .btn-ink:disabled { opacity: 0.4; box-shadow: none; }
 
 /* Green "done/confirm" lozenge */
@@ -848,3 +851,32 @@ input[type="range"] { accent-color: #f59e0b; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
+
+/* ════════════════════════════════════════════════
+   APPLE PİLOT — yalnız Dashboard için scoped katman.
+   SF Pro tipografi + sıkı harf aralığı, tek Action Blue
+   birincil aksan, sakin yüzeyler. Kişilik (alev, habit
+   renkleri, XP) korunur. Sadece .apple-surface altını etkiler.
+   ════════════════════════════════════════════════ */
+.apple-surface {
+  font-family: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --action-blue: #0066cc;
+}
+/* Başlıklar ve büyük sayılar: SF stack + Apple'ın imza sıkı aralığı */
+.apple-surface .display {
+  font-family: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: -0.028em;
+}
+:root[data-theme="dark"] .apple-surface { --action-blue: #2f8bff; }
+
+/* Action Blue pill — Dashboard'ın tek birincil CTA'sı */
+.btn-apple {
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  background: var(--action-blue, #0066cc);
+  color: #ffffff;
+  border: 1px solid transparent;
+}
+.btn-apple:active { transform: scale(0.95); }
+.btn-apple:disabled { opacity: 0.4; }
