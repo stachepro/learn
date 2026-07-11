@@ -50,7 +50,7 @@ function NoteBtn({ noteOpen, hasNote, onClick, pal }: { noteOpen: boolean; hasNo
       aria-label="Not"
       className="btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm soft-trans"
       style={noteOpen || hasNote
-        ? { background: 'rgba(34,197,94,0.18)', color: '#16803c', border: '1px solid rgba(34,197,94,0.4)' }
+        ? { background: 'rgba(34,197,94,0.18)', color: 'var(--sf-mint-tx)', border: '1px solid rgba(34,197,94,0.4)' }
         : { background: pal.chipSoft, color: pal.textSoft, border: '1px solid rgba(0,0,0,0.07)' }}
     >✎</button>
   )

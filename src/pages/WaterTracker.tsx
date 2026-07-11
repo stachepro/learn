@@ -83,7 +83,7 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
                 <button
                   onClick={() => setConfirmReset(true)}
                   className="btn-press text-xs font-bold px-3 py-1.5 rounded-full"
-                  style={{ background: 'rgba(239,68,68,0.1)', color: '#cc4322', border: '1px solid rgba(239,68,68,0.25)' }}
+                  style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--sf-red-tx)', border: '1px solid rgba(239,68,68,0.25)' }}
                 >
                   Sıfırla
                 </button>
@@ -164,7 +164,7 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
                           onClick={() => onDeleteEntry(e.id)}
                           aria-label="Sil"
                           className="btn-press w-6 h-6 rounded-full flex items-center justify-center text-[10px]"
-                          style={{ background: 'rgba(239,68,68,0.08)', color: '#cc4322' }}
+                          style={{ background: 'rgba(239,68,68,0.08)', color: 'var(--sf-red-tx)' }}
                         >
                           ✕
                         </button>
@@ -507,7 +507,7 @@ export default function WaterTracker() {
                     onClick={() => deleteEntry(e.id)}
                     aria-label="Sil"
                     className="btn-press w-6 h-6 rounded-full flex items-center justify-center text-[10px]"
-                    style={{ background: 'rgba(239,68,68,0.08)', color: '#cc4322' }}
+                    style={{ background: 'rgba(239,68,68,0.08)', color: 'var(--sf-red-tx)' }}
                   >
                     ✕
                   </button>

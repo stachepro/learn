@@ -28,7 +28,7 @@ function liveStageSeconds(stage: NoRushStage, now: number): number {
 // Kahve/toprak tonları — Hub'daki "Acele Yok" karosuyla aynı kimlik
 const BROWN = '#6b4a35'
 const BROWN_SOFT = '#a8846a'
-const BROWN_TEXT = '#4a3222'
+const BROWN_TEXT = 'var(--sf-brown-tx)'
 
 /* ── Icons ── */
 type IconProps = { size?: number; color?: string }
@@ -476,7 +476,7 @@ export default function NoRush() {
         className="glass g-cream mb-4 px-5 py-4 animate-fade-up"
         style={{ borderRadius: 22, boxShadow: '0 10px 26px -18px rgba(180,120,30,0.55), 0 1px 2px rgb(var(--ink) / 0.04)' }}
       >
-        <p className="text-[11px] font-bold uppercase tracking-[0.16em] mb-1.5" style={{ color: '#b45309' }}>
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] mb-1.5" style={{ color: 'var(--sf-amber-tx)' }}>
           Ne yapıyoruz?
         </p>
         <input
@@ -518,15 +518,15 @@ export default function NoRush() {
           className={`mb-4 px-5 py-5 text-center animate-fade-up ${isPaused ? '' : 'norush-breathe'}`}
           style={{
             borderRadius: 22,
-            background: '#efe7db',
-            border: '1px solid #ddccb0',
+            background: 'var(--sf-brown)',
+            border: '1px solid var(--sf-brown-br)',
           }}
         >
           <div className="flex items-center justify-center gap-2">
             {!isPaused && (
-              <span className="animate-live inline-block rounded-full" style={{ width: 6, height: 6, background: BROWN }} />
+              <span className="animate-live inline-block rounded-full" style={{ width: 6, height: 6, background: 'var(--sf-brown-tx2)' }} />
             )}
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: isPaused ? 'rgba(74,50,34,0.5)' : BROWN }}>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: isPaused ? 'var(--sf-brown-tx2)' : 'var(--sf-brown-tx)' }}>
               {isPaused ? 'Molada' : 'Şu An'} · {runningIdx + 1}. aşama
             </span>
           </div>
@@ -598,7 +598,7 @@ export default function NoRush() {
               key={stage.id}
               className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
               style={{
-                background: isDone ? 'rgb(var(--ink) / 0.04)' : '#ffffff',
+                background: isDone ? 'rgb(var(--ink) / 0.04)' : 'var(--tile-raised)',
                 border: `1.5px solid ${isRunning ? 'rgba(34,197,94,0.6)' : isDone ? 'rgb(var(--ink) / 0.07)' : 'rgb(var(--ink) / 0.1)'}`,
                 boxShadow: isRunning ? '0 0 0 3px rgba(34,197,94,0.13)' : 'none',
                 opacity: isDone ? 0.65 : 1,
@@ -706,7 +706,7 @@ export default function NoRush() {
       {/* Hızlı aşama ekleme — Enter ya da + */}
       <div
         className="flex items-center gap-2.5 rounded-2xl px-3 py-2 mt-2"
-        style={{ background: 'rgba(255,255,255,0.6)', border: '1.5px dashed rgb(var(--ink) / 0.18)' }}
+        style={{ background: 'var(--tile-raised)', border: '1.5px dashed rgb(var(--ink) / 0.18)' }}
       >
         <span className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ color: 'rgb(var(--ink) / 0.35)' }}>
           <IconPlus size={14} />

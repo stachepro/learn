@@ -79,7 +79,7 @@ export default function TodayModal({ onClose }: { onClose: () => void }) {
             </defs>
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="display text-3xl font-black tnum leading-none" style={{ color: allDone ? '#15803d' : '#185fa5' }}>
+            <p className="display text-3xl font-black tnum leading-none" style={{ color: allDone ? '#15803d' : 'var(--sf-blue-tx)' }}>
               {shownCompleted}<span className="text-lg ink-45">/{total}</span>
             </p>
             <p className="text-[9px] font-bold uppercase tracking-widest mt-1 ink-45">tamamlandı</p>
@@ -87,7 +87,7 @@ export default function TodayModal({ onClose }: { onClose: () => void }) {
         </div>
         {todayWork > 0 && (
           <p className="text-[11px] font-semibold mt-3 ink-45">
-            Bugün <span className="tnum font-bold" style={{ color: '#185fa5' }}>{formatMinutes(todayWork)}</span> odaklanılmış çalışma
+            Bugün <span className="tnum font-bold" style={{ color: 'var(--sf-blue-tx)' }}>{formatMinutes(todayWork)}</span> odaklanılmış çalışma
           </p>
         )}
       </div>

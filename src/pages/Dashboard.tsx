@@ -228,7 +228,7 @@ export default function Dashboard() {
               <span
                 className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center text-[9px] font-black tnum animate-pop"
                 style={{
-                  background: 'linear-gradient(150deg, #bae6fd, #38bdf8)',
+                  background: 'linear-gradient(150deg, var(--sf-ice-br), #38bdf8)',
                   color: '#0c4a6e',
                   border: '1.5px solid rgb(var(--canvas))',
                   boxShadow: '0 4px 8px -3px rgba(14,165,233,0.5)',
@@ -286,7 +286,7 @@ export default function Dashboard() {
             className="glass g-neutral glass-lift btn-press w-full p-10 text-center"
             style={{ borderRadius: 24 }}
           >
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl font-black ring-pulse" style={{ background: '#e7f4d8', color: '#3b6d11' }}>+</div>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl font-black ring-pulse" style={{ background: 'var(--sf-lime)', color: 'var(--sf-lime-tx)' }}>+</div>
             <p className="display text-base font-bold">İlk alışkanlığını ekle</p>
             <p className="text-xs mt-1 ink-60">Her gün küçük adımlar büyük değişimler yaratır</p>
           </button>
@@ -391,7 +391,7 @@ export default function Dashboard() {
                 label="Düne göre"
                 value={vsYesterday === null ? '--' : `${vsYesterday >= 0 ? '+' : ''}${vsYesterday}%`}
                 border
-                color={vsYesterday === null ? undefined : vsYesterday >= 0 ? '#3b6d11' : '#cc4322'}
+                color={vsYesterday === null ? undefined : vsYesterday >= 0 ? 'var(--sf-lime-tx)' : '#cc4322'}
               />
             </div>
           </div>

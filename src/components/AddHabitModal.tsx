@@ -439,7 +439,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                   <div
                     className="flex-1 text-center text-xl font-bold py-2 rounded-xl"
                     style={completionMode === 'pomodoro'
-                      ? { background: 'rgba(225,90,60,0.12)', color: '#cc4322' }
+                      ? { background: 'rgba(225,90,60,0.12)', color: 'var(--sf-red-tx)' }
                       : { background: 'rgba(59,130,246,0.12)', color: '#2563eb' }}
                   >
                     {completionGoal}

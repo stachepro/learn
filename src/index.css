@@ -109,6 +109,7 @@ input, textarea, [contenteditable] {
   --sf-rust: #fae4dd;   --sf-rust-br: #f3c9bd;   --sf-rust-tx: #a33418;   --sf-rust-tx2: #c2562f;
   --sf-brown: #efe7db;  --sf-brown-br: #ddccb0;  --sf-brown-tx: #4a3220;  --sf-brown-tx2: #8a6a4d;
   --sf-ice: #e3f3fd;    --sf-ice-br: #bae6fd;    --sf-ice-tx: #0369a1;    --sf-ice-tx2: #38a3e0;
+  --sf-red-tx: #cc4322;
 }
 :root[data-theme="dark"] {
   --sf-blue: #182635;   --sf-blue-br: rgba(130,175,230,0.18);  --sf-blue-tx: #8fbdf0;  --sf-blue-tx2: #7ba6d8;
@@ -119,6 +120,7 @@ input, textarea, [contenteditable] {
   --sf-rust: #2e1d18;   --sf-rust-br: rgba(235,150,120,0.18);  --sf-rust-tx: #f0a888;  --sf-rust-tx2: #d98a68;
   --sf-brown: #241d14;  --sf-brown-br: rgba(200,170,130,0.16); --sf-brown-tx: #dcc6a8; --sf-brown-tx2: #b89a78;
   --sf-ice: #132638;    --sf-ice-br: rgba(130,195,235,0.2);    --sf-ice-tx: #8fceef;   --sf-ice-tx2: #79bce8;
+  --sf-red-tx: #f0907a;
 }
 
 /* Su Takibi — su dolgusu/koyu zemin üstündeki metin ve haplar. Açık temada koyu

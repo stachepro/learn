@@ -80,7 +80,7 @@ function WakeStatsModal({ records, goal, onClose, onReset }: { records: WakeReco
                 <button
                   onClick={() => setConfirmReset(true)}
                   className="btn-press text-xs font-bold px-3 py-1.5 rounded-full"
-                  style={{ background: 'rgba(239,68,68,0.1)', color: '#cc4322', border: '1px solid rgba(239,68,68,0.25)' }}
+                  style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--sf-red-tx)', border: '1px solid rgba(239,68,68,0.25)' }}
                 >
                   Sıfırla
                 </button>
@@ -115,15 +115,15 @@ function WakeStatsModal({ records, goal, onClose, onReset }: { records: WakeReco
           <div className="grid grid-cols-3 px-5 py-4 text-center" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Ortalama</p>
-              <p className="display text-lg font-bold tnum" style={{ color: '#b45309' }}>{avg ?? '--'}</p>
+              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-amber-tx)' }}>{avg ?? '--'}</p>
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En erken</p>
-              <p className="display text-lg font-bold tnum" style={{ color: '#16803c' }}>{earliestWakeTime(records) ?? '--'}</p>
+              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-mint-tx)' }}>{earliestWakeTime(records) ?? '--'}</p>
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En geç</p>
-              <p className="display text-lg font-bold tnum" style={{ color: '#cc4322' }}>{latestWakeTime(records) ?? '--'}</p>
+              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-red-tx)' }}>{latestWakeTime(records) ?? '--'}</p>
             </div>
           </div>
 
@@ -141,8 +141,8 @@ function WakeStatsModal({ records, goal, onClose, onReset }: { records: WakeReco
                         <span className="display font-bold tnum">{r.time}</span>
                         {diff != null && (
                           <span className="text-[11px] font-bold tnum px-1.5 py-0.5 rounded-full" style={diff <= 0
-                            ? { background: 'rgba(34,197,94,0.15)', color: '#16803c' }
-                            : { background: 'rgba(239,68,68,0.12)', color: '#cc4322' }}>
+                            ? { background: 'rgba(34,197,94,0.15)', color: 'var(--sf-mint-tx)' }
+                            : { background: 'rgba(239,68,68,0.12)', color: 'var(--sf-red-tx)' }}>
                             {diff <= 0 ? `${Math.abs(diff)}dk erken` : `${diff}dk geç`}
                           </span>
                         )}
@@ -229,7 +229,7 @@ export default function WakeUp() {
             width: 200,
             height: 200,
             background: todayRecord
-              ? 'linear-gradient(160deg, #e7f4d8, #cfe7af)'
+              ? 'linear-gradient(160deg, var(--sf-lime), var(--sf-lime-br))'
               : 'linear-gradient(160deg, #fbbf24, #f97316)',
             border: todayRecord ? '3px solid rgba(99,153,34,0.4)' : '3px solid rgba(255,255,255,0.5)',
             boxShadow: todayRecord
@@ -240,8 +240,8 @@ export default function WakeUp() {
         >
           {todayRecord ? (
             <>
-              <span className="display text-lg font-black" style={{ color: '#3b6d11' }}>Uyandın!</span>
-              <span className="display text-3xl font-black tnum mt-1" style={{ color: '#3b6d11' }}>{todayRecord.time}</span>
+              <span className="display text-lg font-black" style={{ color: 'var(--sf-lime-tx)' }}>Uyandın!</span>
+              <span className="display text-3xl font-black tnum mt-1" style={{ color: 'var(--sf-lime-tx)' }}>{todayRecord.time}</span>
               <span className="text-[10px] font-bold mt-2" style={{ color: 'rgba(59,109,17,0.6)' }}>yarın tekrar görüşürüz</span>
             </>
           ) : (

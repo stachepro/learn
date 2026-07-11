@@ -66,10 +66,10 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <p className="text-[9px] font-bold uppercase tracking-widest ink-45">Seviye</p>
-            <p className="display text-4xl font-black tnum leading-none mt-0.5" style={{ color: '#3b6d11' }}>{profile.level}</p>
+            <p className="display text-4xl font-black tnum leading-none mt-0.5" style={{ color: 'var(--sf-lime-tx)' }}>{profile.level}</p>
           </div>
         </div>
-        <p className="text-sm font-bold tnum mt-3" style={{ color: '#3b6d11' }}>
+        <p className="text-sm font-bold tnum mt-3" style={{ color: 'var(--sf-lime-tx)' }}>
           {shownExp} <span className="ink-45 font-semibold">/ {needed} XP</span>
         </p>
         <p className="text-[11px] mt-1 ink-45">
@@ -83,9 +83,9 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
           <p className="display text-lg font-black tnum leading-none" style={{ color: 'rgb(var(--ink))' }}>{shownTotal.toLocaleString('tr-TR')}</p>
           <p className="text-[9px] font-bold uppercase tracking-wide mt-1.5 ink-45">Toplam XP</p>
         </div>
-        <div className="rounded-2xl px-3 py-3 text-center" style={{ background: '#e7f4d8', border: '1px solid #cfe7af' }}>
-          <p className="display text-lg font-black tnum leading-none" style={{ color: '#3b6d11' }}>+{todayExp}</p>
-          <p className="text-[9px] font-bold uppercase tracking-wide mt-1.5" style={{ color: '#4e8a1e' }}>Bugün kazanılan</p>
+        <div className="rounded-2xl px-3 py-3 text-center" style={{ background: 'var(--sf-lime)', border: '1px solid var(--sf-lime-br)' }}>
+          <p className="display text-lg font-black tnum leading-none" style={{ color: 'var(--sf-lime-tx)' }}>+{todayExp}</p>
+          <p className="text-[9px] font-bold uppercase tracking-wide mt-1.5" style={{ color: 'var(--sf-lime-tx2)' }}>Bugün kazanılan</p>
         </div>
       </div>
 
@@ -115,8 +115,8 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
                 className="flex items-center gap-3 rounded-2xl px-3.5 py-2.5 animate-pop"
                 style={{
                   animationDelay: `${220 + i * 60}ms`,
-                  background: isCurrent ? '#e7f4d8' : 'rgb(var(--ink) / 0.03)',
-                  border: isCurrent ? '1px solid #cfe7af' : '1px solid rgb(var(--ink) / 0.05)',
+                  background: isCurrent ? 'var(--sf-lime)' : 'rgb(var(--ink) / 0.03)',
+                  border: isCurrent ? '1px solid var(--sf-lime-br)' : '1px solid rgb(var(--ink) / 0.05)',
                   opacity: isPast ? 0.65 : 1,
                 }}
               >
@@ -124,14 +124,14 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
                   className="w-9 h-9 rounded-xl flex items-center justify-center display text-sm font-black tnum flex-shrink-0"
                   style={{
                     background: isCurrent ? 'linear-gradient(150deg, #a3e635, #639922)' : isPast ? 'rgba(99,153,34,0.15)' : 'rgb(var(--ink) / 0.05)',
-                    color: isCurrent ? '#1a2e05' : isPast ? '#3b6d11' : 'rgb(var(--ink) / 0.4)',
+                    color: isCurrent ? '#1a2e05' : isPast ? 'var(--sf-lime-tx)' : 'rgb(var(--ink) / 0.4)',
                     boxShadow: isCurrent ? '0 6px 14px -6px rgba(99,153,34,0.6)' : 'none',
                   }}
                 >
                   {isPast ? '✓' : lvl}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold" style={{ color: isCurrent ? '#3b6d11' : 'rgb(var(--ink))' }}>
+                  <p className="text-xs font-bold" style={{ color: isCurrent ? 'var(--sf-lime-tx)' : 'rgb(var(--ink))' }}>
                     Seviye {lvl}{isCurrent && ' — buradasın'}
                   </p>
                   <p className="text-[10px] tnum ink-45 mt-0.5">
@@ -139,7 +139,7 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
                   </p>
                 </div>
                 {isCurrent && (
-                  <span className="text-[10px] font-black tnum px-2 py-1 rounded-full" style={{ background: 'rgba(99,153,34,0.16)', color: '#3b6d11' }}>
+                  <span className="text-[10px] font-black tnum px-2 py-1 rounded-full" style={{ background: 'rgba(99,153,34,0.16)', color: 'var(--sf-lime-tx)' }}>
                     %{Math.round(percentage)}
                   </span>
                 )}
@@ -160,7 +160,7 @@ function XpRow({ emoji, label, xp }: { emoji: string; label: string; xp: string 
     <div className="flex items-center gap-2.5">
       <span className="text-sm leading-none">{emoji}</span>
       <p className="text-xs font-semibold flex-1" style={{ color: 'rgb(var(--ink) / 0.7)' }}>{label}</p>
-      <span className="text-xs font-black tnum" style={{ color: '#3b6d11' }}>{xp}</span>
+      <span className="text-xs font-black tnum" style={{ color: 'var(--sf-lime-tx)' }}>{xp}</span>
     </div>
   )
 }

@@ -44,7 +44,7 @@ export default function StreakFlame({ state, size = 24, className }: Props) {
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
         <defs>
           <linearGradient id={iceId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#bae6fd" />
+            <stop offset="0%" stopColor="var(--sf-ice-br)" />
             <stop offset="55%" stopColor="#7dd3fc" />
             <stop offset="100%" stopColor="#0ea5e9" />
           </linearGradient>

@@ -235,7 +235,7 @@ function SummaryContent() {
                 >
                   <span className="text-base leading-none flex-shrink-0">{emoji}</span>
                   <p className="text-xs font-semibold flex-1 min-w-0" style={{ overflowWrap: 'anywhere' }}>{name}</p>
-                  <span className="text-[11px] font-bold tnum flex-shrink-0" style={{ color: '#a33418' }}>{formatMinutes(sess.workDuration)}</span>
+                  <span className="text-[11px] font-bold tnum flex-shrink-0" style={{ color: 'var(--sf-rust-tx)' }}>{formatMinutes(sess.workDuration)}</span>
                   <span className="text-[10px] tnum flex-shrink-0 ink-45">{time}</span>
                 </div>
               )
@@ -252,10 +252,10 @@ function SummaryContent() {
               <div
                 key={r.id}
                 className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 animate-pop"
-                style={{ animationDelay: `${120 + i * 45}ms`, background: '#efe7db', border: '1px solid #ddccb0' }}
+                style={{ animationDelay: `${120 + i * 45}ms`, background: 'var(--sf-brown)', border: '1px solid var(--sf-brown-br)' }}
               >
-                <p className="text-xs font-semibold flex-1 min-w-0" style={{ color: '#4a3220', overflowWrap: 'anywhere' }}>{r.title}</p>
-                <span className="text-[10px] font-bold flex-shrink-0" style={{ color: '#8a6a4d' }}>{r.stageCount} aşama</span>
+                <p className="text-xs font-semibold flex-1 min-w-0" style={{ color: 'var(--sf-brown-tx)', overflowWrap: 'anywhere' }}>{r.title}</p>
+                <span className="text-[10px] font-bold flex-shrink-0" style={{ color: 'var(--sf-brown-tx2)' }}>{r.stageCount} aşama</span>
                 <span className="text-[11px] font-bold tnum flex-shrink-0" style={{ color: '#6b4a35' }}>{formatHMS(r.totalSeconds)}</span>
               </div>
             ))}
@@ -276,12 +276,12 @@ function SummaryContent() {
               <div
                 key={t.id}
                 className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 animate-pop"
-                style={{ animationDelay: `${120 + i * 45}ms`, background: '#e5f6ea', border: '1px solid #c3e8cf' }}
+                style={{ animationDelay: `${120 + i * 45}ms`, background: 'var(--sf-mint)', border: '1px solid var(--sf-mint-br)' }}
               >
                 <StatusDot done />
                 <p
                   className="text-xs font-semibold flex-1 min-w-0"
-                  style={{ color: '#166534', textDecoration: 'line-through', textDecorationColor: 'rgba(22,101,52,0.35)', overflowWrap: 'anywhere' }}
+                  style={{ color: 'var(--sf-mint-tx)', textDecoration: 'line-through', textDecorationColor: 'rgba(22,101,52,0.35)', overflowWrap: 'anywhere' }}
                 >
                   {t.text}
                 </p>

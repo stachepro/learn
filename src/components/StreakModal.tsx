@@ -119,8 +119,8 @@ export default function StreakModal({ onClose }: { onClose: () => void }) {
         <div
           className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center ${flame === 'lit' ? 'flame-glow' : flame === 'frozen' ? 'ice-glow' : ''}`}
           style={{
-            background: flame === 'frozen' ? '#e3f3fd' : flame === 'lit' ? '#faecd6' : '#f1ede4',
-            border: `1px solid ${flame === 'frozen' ? '#bae6fd' : flame === 'lit' ? '#f3dcb0' : 'rgb(var(--ink) / 0.08)'}`,
+            background: flame === 'frozen' ? 'var(--sf-ice)' : flame === 'lit' ? '#faecd6' : '#f1ede4',
+            border: `1px solid ${flame === 'frozen' ? 'var(--sf-ice-br)' : flame === 'lit' ? '#f3dcb0' : 'rgb(var(--ink) / 0.08)'}`,
           }}
         >
           <StreakFlame state={flame} size={44} />
@@ -152,7 +152,7 @@ export default function StreakModal({ onClose }: { onClose: () => void }) {
                 className="w-8 h-8 rounded-xl flex items-center justify-center text-sm animate-cell-pop"
                 style={{
                   animationDelay: `${200 + i * 90}ms`,
-                  background: i < freezes ? 'linear-gradient(150deg, #bae6fd, #38bdf8)' : 'rgb(var(--ink) / 0.05)',
+                  background: i < freezes ? 'linear-gradient(150deg, var(--sf-ice-br), #38bdf8)' : 'rgb(var(--ink) / 0.05)',
                   border: i < freezes ? '1px solid #7dd3fc' : '1px dashed rgb(var(--ink) / 0.18)',
                   boxShadow: i < freezes ? '0 4px 10px -4px rgba(14,165,233,0.5)' : 'none',
                 }}
@@ -266,7 +266,7 @@ function MiniStat({ label, value, suffix }: { label: string; value: string; suff
 function DayCell({ state, isToday, dayNum }: { state: DayState; isToday: boolean; dayNum: number }) {
   const styles: Record<DayState, CSSProperties> = {
     done:    { background: 'linear-gradient(150deg, #fbbf24, #f97316)', color: '#4a1d05', boxShadow: '0 4px 10px -4px rgba(249,115,22,0.55)' },
-    frozen:  { background: 'linear-gradient(150deg, #bae6fd, #38bdf8)', color: '#0c4a6e', boxShadow: '0 4px 10px -4px rgba(14,165,233,0.5)' },
+    frozen:  { background: 'linear-gradient(150deg, var(--sf-ice-br), #38bdf8)', color: '#0c4a6e', boxShadow: '0 4px 10px -4px rgba(14,165,233,0.5)' },
     missed:  { background: 'rgb(var(--ink) / 0.05)', color: 'rgb(var(--ink) / 0.35)' },
     pending: { background: 'rgba(249,115,22,0.08)', color: 'rgba(154,77,10,0.7)', border: '1.5px dashed rgba(249,115,22,0.5)' },
     future:  { background: 'rgb(var(--ink) / 0.03)', color: 'rgb(var(--ink) / 0.2)' },

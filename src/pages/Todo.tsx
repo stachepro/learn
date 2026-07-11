@@ -81,7 +81,7 @@ function TodoRow({ todo, removing, onChangeText, onToggle, onDelete, delay = 0 }
     <div
       className={`flex items-center gap-2.5 rounded-2xl px-3 py-2.5 soft-trans ${removing ? 'animate-fade-down' : 'animate-fade-up'}`}
       style={{
-        background: todo.done ? 'rgb(var(--ink) / 0.04)' : '#ffffff',
+        background: todo.done ? 'rgb(var(--ink) / 0.04)' : 'var(--tile-raised)',
         border: `1.5px solid ${todo.done ? 'rgb(var(--ink) / 0.09)' : todo.color}`,
         animationDelay: removing ? '0s' : `${delay}s`,
         opacity: todo.done ? 0.75 : 1,
@@ -293,7 +293,7 @@ export default function Todo() {
       {/* Hızlı ekleme — Enter ya da Ekle */}
       <div
         className="flex items-center gap-2.5 rounded-2xl px-3 py-2 mt-2"
-        style={{ background: 'rgba(255,255,255,0.6)', border: '1.5px dashed rgb(var(--ink) / 0.18)' }}
+        style={{ background: 'var(--tile-raised)', border: '1.5px dashed rgb(var(--ink) / 0.18)' }}
       >
         <span className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ color: 'rgb(var(--ink) / 0.35)' }}>
           <IconPlus size={14} />

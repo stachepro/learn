@@ -18,7 +18,7 @@ type DayStatus = 'done' | 'missed' | 'today-pending' | 'off' | 'future' | 'none'
 const STATUS_STYLE: Record<DayStatus, { bg: string; ring: string; color: string }> = {
   done:          { bg: 'rgb(34,197,94)',        ring: 'rgba(34,197,94,0.5)',  color: '#06210f' },
   missed:        { bg: 'rgba(225,90,60,0.85)',  ring: 'rgba(225,90,60,0.5)',  color: '#fff5f2' },
-  'today-pending': { bg: 'rgba(245,158,11,0.18)', ring: 'rgb(245,158,11)',     color: '#b45309' },
+  'today-pending': { bg: 'rgba(245,158,11,0.18)', ring: 'rgb(245,158,11)',     color: 'var(--sf-amber-tx)' },
   off:           { bg: 'rgb(var(--ink) / 0.05)',   ring: 'rgb(var(--ink) / 0.06)',  color: 'rgb(var(--ink) / 0.3)' },
   future:        { bg: 'rgb(var(--ink) / 0.03)',   ring: 'rgb(var(--ink) / 0.05)',  color: 'rgb(var(--ink) / 0.25)' },
   none:          { bg: 'rgb(var(--ink) / 0.04)',   ring: 'rgb(var(--ink) / 0.05)',  color: 'rgb(var(--ink) / 0.25)' },

@@ -89,11 +89,11 @@ export default function Stats() {
               </div>
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En erken</p>
-                <p className="display text-xl font-extrabold tnum" style={{ color: '#16803c' }}>{earliestWakeTime(wakeRecords) ?? '--'}</p>
+                <p className="display text-xl font-extrabold tnum" style={{ color: 'var(--sf-mint-tx)' }}>{earliestWakeTime(wakeRecords) ?? '--'}</p>
               </div>
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En geç</p>
-                <p className="display text-xl font-extrabold tnum" style={{ color: '#cc4322' }}>{latestWakeTime(wakeRecords) ?? '--'}</p>
+                <p className="display text-xl font-extrabold tnum" style={{ color: 'var(--sf-red-tx)' }}>{latestWakeTime(wakeRecords) ?? '--'}</p>
               </div>
             </div>
           </div>

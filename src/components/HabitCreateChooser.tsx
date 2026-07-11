@@ -65,7 +65,7 @@ export default function HabitCreateChooser({ onClose, onPreset, onCreate }: Prop
           <button
             onClick={onPreset}
             className="btn-press tile-press flex flex-col items-center text-center gap-3 rounded-2xl px-4 py-6"
-            style={{ background: '#e6f0fb', border: '1px solid #c5ddf6' }}
+            style={{ background: 'var(--sf-blue)', border: '1px solid var(--sf-blue-br)' }}
           >
             <span
               className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
@@ -74,8 +74,8 @@ export default function HabitCreateChooser({ onClose, onPreset, onCreate }: Prop
               <IconListPlus size={24} color="#fff" />
             </span>
             <div>
-              <p className="text-sm font-bold" style={{ color: '#0c447c' }}>Hazır Alışkanlıklar</p>
-              <p className="text-[11px] mt-1 leading-snug" style={{ color: '#3f7bc0' }}>
+              <p className="text-sm font-bold" style={{ color: 'var(--sf-blue-tx)' }}>Hazır Alışkanlıklar</p>
+              <p className="text-[11px] mt-1 leading-snug" style={{ color: 'var(--sf-blue-tx2)' }}>
                 Hazır listeden seçerek hızlıca ekle
               </p>
             </div>
