@@ -202,9 +202,9 @@ export default function Dashboard() {
             className={`relative rounded-2xl tile-press soft-trans flex items-center gap-2.5 px-3 py-2.5 text-left ${flameState === 'lit' ? 'flame-glow' : flameState === 'frozen' ? 'ice-glow' : ''}`}
             style={
               flameState === 'frozen'
-                ? { background: '#e3f3fd', border: '1px solid #bae6fd' }
+                ? { background: 'var(--sf-ice)', border: '1px solid var(--sf-ice-br)' }
                 : flameState === 'lit'
-                  ? { background: '#faecd6', border: '1px solid #f3dcb0' }
+                  ? { background: 'var(--sf-amber)', border: '1px solid var(--sf-amber-br)' }
                   : { background: 'var(--tile-dim)', border: '1px solid rgb(var(--ink) / 0.08)' }
             }
           >
@@ -213,13 +213,13 @@ export default function Dashboard() {
               <p
                 key={`${profile.streak}-${flameState}`}
                 className="display text-xl font-black tnum leading-none animate-value-pop"
-                style={{ color: flameState === 'frozen' ? '#0369a1' : flameState === 'lit' ? '#9a4d0a' : 'rgb(var(--ink) / 0.45)' }}
+                style={{ color: flameState === 'frozen' ? 'var(--sf-ice-tx)' : flameState === 'lit' ? 'var(--sf-amber-tx)' : 'rgb(var(--ink) / 0.45)' }}
               >
                 {profile.streak}
               </p>
               <p
                 className="text-[10px] font-bold uppercase tracking-wide mt-0.5"
-                style={{ color: flameState === 'frozen' ? '#38a3e0' : flameState === 'lit' ? '#b87520' : 'rgb(var(--ink) / 0.35)' }}
+                style={{ color: flameState === 'frozen' ? 'var(--sf-ice-tx2)' : flameState === 'lit' ? 'var(--sf-amber-tx2)' : 'rgb(var(--ink) / 0.35)' }}
               >
                 {flameState === 'frozen' ? 'buzda' : 'seri'}
               </p>
@@ -243,11 +243,11 @@ export default function Dashboard() {
             onClick={() => setStatModal('level')}
             aria-label={`Seviye ${profile.level} — detayları aç`}
             className="rounded-2xl tile-press flex items-center gap-2.5 px-3 py-2.5 text-left"
-            style={{ background: '#e7f4d8', border: '1px solid #cfe7af' }}
+            style={{ background: 'var(--sf-lime)', border: '1px solid var(--sf-lime-br)' }}
           >
             <BoltIcon size={22} />
             <div className="min-w-0 flex-1">
-              <p key={profile.level} className="display text-xl font-black tnum leading-none animate-value-pop" style={{ color: '#3b6d11' }}>{profile.level}</p>
+              <p key={profile.level} className="display text-xl font-black tnum leading-none animate-value-pop" style={{ color: 'var(--sf-lime-tx)' }}>{profile.level}</p>
               <div className="mt-1"><ExpBar totalExp={profile.totalExp} level={profile.level} compact tiny /></div>
             </div>
           </button>
@@ -256,12 +256,12 @@ export default function Dashboard() {
             onClick={() => setStatModal('today')}
             aria-label={`Bugün ${completed}/${total} tamamlandı — detayları aç`}
             className="rounded-2xl tile-press flex items-center gap-2.5 px-3 py-2.5 soft-trans text-left"
-            style={allDone ? { background: '#e7f4d8', border: '1px solid #cfe7af' } : { background: '#e6f0fb', border: '1px solid #c5ddf6' }}
+            style={allDone ? { background: 'var(--sf-lime)', border: '1px solid var(--sf-lime-br)' } : { background: 'var(--sf-blue)', border: '1px solid var(--sf-blue-br)' }}
           >
             <CheckRingIcon size={22} done={allDone} />
             <div className="min-w-0">
-              <p key={completed} className="display text-xl font-black tnum leading-none animate-value-pop" style={{ color: allDone ? '#3b6d11' : '#185fa5' }}>{completed}/{total}</p>
-              <p className="text-[10px] font-bold uppercase tracking-wide mt-0.5" style={{ color: allDone ? '#4e8a1e' : '#3f7bc0' }}>{allDone ? 'bitti' : 'bugün'}</p>
+              <p key={completed} className="display text-xl font-black tnum leading-none animate-value-pop" style={{ color: allDone ? 'var(--sf-lime-tx)' : 'var(--sf-blue-tx)' }}>{completed}/{total}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide mt-0.5" style={{ color: allDone ? 'var(--sf-lime-tx2)' : 'var(--sf-blue-tx2)' }}>{allDone ? 'bitti' : 'bugün'}</p>
             </div>
           </button>
         </div>
@@ -416,13 +416,13 @@ export default function Dashboard() {
 function BoltIcon({ size = 24 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="rgb(99,153,34)" />
+      <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="var(--sf-lime-tx)" />
     </svg>
   )
 }
 
 function CheckRingIcon({ size = 24, done }: { size?: number; done?: boolean }) {
-  const c = done ? 'rgb(99,153,34)' : 'rgb(55,138,221)'
+  const c = done ? 'var(--sf-lime-tx)' : 'var(--sf-blue-tx)'
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
       <circle cx="12" cy="12" r="9" stroke={c} strokeWidth="2.2" />

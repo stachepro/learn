@@ -91,6 +91,49 @@ input, textarea, [contenteditable] {
 :root { --tile-dim: #f1ede4; }
 :root[data-theme="dark"] { --tile-dim: rgba(255,255,255,0.06); }
 
+/* Öne çıkan/beyaz karolar (ör. sıradaki adım, seçilebilir kart) — açık temada
+   beyaz, karanlıkta hafif yükseltilmiş koyu yüzey. */
+:root { --tile-raised: #ffffff; }
+:root[data-theme="dark"] { --tile-raised: rgba(255,255,255,0.13); }
+
+/* ── Yumuşak yüzey karoları (streak/seviye/bugün, Hub, su vb.) ──
+   Her renk ailesi için: yüzey (bg), kenar (br), birincil metin (tx), ikincil (tx2).
+   Açık temada mevcut pasteller; karanlıkta cam sistemine uygun koyu-renk tonlu
+   yüzey + açık metin. Satır-içi stiller bu token'ları kullanınca tema ile döner. */
+:root {
+  --sf-blue: #e6f0fb;   --sf-blue-br: #c5ddf6;   --sf-blue-tx: #185fa5;   --sf-blue-tx2: #3f7bc0;
+  --sf-lime: #e7f4d8;   --sf-lime-br: #cfe7af;   --sf-lime-tx: #3b6d11;   --sf-lime-tx2: #4e8a1e;
+  --sf-mint: #e5f6ea;   --sf-mint-br: #c3e8cf;   --sf-mint-tx: #166534;   --sf-mint-tx2: #3f8a5c;
+  --sf-amber: #faecd6;  --sf-amber-br: #f3dcb0;  --sf-amber-tx: #9a4d0a;  --sf-amber-tx2: #b87520;
+  --sf-yellow: #fdf0d9; --sf-yellow-br: #f5ddb2; --sf-yellow-tx: #8a5206; --sf-yellow-tx2: #b87520;
+  --sf-rust: #fae4dd;   --sf-rust-br: #f3c9bd;   --sf-rust-tx: #a33418;   --sf-rust-tx2: #c2562f;
+  --sf-brown: #efe7db;  --sf-brown-br: #ddccb0;  --sf-brown-tx: #4a3220;  --sf-brown-tx2: #8a6a4d;
+  --sf-ice: #e3f3fd;    --sf-ice-br: #bae6fd;    --sf-ice-tx: #0369a1;    --sf-ice-tx2: #38a3e0;
+}
+:root[data-theme="dark"] {
+  --sf-blue: #182635;   --sf-blue-br: rgba(130,175,230,0.18);  --sf-blue-tx: #8fbdf0;  --sf-blue-tx2: #7ba6d8;
+  --sf-lime: #1e2a1a;   --sf-lime-br: rgba(150,205,130,0.18);  --sf-lime-tx: #a5d986;  --sf-lime-tx2: #8bc06a;
+  --sf-mint: #16281e;   --sf-mint-br: rgba(120,210,160,0.18);  --sf-mint-tx: #8fdcac;  --sf-mint-tx2: #74bd94;
+  --sf-amber: #2c2416;  --sf-amber-br: rgba(235,195,120,0.18); --sf-amber-tx: #f0bd82; --sf-amber-tx2: #d6a468;
+  --sf-yellow: #2a2415; --sf-yellow-br: rgba(235,205,130,0.18);--sf-yellow-tx: #eecb8e;--sf-yellow-tx2: #d6a468;
+  --sf-rust: #2e1d18;   --sf-rust-br: rgba(235,150,120,0.18);  --sf-rust-tx: #f0a888;  --sf-rust-tx2: #d98a68;
+  --sf-brown: #241d14;  --sf-brown-br: rgba(200,170,130,0.16); --sf-brown-tx: #dcc6a8; --sf-brown-tx2: #b89a78;
+  --sf-ice: #132638;    --sf-ice-br: rgba(130,195,235,0.2);    --sf-ice-tx: #8fceef;   --sf-ice-tx2: #79bce8;
+}
+
+/* Su Takibi — su dolgusu/koyu zemin üstündeki metin ve haplar. Açık temada koyu
+   lacivert; karanlıkta açık ki hem boş (koyu) hem dolu (mavi) alanda okunsun. */
+:root {
+  --wt-navy: #0c2a5c; --wt-navy-soft: rgba(12,42,92,0.6);
+  --wt-pill: rgba(255,255,255,0.75); --wt-pill-br: rgba(12,42,92,0.15);
+  --wt-num-shadow: rgba(255,255,255,0.7);
+}
+:root[data-theme="dark"] {
+  --wt-navy: #dbe8fa; --wt-navy-soft: rgba(219,232,250,0.72);
+  --wt-pill: rgba(255,255,255,0.14); --wt-pill-br: rgba(255,255,255,0.22);
+  --wt-num-shadow: rgba(0,0,0,0.55);
+}
+
 :root[data-theme="dark"] body {
   background:
     radial-gradient(120% 80% at 50% -8%, rgba(249,115,22,0.08) 0%, transparent 42%),

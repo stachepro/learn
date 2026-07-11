@@ -13,8 +13,8 @@ import type { WaterEntry } from '../types'
 
 type StatsTab = 'day' | 'month' | 'year'
 
-const NAVY = '#0c2a5c'
-const NAVY_60 = 'rgba(12,42,92,0.6)'
+const NAVY = 'var(--wt-navy)'
+const NAVY_60 = 'var(--wt-navy-soft)'
 
 function intensity(ml: number, goal: number): string {
   if (ml <= 0) return 'rgb(var(--ink) / 0.05)'
@@ -112,15 +112,15 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
           <div className="grid grid-cols-3 px-5 py-4 text-center" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Günlük Ort.</p>
-              <p className="display text-lg font-bold tnum" style={{ color: '#1d4ed8' }}>{formatMl(globalAvg)}</p>
+              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatMl(globalAvg)}</p>
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En İyi Gün</p>
-              <p className="display text-lg font-bold tnum" style={{ color: '#16803c' }}>{globalBest ? formatMl(globalBest.ml) : '--'}</p>
+              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-mint-tx)' }}>{globalBest ? formatMl(globalBest.ml) : '--'}</p>
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Hedef Günü</p>
-              <p className="display text-lg font-bold tnum" style={{ color: '#9a4d0a' }}>{goalDays}</p>
+              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-amber-tx)' }}>{goalDays}</p>
             </div>
           </div>
 
@@ -148,7 +148,7 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
                   <p className="text-sm font-bold tnum">{formatShortDate(new Date(`${day}T12:00:00`))}</p>
                   <button onClick={() => shiftDay(1)} disabled={day >= todayStr()} className="ctrl btn-press w-7 h-7 rounded-full flex items-center justify-center text-xs disabled:opacity-30">›</button>
                 </div>
-                <p className="text-center display text-2xl font-black tnum mb-1" style={{ color: '#1d4ed8' }}>{formatLiters(dayTotal)}</p>
+                <p className="text-center display text-2xl font-black tnum mb-1" style={{ color: 'var(--sf-blue-tx)' }}>{formatLiters(dayTotal)}</p>
                 <p className="text-center text-[11px] font-semibold ink-45 mb-4">
                   {dayTotal >= goalMl ? '🎉 Hedefe ulaşıldı' : `Hedefin %${Math.round((dayTotal / goalMl) * 100)}'i`}
                 </p>
@@ -159,7 +159,7 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
                     {dayEntries.map((e) => (
                       <div key={e.id} className="flex items-center gap-2 text-sm py-1.5 px-2 rounded-lg" style={{ background: 'rgba(37,99,235,0.05)' }}>
                         <span className="ink-60 font-medium tnum flex-1">{e.time}</span>
-                        <span className="display font-bold tnum" style={{ color: '#1d4ed8' }}>{formatMl(e.ml)}</span>
+                        <span className="display font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatMl(e.ml)}</span>
                         <button
                           onClick={() => onDeleteEntry(e.id)}
                           aria-label="Sil"
@@ -210,15 +210,15 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
                 <div className="grid grid-cols-3 text-center">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Toplam</p>
-                    <p className="display text-base font-bold tnum" style={{ color: '#1d4ed8' }}>{formatLiters(monthTotal)}</p>
+                    <p className="display text-base font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatLiters(monthTotal)}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Ortalama</p>
-                    <p className="display text-base font-bold tnum" style={{ color: '#1d4ed8' }}>{formatMl(monthAvg)}</p>
+                    <p className="display text-base font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatMl(monthAvg)}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En İyi Gün</p>
-                    <p className="display text-base font-bold tnum" style={{ color: '#16803c' }}>{monthBest ? formatMl(monthBest.ml) : '--'}</p>
+                    <p className="display text-base font-bold tnum" style={{ color: 'var(--sf-mint-tx)' }}>{monthBest ? formatMl(monthBest.ml) : '--'}</p>
                   </div>
                 </div>
               </div>
@@ -257,11 +257,11 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
                 <div className="grid grid-cols-2 text-center">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Yıl Toplamı</p>
-                    <p className="display text-base font-bold tnum" style={{ color: '#1d4ed8' }}>{formatLiters(yearTotal)}</p>
+                    <p className="display text-base font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatLiters(yearTotal)}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Aylık Ortalama</p>
-                    <p className="display text-base font-bold tnum" style={{ color: '#1d4ed8' }}>{formatLiters(Math.round(yearTotal / 12))}</p>
+                    <p className="display text-base font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatLiters(Math.round(yearTotal / 12))}</p>
                   </div>
                 </div>
               </div>
@@ -365,7 +365,7 @@ export default function WaterTracker() {
 
         {/* Büyük litre göstergesi + hedef durumu */}
         <div className="text-center mb-3">
-          <p key={pulseKey} className="display font-black tnum animate-value-pop" style={{ fontSize: 42, lineHeight: 1.1, color: NAVY, textShadow: '0 2px 20px rgba(255,255,255,0.7)' }}>
+          <p key={pulseKey} className="display font-black tnum animate-value-pop" style={{ fontSize: 42, lineHeight: 1.1, color: NAVY, textShadow: '0 2px 20px var(--wt-num-shadow)' }}>
             {formatLiters(todayTotal)}
           </p>
           <div className="flex items-center justify-center gap-2 mt-1.5">
@@ -373,9 +373,9 @@ export default function WaterTracker() {
               onClick={() => setGoalOpen((o) => !o)}
               className="btn-press text-[11px] font-bold px-3 py-1.5 rounded-full"
               style={{
-                background: 'rgba(255,255,255,0.75)',
+                background: 'var(--wt-pill)',
                 color: NAVY,
-                border: goalOpen ? '1px solid rgba(29,78,216,0.5)' : '1px solid rgba(12,42,92,0.15)',
+                border: goalOpen ? '1px solid rgba(29,78,216,0.5)' : '1px solid var(--wt-pill-br)',
                 boxShadow: '0 4px 12px -6px rgba(12,42,92,0.25)',
               }}
             >
@@ -384,8 +384,8 @@ export default function WaterTracker() {
             <span
               className="text-[11px] font-bold px-3 py-1.5 rounded-full"
               style={goalMet
-                ? { background: 'rgba(34,197,94,0.16)', color: '#16803c', border: '1px solid rgba(34,197,94,0.35)' }
-                : { background: 'rgba(255,255,255,0.75)', color: NAVY_60, border: '1px solid rgba(12,42,92,0.15)' }}
+                ? { background: 'rgba(34,197,94,0.16)', color: 'var(--sf-mint-tx)', border: '1px solid rgba(34,197,94,0.35)' }
+                : { background: 'var(--wt-pill)', color: NAVY_60, border: '1px solid var(--wt-pill-br)' }}
             >
               {goalMet ? 'Hedef tamam! 🎉' : `%${goalPct}`}
             </span>
@@ -398,7 +398,7 @@ export default function WaterTracker() {
             <p className="text-xs font-bold mb-2">Günlük Hedef</p>
             <div className="flex items-center justify-center gap-4 mb-2">
               <button onClick={() => updateGoal(goalMl - 250)} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">−</button>
-              <p className="display text-2xl font-black tnum w-28 text-center" style={{ color: '#1d4ed8' }}>{formatMl(goalMl)}</p>
+              <p className="display text-2xl font-black tnum w-28 text-center" style={{ color: 'var(--sf-blue-tx)' }}>{formatMl(goalMl)}</p>
               <button onClick={() => updateGoal(goalMl + 250)} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">+</button>
             </div>
             <div className="flex gap-1.5">
@@ -430,7 +430,7 @@ export default function WaterTracker() {
               className="btn-press tile-press glass glass-lift g-sky flex flex-col items-center justify-center py-2.5"
               style={{ borderRadius: 18 }}
             >
-              <span className="display text-lg font-black tnum" style={{ color: '#1d4ed8' }}>{b.ml >= 1000 ? formatLiters(b.ml) : `${b.ml} ml`}</span>
+              <span className="display text-lg font-black tnum" style={{ color: 'var(--sf-blue-tx)' }}>{b.ml >= 1000 ? formatLiters(b.ml) : `${b.ml} ml`}</span>
               <span className="text-[10px] ink-60 font-semibold">{b.label}</span>
             </button>
           ))}
@@ -461,7 +461,7 @@ export default function WaterTracker() {
           <div className="glass g-sky animate-fade-up p-3 mb-2" style={{ borderRadius: 20 }}>
             <div className="flex items-center justify-center gap-4 mb-2">
               <button onClick={() => setCustomMl((v) => Math.max(50, v - 50))} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">−</button>
-              <p className="display text-2xl font-black tnum w-28 text-center" style={{ color: '#1d4ed8' }}>{customMl} ml</p>
+              <p className="display text-2xl font-black tnum w-28 text-center" style={{ color: 'var(--sf-blue-tx)' }}>{customMl} ml</p>
               <button onClick={() => setCustomMl((v) => Math.min(3000, v + 50))} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">+</button>
             </div>
             <div className="flex gap-1.5 mb-3">
@@ -487,7 +487,7 @@ export default function WaterTracker() {
           </div>
         )}
 
-        <p className="text-[10px] font-semibold text-center w-full mb-3" style={{ color: 'rgba(12,42,92,0.55)' }}>
+        <p className="text-[10px] font-semibold text-center w-full mb-3" style={{ color: 'var(--wt-navy-soft)' }}>
           Suluk boyutu Profil → Su Takibi Ayarları'ndan değiştirilir
         </p>
 
@@ -502,7 +502,7 @@ export default function WaterTracker() {
               {[...todayEntries].reverse().map((e) => (
                 <div key={e.id} className="flex items-center gap-2 text-sm py-1 px-1.5 rounded-lg">
                   <span className="ink-60 font-medium tnum flex-1">{e.time}</span>
-                  <span className="display font-bold tnum" style={{ color: '#1d4ed8' }}>{formatMl(e.ml)}</span>
+                  <span className="display font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatMl(e.ml)}</span>
                   <button
                     onClick={() => deleteEntry(e.id)}
                     aria-label="Sil"
@@ -536,7 +536,7 @@ export default function WaterTracker() {
             <button
               onClick={undoLast}
               className="btn-press text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap"
-              style={{ background: 'rgba(29,78,216,0.1)', color: '#1d4ed8' }}
+              style={{ background: 'rgba(29,78,216,0.1)', color: 'var(--sf-blue-tx)' }}
             >
               Geri Al
             </button>

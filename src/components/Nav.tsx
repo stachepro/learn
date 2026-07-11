@@ -207,7 +207,7 @@ function HubModal({ onClose }: { onClose: () => void }) {
           <button
             onClick={() => goTo('/su-takibi')}
             className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, background: '#e6f0fb', border: '1px solid #c5ddf6' }}
+            style={{ paddingTop: 40, paddingBottom: 40, background: 'var(--sf-blue)', border: '1px solid var(--sf-blue-br)' }}
           >
             <span
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
@@ -216,8 +216,8 @@ function HubModal({ onClose }: { onClose: () => void }) {
               <IconDroplet size={24} strokeWidth={2} color="#fff" />
             </span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#0c447c' }}>Su Takibi</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#3f7bc0' }}>Bugün ne kadar içtin?</p>
+              <p className="text-sm font-bold" style={{ color: 'var(--sf-blue-tx)' }}>Su Takibi</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: 'var(--sf-blue-tx2)' }}>Bugün ne kadar içtin?</p>
             </div>
           </button>
 
@@ -225,7 +225,7 @@ function HubModal({ onClose }: { onClose: () => void }) {
           <button
             onClick={() => goTo('/uyandim')}
             className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, background: '#fdf0d9', border: '1px solid #f5ddb2' }}
+            style={{ paddingTop: 40, paddingBottom: 40, background: 'var(--sf-yellow)', border: '1px solid var(--sf-yellow-br)' }}
           >
             <span
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
@@ -234,8 +234,8 @@ function HubModal({ onClose }: { onClose: () => void }) {
               <IconSun size={24} strokeWidth={2} color="#fff" />
             </span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#8a5206' }}>Uyandım</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#b87520' }}>Güne merhaba de</p>
+              <p className="text-sm font-bold" style={{ color: 'var(--sf-yellow-tx)' }}>Uyandım</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: 'var(--sf-amber-tx2)' }}>Güne merhaba de</p>
             </div>
           </button>
 
@@ -243,7 +243,7 @@ function HubModal({ onClose }: { onClose: () => void }) {
           <button
             onClick={() => goTo('/pomodoro')}
             className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, background: '#fae4dd', border: '1px solid #f3c9bd' }}
+            style={{ paddingTop: 40, paddingBottom: 40, background: 'var(--sf-rust)', border: '1px solid var(--sf-rust-br)' }}
           >
             <span
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
@@ -252,8 +252,8 @@ function HubModal({ onClose }: { onClose: () => void }) {
               <IconTimer size={24} strokeWidth={2} color="#fff" />
             </span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#a33418' }}>Pomodoro</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#c2562f' }}>Serbest odak</p>
+              <p className="text-sm font-bold" style={{ color: 'var(--sf-rust-tx)' }}>Pomodoro</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: 'var(--sf-rust-tx2)' }}>Serbest odak</p>
             </div>
           </button>
 
@@ -261,7 +261,7 @@ function HubModal({ onClose }: { onClose: () => void }) {
           <button
             onClick={() => goTo('/just-start')}
             className="btn-press tile-press flame-glow flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, background: '#faecd6', border: '1px solid #f3dcb0' }}
+            style={{ paddingTop: 40, paddingBottom: 40, background: 'var(--sf-amber)', border: '1px solid var(--sf-amber-br)' }}
           >
             <span
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
@@ -270,8 +270,8 @@ function HubModal({ onClose }: { onClose: () => void }) {
               <IconBolt size={24} strokeWidth={2} color="#fff" />
             </span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#7a3d08' }}>Just Start</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#b87520' }}>1→115 dk momentum</p>
+              <p className="text-sm font-bold" style={{ color: 'var(--sf-amber-tx)' }}>Just Start</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: 'var(--sf-amber-tx2)' }}>1→115 dk momentum</p>
             </div>
           </button>
 
@@ -279,7 +279,7 @@ function HubModal({ onClose }: { onClose: () => void }) {
           <button
             onClick={() => goTo('/todo')}
             className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, background: '#e5f6ea', border: '1px solid #c3e8cf' }}
+            style={{ paddingTop: 40, paddingBottom: 40, background: 'var(--sf-mint)', border: '1px solid var(--sf-mint-br)' }}
           >
             <span
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
@@ -288,8 +288,8 @@ function HubModal({ onClose }: { onClose: () => void }) {
               <IconClipboardList size={24} strokeWidth={2} color="#fff" />
             </span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#166534' }}>Klasik To-do</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#3f8a5c' }}>Basit liste</p>
+              <p className="text-sm font-bold" style={{ color: 'var(--sf-mint-tx)' }}>Klasik To-do</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: 'var(--sf-mint-tx2)' }}>Basit liste</p>
             </div>
           </button>
 
@@ -297,7 +297,7 @@ function HubModal({ onClose }: { onClose: () => void }) {
           <button
             onClick={() => goTo('/acele-yok')}
             className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, background: '#efe7db', border: '1px solid #ddccb0' }}
+            style={{ paddingTop: 40, paddingBottom: 40, background: 'var(--sf-brown)', border: '1px solid var(--sf-brown-br)' }}
           >
             <span
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
@@ -306,8 +306,8 @@ function HubModal({ onClose }: { onClose: () => void }) {
               <IconCoffee size={24} strokeWidth={2} color="#fff" />
             </span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#4a3220' }}>Acele Yok</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#8a6a4d' }}>Adım adım ilerle</p>
+              <p className="text-sm font-bold" style={{ color: 'var(--sf-brown-tx)' }}>Acele Yok</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: 'var(--sf-brown-tx2)' }}>Adım adım ilerle</p>
             </div>
           </button>
 
@@ -315,7 +315,7 @@ function HubModal({ onClose }: { onClose: () => void }) {
           <button
             onClick={() => goTo('/stats')}
             className="btn-press tile-press flex flex-col items-center justify-center gap-3 rounded-2xl"
-            style={{ paddingTop: 40, paddingBottom: 40, background: '#e6f0fb', border: '1px solid #c5ddf6' }}
+            style={{ paddingTop: 40, paddingBottom: 40, background: 'var(--sf-blue)', border: '1px solid var(--sf-blue-br)' }}
           >
             <span
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
@@ -324,8 +324,8 @@ function HubModal({ onClose }: { onClose: () => void }) {
               <IconChart size={24} strokeWidth={2} color="#fff" />
             </span>
             <div className="text-center">
-              <p className="text-sm font-bold" style={{ color: '#0c447c' }}>İstatistikler</p>
-              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#3f7bc0' }}>Aylık özet</p>
+              <p className="text-sm font-bold" style={{ color: 'var(--sf-blue-tx)' }}>İstatistikler</p>
+              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: 'var(--sf-blue-tx2)' }}>Aylık özet</p>
             </div>
           </button>
         </div>
@@ -380,7 +380,7 @@ export default function Nav() {
                 }
                 style={({ isActive }) =>
                   isActive
-                    ? { background: '#faecd6', color: '#9a4d0a', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }
+                    ? { background: 'var(--sf-amber)', color: 'var(--sf-amber-tx)', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }
                     : { color: 'rgb(var(--ink) / 0.55)' }
                 }
               >
@@ -413,7 +413,7 @@ export default function Nav() {
                 }
                 style={({ isActive }) =>
                   isActive
-                    ? { background: '#faecd6', color: '#9a4d0a', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }
+                    ? { background: 'var(--sf-amber)', color: 'var(--sf-amber-tx)', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }
                     : { color: 'rgb(var(--ink) / 0.55)' }
                 }
               >

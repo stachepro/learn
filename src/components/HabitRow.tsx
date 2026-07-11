@@ -22,9 +22,9 @@ function BoostButton({ boostUsedLocked, boostTimerLocked, boostLocked, boostOn, 
         className="btn-press h-7 rounded-full text-[10px] font-bold tracking-wider soft-trans"
         style={{
           width: 54,
-          background: boostUsedLocked ? 'rgba(255,255,255,0.4)' : boostOn ? '#f59e0b' : 'rgba(255,255,255,0.6)',
+          background: boostUsedLocked ? pal.chipSoft : boostOn ? '#f59e0b' : pal.chip,
           border: `1px solid ${boostOn && !boostUsedLocked ? 'rgba(245,158,11,0.55)' : 'rgba(0,0,0,0.08)'}`,
-          color: boostUsedLocked ? 'rgba(0,0,0,0.3)' : boostOn ? '#2a1804' : pal.text,
+          color: boostUsedLocked ? pal.textSoft : boostOn ? '#2a1804' : pal.text,
           opacity: boostTimerLocked && !boostUsedLocked ? 0.45 : 1,
           cursor: boostLocked ? 'not-allowed' : 'pointer',
         }}
@@ -51,7 +51,7 @@ function NoteBtn({ noteOpen, hasNote, onClick, pal }: { noteOpen: boolean; hasNo
       className="btn-press flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm soft-trans"
       style={noteOpen || hasNote
         ? { background: 'rgba(34,197,94,0.18)', color: '#16803c', border: '1px solid rgba(34,197,94,0.4)' }
-        : { background: 'rgba(255,255,255,0.6)', color: pal.textSoft, border: '1px solid rgba(0,0,0,0.07)' }}
+        : { background: pal.chipSoft, color: pal.textSoft, border: '1px solid rgba(0,0,0,0.07)' }}
     >✎</button>
   )
 }
@@ -178,7 +178,7 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
           title={multiAtMax ? 'Bu günlük bu kadar yeter, yoruldun 💪' : undefined}
           className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold soft-trans ${checkAnim ? 'animate-check' : ''}`}
           style={{
-            background: multiGoalMet ? '#16a34a' : 'rgba(255,255,255,0.85)',
+            background: multiGoalMet ? '#16a34a' : pal.chip,
             border: `2px solid ${multiGoalMet ? '#16a34a' : pal.accent}`,
             color: multiGoalMet ? '#fff' : pal.accent,
             cursor: multiAtMax ? 'not-allowed' : 'pointer',
@@ -208,7 +208,7 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
         aria-label={checkboxLocked ? 'Pomodoro olmadan tamamla' : 'Bitir'}
         className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center soft-trans ${checkAnim ? 'animate-check' : ''}`}
         style={{
-          background: 'rgba(255,255,255,0.85)',
+          background: pal.chip,
           border: `2px solid ${checkboxLocked ? '#e8714f' : pal.accent}`,
           color: checkboxLocked ? '#cc4322' : pal.accent,
         }}

@@ -56,17 +56,41 @@ function mix([r, g, b]: [number, number, number], [r2, g2, b2]: [number, number,
 }
 const WHITE: [number, number, number] = [255, 255, 255]
 const BLACK: [number, number, number] = [12, 10, 18]
+// Karanlık temada karo yüzeyi bu koyu tona doğru karıştırılır (cam kartlarıyla uyumlu).
+const DARK_SURFACE: [number, number, number] = [30, 31, 40]
 
 export interface CardPalette {
   cardBg: string     // soft filled card background
   iconBg: string     // brighter chip behind the emoji/icon
-  text: string       // dark, same-family — for the habit name
+  text: string       // same-family — for the habit name
   textSoft: string   // lighter same-family — for the meta line
   accent: string     // saturated colour — complete button / progress
   border: string     // subtle same-family edge
+  chip: string       // küçük kontrol düğmelerinin (not, tamamla) yüzeyi
+  chipSoft: string   // ikincil kontrol yüzeyi
 }
+
+// Tema, kök öğedeki data-theme ile okunur. Tema yalnızca Ayarlar'dan değişir ve
+// sayfa yeniden bağlandığında paletler yeniden hesaplanır; canlı abonelik gerekmez.
+function isDarkTheme(): boolean {
+  try { return document.documentElement.getAttribute('data-theme') === 'dark' } catch { return false }
+}
+
 export function getCardPalette(hex: string): CardPalette {
   const rgb = hexToRgb(hex)
+  if (isDarkTheme()) {
+    return {
+      // Çoğunlukla koyu yüzey, içinde kategori renginden bir tutam ton
+      cardBg: mix(rgb, DARK_SURFACE, 0.8),
+      iconBg: mix(rgb, DARK_SURFACE, 0.55),
+      text: mix(rgb, WHITE, 0.55),      // açık, aynı aile — okunur
+      textSoft: mix(rgb, WHITE, 0.35),
+      accent: mix(rgb, WHITE, 0.22),    // parlak aksan — tamamla düğmesi
+      border: mix(rgb, DARK_SURFACE, 0.55),
+      chip: 'rgba(255,255,255,0.1)',
+      chipSoft: 'rgba(255,255,255,0.07)',
+    }
+  }
   return {
     cardBg: mix(rgb, WHITE, 0.78),
     iconBg: mix(rgb, WHITE, 0.6),
@@ -74,5 +98,7 @@ export function getCardPalette(hex: string): CardPalette {
     textSoft: mix(rgb, BLACK, 0.4),
     accent: mix(rgb, BLACK, 0.12),
     border: mix(rgb, WHITE, 0.55),
+    chip: 'rgba(255,255,255,0.85)',
+    chipSoft: 'rgba(255,255,255,0.6)',
   }
 }

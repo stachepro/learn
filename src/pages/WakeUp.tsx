@@ -273,7 +273,7 @@ export default function WakeUp() {
       {/* Hedef uyanma saati */}
       <label
         className="flex items-center justify-between rounded-2xl px-4 py-3.5 mb-3 cursor-pointer"
-        style={{ background: '#ffffff', border: '1px solid rgb(var(--ink) / 0.09)', boxShadow: '0 1px 2px rgb(var(--ink) / 0.04)' }}
+        style={{ background: 'var(--tile-raised)', border: '1px solid rgb(var(--ink) / 0.09)', boxShadow: '0 1px 2px rgb(var(--ink) / 0.04)' }}
       >
         <span className="flex items-center gap-2.5">
           <span className="text-lg">🎯</span>
@@ -283,7 +283,7 @@ export default function WakeUp() {
           {!goal && (
             <span
               className="text-xs font-bold px-3.5 py-1.5 rounded-full pointer-events-none"
-              style={{ background: '#faecd6', color: '#9a4d0a', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }}
+              style={{ background: 'var(--sf-amber)', color: 'var(--sf-amber-tx)', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }}
             >
               Seç
             </span>

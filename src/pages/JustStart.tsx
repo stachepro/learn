@@ -341,7 +341,7 @@ export default function JustStart() {
           animationDelay: `${i * 0.03}s`,
           background: isDone ? 'rgba(34,197,94,0.14)'
             : isActive ? 'rgba(249,115,22,0.08)'
-            : isNext ? '#ffffff'
+            : isNext ? 'var(--tile-raised)'
             : 'rgb(var(--ink) / 0.04)',
           border: `1.5px solid ${
             isDone ? 'rgba(34,197,94,0.45)'
