@@ -29,12 +29,12 @@ export default function StatModalShell({ title, subtitle, onClose, children, hea
         className={`glass g-neutral stat-modal-card relative w-full max-w-md flex flex-col ${isExiting ? 'sheet-exit' : 'sheet-enter'}`}
         style={{ maxHeight: 'calc(100dvh - env(safe-area-inset-top) - 40px)' }}
       >
-        <div className="flex items-center justify-between px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+        <div className="flex items-center justify-between px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
           <div className="flex items-center gap-2.5 min-w-0">
             {headerIcon}
             <div className="min-w-0">
-              <h2 className="display text-lg font-bold truncate" style={{ color: '#1a1726' }}>{title}</h2>
-              {subtitle && <p className="text-xs mt-0.5 truncate" style={{ color: 'rgba(26,23,38,0.45)' }}>{subtitle}</p>}
+              <h2 className="display text-lg font-bold truncate" style={{ color: 'rgb(var(--ink))' }}>{title}</h2>
+              {subtitle && <p className="text-xs mt-0.5 truncate" style={{ color: 'rgb(var(--ink) / 0.45)' }}>{subtitle}</p>}
             </div>
           </div>
           <button

@@ -4,7 +4,7 @@ import SummaryStory from '../components/SummaryStory'
 import { storage } from '../utils/storage'
 import { collectDaySummary, summaryHasAnything, sessionLabel, type DaySummary } from '../utils/daySummary'
 import { formatMl } from '../utils/water'
-import { todayStr, formatDisplayDate, formatMinutes, formatHMS } from '../utils/date'
+import { todayStr, formatDisplayDate, formatMinutes, formatHMS, logicalNow } from '../utils/date'
 
 /* Günlük Özet — bugünün dökümü tek sayfada:
    - Alışkanlıklar: hepsi, ✓/✗ durumuyla
@@ -63,8 +63,8 @@ export default function DailySummary() {
 
       <div className="flex items-start justify-between mb-5">
         <div>
-          <h1 className="display text-3xl font-extrabold" style={{ color: '#1a1726' }}>Özet</h1>
-          <p className="text-sm mt-1" style={{ color: 'rgba(26,23,38,0.55)' }}>{formatDisplayDate(new Date())}</p>
+          <h1 className="display text-3xl font-extrabold" style={{ color: 'rgb(var(--ink))' }}>Özet</h1>
+          <p className="text-sm mt-1" style={{ color: 'rgb(var(--ink) / 0.55)' }}>{formatDisplayDate(logicalNow())}</p>
         </div>
         <button
           onClick={openStory}
@@ -133,8 +133,8 @@ function SummaryContent() {
                   className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 animate-pop"
                   style={{
                     animationDelay: `${120 + i * 45}ms`,
-                    background: log.completed ? '#e9f9ee' : 'rgba(26,23,38,0.03)',
-                    border: log.completed ? '1px solid #c2ecd0' : '1px solid rgba(26,23,38,0.05)',
+                    background: log.completed ? '#e9f9ee' : 'rgb(var(--ink) / 0.03)',
+                    border: log.completed ? '1px solid #c2ecd0' : '1px solid rgb(var(--ink) / 0.05)',
                   }}
                 >
                   <span className="text-base leading-none flex-shrink-0">{habit.emoji}</span>
@@ -142,7 +142,7 @@ function SummaryContent() {
                     <p
                       className="text-xs font-semibold leading-snug"
                       style={{
-                        color: log.completed ? '#15803d' : '#1a1726',
+                        color: log.completed ? '#15803d' : 'rgb(var(--ink))',
                         textDecoration: log.completed ? 'line-through' : 'none',
                         textDecorationColor: 'rgba(21,128,61,0.4)',
                         overflowWrap: 'anywhere',
@@ -231,7 +231,7 @@ function SummaryContent() {
                 <div
                   key={sess.id}
                   className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 animate-pop"
-                  style={{ animationDelay: `${120 + i * 45}ms`, background: 'rgba(26,23,38,0.03)', border: '1px solid rgba(26,23,38,0.05)' }}
+                  style={{ animationDelay: `${120 + i * 45}ms`, background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.05)' }}
                 >
                   <span className="text-base leading-none flex-shrink-0">{emoji}</span>
                   <p className="text-xs font-semibold flex-1 min-w-0" style={{ overflowWrap: 'anywhere' }}>{name}</p>
@@ -303,7 +303,7 @@ function SectionCard({ emoji, title, right, children, delay }: {
 }) {
   return (
     <div className="glass g-neutral animate-pop" style={{ borderRadius: 24, animationDelay: delay }}>
-      <div className="flex items-center justify-between gap-3 px-5 py-3.5" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+      <div className="flex items-center justify-between gap-3 px-5 py-3.5" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
         <p className="display text-sm font-bold">{emoji} {title}</p>
         {right}
       </div>
@@ -326,17 +326,17 @@ function StatusDot({ done }: { done: boolean }) {
   return (
     <span
       className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-      style={{ background: 'rgba(26,23,38,0.06)', border: '1.5px solid rgba(26,23,38,0.14)' }}
+      style={{ background: 'rgb(var(--ink) / 0.06)', border: '1.5px solid rgb(var(--ink) / 0.14)' }}
     >
-      <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7" stroke="rgba(26,23,38,0.35)" strokeWidth="1.8" strokeLinecap="round" /></svg>
+      <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7" stroke="rgb(var(--ink) / 0.35)" strokeWidth="1.8" strokeLinecap="round" /></svg>
     </span>
   )
 }
 
 function TimeBox({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
-    <div className="flex-1 rounded-2xl px-3 py-3 text-center" style={{ background: 'rgba(26,23,38,0.03)', border: '1px solid rgba(26,23,38,0.06)' }}>
-      <p className="display text-xl font-black tnum leading-none" style={{ color: color ?? '#1a1726' }}>{value}</p>
+    <div className="flex-1 rounded-2xl px-3 py-3 text-center" style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.06)' }}>
+      <p className="display text-xl font-black tnum leading-none" style={{ color: color ?? 'rgb(var(--ink))' }}>{value}</p>
       <p className="text-[9px] font-bold uppercase tracking-wide mt-1.5 ink-45">{label}</p>
     </div>
   )

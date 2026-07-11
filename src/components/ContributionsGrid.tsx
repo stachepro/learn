@@ -10,7 +10,7 @@ function ymd(d: Date): string {
 
 // Green scale that reads on the light cream tile
 function completionColor(count: number): string {
-  if (count === 0) return 'rgba(26,23,38,0.05)'
+  if (count === 0) return 'rgb(var(--ink) / 0.05)'
   if (count === 1) return 'rgba(34,197,94,0.28)'
   if (count === 2) return 'rgba(34,197,94,0.46)'
   if (count === 3) return 'rgba(34,197,94,0.66)'
@@ -77,8 +77,8 @@ export default function ContributionsGrid() {
               key={day}
               className="contrib-cell animate-cell-pop aspect-square rounded-lg flex items-center justify-center relative"
               style={{
-                background: isFuture ? 'rgba(26,23,38,0.03)' : completionColor(count),
-                boxShadow: isToday ? '0 0 0 2px rgb(34,197,94)' : 'inset 0 0 0 1px rgba(26,23,38,0.06)',
+                background: isFuture ? 'rgb(var(--ink) / 0.03)' : completionColor(count),
+                boxShadow: isToday ? '0 0 0 2px rgb(34,197,94)' : 'inset 0 0 0 1px rgb(var(--ink) / 0.06)',
                 '--cell-opacity': isFuture ? 0.5 : 1,
                 animationDelay: `${(i % 7) * 0.02 + Math.floor(i / 7) * 0.015}s`,
               } as CSSProperties}
@@ -107,7 +107,7 @@ export default function ContributionsGrid() {
           <div
             key={n}
             className="w-3 h-3 rounded-[5px]"
-            style={{ background: completionColor(n), boxShadow: 'inset 0 0 0 1px rgba(26,23,38,0.08)' }}
+            style={{ background: completionColor(n), boxShadow: 'inset 0 0 0 1px rgb(var(--ink) / 0.08)' }}
           />
         ))}
         <span className="text-[10px] ink-45">Çok</span>

@@ -70,10 +70,10 @@ function WakeStatsModal({ records, goal, onClose, onReset }: { records: WakeReco
   const goalMins = goal ? timeToMinutes(goal) : null
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className={`fixed inset-0 ${isExiting ? 'animate-fade-out' : 'animate-fade-in'}`} style={{ background: 'rgba(26,23,38,0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} onClick={close} />
+      <div className={`fixed inset-0 ${isExiting ? 'animate-fade-out' : 'animate-fade-in'}`} style={{ background: 'rgb(var(--ink) / 0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} onClick={close} />
       <div className="relative min-h-full flex items-center justify-center p-4">
         <div className={`glass g-neutral w-full max-w-sm ${isExiting ? 'animate-fade-down' : 'animate-pop'}`} style={{ borderRadius: 24 }}>
-          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
             <p className="display text-base font-bold">Kaçta uyanıyorum?</p>
             <div className="flex items-center gap-2">
               {records.length > 0 && (
@@ -90,8 +90,8 @@ function WakeStatsModal({ records, goal, onClose, onReset }: { records: WakeReco
           </div>
 
           {confirmReset && (
-            <div className="px-5 py-4 animate-fade-up" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)', background: 'rgba(239,68,68,0.05)' }}>
-              <p className="text-sm font-semibold mb-3" style={{ color: '#1a1726' }}>
+            <div className="px-5 py-4 animate-fade-up" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)', background: 'rgba(239,68,68,0.05)' }}>
+              <p className="text-sm font-semibold mb-3" style={{ color: 'rgb(var(--ink))' }}>
                 İstatistiklerin sıfırlanacak, emin misin?
               </p>
               <div className="flex gap-2">
@@ -112,7 +112,7 @@ function WakeStatsModal({ records, goal, onClose, onReset }: { records: WakeReco
             </div>
           )}
 
-          <div className="grid grid-cols-3 px-5 py-4 text-center" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+          <div className="grid grid-cols-3 px-5 py-4 text-center" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Ortalama</p>
               <p className="display text-lg font-bold tnum" style={{ color: '#b45309' }}>{avg ?? '--'}</p>
@@ -215,8 +215,8 @@ export default function WakeUp() {
 
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#1a1726' }}>Uyandım</h1>
-        <p className="text-xs mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>Güne merhaba demenin en kısa yolu</p>
+        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: 'rgb(var(--ink))' }}>Uyandım</h1>
+        <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>Güne merhaba demenin en kısa yolu</p>
       </div>
 
       {/* Büyük Uyandım butonu */}
@@ -273,11 +273,11 @@ export default function WakeUp() {
       {/* Hedef uyanma saati */}
       <label
         className="flex items-center justify-between rounded-2xl px-4 py-3.5 mb-3 cursor-pointer"
-        style={{ background: '#ffffff', border: '1px solid rgba(26,23,38,0.09)', boxShadow: '0 1px 2px rgba(26,23,38,0.04)' }}
+        style={{ background: '#ffffff', border: '1px solid rgb(var(--ink) / 0.09)', boxShadow: '0 1px 2px rgb(var(--ink) / 0.04)' }}
       >
         <span className="flex items-center gap-2.5">
           <span className="text-lg">🎯</span>
-          <span className="text-sm font-bold" style={{ color: '#1a1726' }}>Hedef uyanma saati</span>
+          <span className="text-sm font-bold" style={{ color: 'rgb(var(--ink))' }}>Hedef uyanma saati</span>
         </span>
         <span className="relative flex items-center">
           {!goal && (

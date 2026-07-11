@@ -342,17 +342,17 @@ export default function JustStart() {
           background: isDone ? 'rgba(34,197,94,0.14)'
             : isActive ? 'rgba(249,115,22,0.08)'
             : isNext ? '#ffffff'
-            : 'rgba(26,23,38,0.04)',
+            : 'rgb(var(--ink) / 0.04)',
           border: `1.5px solid ${
             isDone ? 'rgba(34,197,94,0.45)'
             : isActive ? 'rgba(249,115,22,0.55)'
-            : isNext ? 'rgba(26,23,38,0.18)'
-            : 'rgba(26,23,38,0.07)'
+            : isNext ? 'rgb(var(--ink) / 0.18)'
+            : 'rgb(var(--ink) / 0.07)'
           }`,
           color: isDone ? '#15803d'
             : isActive ? '#c2410c'
-            : isNext ? '#1a1726'
-            : 'rgba(26,23,38,0.28)',
+            : isNext ? 'rgb(var(--ink))'
+            : 'rgb(var(--ink) / 0.28)',
           cursor: isNext ? 'pointer' : 'default',
         }}
       >
@@ -384,10 +384,10 @@ export default function JustStart() {
 
       {/* Başlık */}
       <div className="mb-7 text-center">
-        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#1a1726' }}>
+        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: 'rgb(var(--ink))' }}>
           Just Start
         </h1>
-        <p className="text-xs mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
+        <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
           Sadece başlamak yeter · {completedMins}/{TOTAL_MINUTES} dk
         </p>
       </div>
@@ -413,7 +413,7 @@ export default function JustStart() {
                   <span className="display text-2xl font-extrabold mt-2.5" style={{ color: '#15803d' }}>
                     +{celebrate.min} dk
                   </span>
-                  <span className="text-[11px] font-semibold mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
+                  <span className="text-[11px] font-semibold mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
                     adım tamamlandı
                   </span>
                 </div>
@@ -439,13 +439,13 @@ export default function JustStart() {
                   <div className="mt-2.5">
                     <AnimatedTime
                       text={fmt(active !== null ? secs : STEPS[nextIdx] * 60)}
-                      color={active !== null ? '#1a1726' : 'rgba(26,23,38,0.28)'}
+                      color={active !== null ? 'rgb(var(--ink))' : 'rgb(var(--ink) / 0.28)'}
                       dim={paused}
                       blink={ticking}
                     />
                   </div>
                 )}
-                <span className="text-[11px] font-semibold mt-2" style={{ color: 'rgba(26,23,38,0.45)' }}>
+                <span className="text-[11px] font-semibold mt-2" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
                   {completedCount}/10 adım tamamlandı
                 </span>
               </>
@@ -459,7 +459,7 @@ export default function JustStart() {
           <p
             key={`${active}-${paused}`}
             className="animate-fade-in text-xs mt-3 text-center px-6"
-            style={{ color: 'rgba(26,23,38,0.5)' }}
+            style={{ color: 'rgb(var(--ink) / 0.5)' }}
           >
             {paused ? 'Nefes al — acele yok, kaldığın yerden devam edersin.' : encourage(STEPS[active])}
           </p>
@@ -483,9 +483,9 @@ export default function JustStart() {
               onClick={togglePause}
               className="btn-press w-full py-3.5 rounded-2xl text-sm font-bold animate-fade-up"
               style={{
-                background: paused ? 'rgba(34,197,94,0.9)' : 'rgba(26,23,38,0.06)',
-                color: paused ? '#06210f' : '#1a1726',
-                border: '1px solid rgba(26,23,38,0.08)',
+                background: paused ? 'rgba(34,197,94,0.9)' : 'rgb(var(--ink) / 0.06)',
+                color: paused ? '#06210f' : 'rgb(var(--ink))',
+                border: '1px solid rgb(var(--ink) / 0.08)',
               }}
             >
               {paused ? '▶ Devam Et' : '⏸ Duraklat'}
@@ -555,14 +555,14 @@ export default function JustStart() {
             <span
               key={i}
               className="absolute inset-y-1.5"
-              style={{ left: `${(i + 1) * 10}%`, width: 1, background: 'rgba(26,23,38,0.1)' }}
+              style={{ left: `${(i + 1) * 10}%`, width: 1, background: 'rgb(var(--ink) / 0.1)' }}
             />
           ))}
           {/* Ortadaki yüzde etiketi */}
           <span
             key={completedCount}
             className="animate-value-pop absolute inset-0 flex items-center justify-center text-[11px] font-bold tnum"
-            style={{ color: completedCount === STEPS.length ? '#06210f' : '#1a1726' }}
+            style={{ color: completedCount === STEPS.length ? '#06210f' : 'rgb(var(--ink))' }}
           >
             %{completedCount * 10} tamamlandı
           </span>
@@ -572,22 +572,22 @@ export default function JustStart() {
       {/* ── Adım yolculuğu: Isınma → Tırmanış ── */}
       <div className="mt-7">
         <div className="flex items-center justify-between mb-2.5 px-0.5">
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(26,23,38,0.45)' }}>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
             Adım Yolculuğu
           </span>
-          <span className="text-[10px] font-bold tabular-nums" style={{ color: 'rgba(26,23,38,0.45)' }}>
+          <span className="text-[10px] font-bold tabular-nums" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
             {completedMins}/{TOTAL_MINUTES} dk
           </span>
         </div>
 
-        <p className="text-[9px] font-bold uppercase tracking-[0.16em] mb-1.5 px-0.5" style={{ color: 'rgba(26,23,38,0.3)' }}>
+        <p className="text-[9px] font-bold uppercase tracking-[0.16em] mb-1.5 px-0.5" style={{ color: 'rgb(var(--ink) / 0.3)' }}>
           Isınma
         </p>
         <div className="grid grid-cols-5 gap-2">
           {STEPS.slice(0, 5).map((min, i) => renderTile(min, i))}
         </div>
 
-        <p className="text-[9px] font-bold uppercase tracking-[0.16em] mt-3 mb-1.5 px-0.5" style={{ color: 'rgba(26,23,38,0.3)' }}>
+        <p className="text-[9px] font-bold uppercase tracking-[0.16em] mt-3 mb-1.5 px-0.5" style={{ color: 'rgb(var(--ink) / 0.3)' }}>
           Tırmanış
         </p>
         <div className="grid grid-cols-5 gap-2">
@@ -595,7 +595,7 @@ export default function JustStart() {
         </div>
 
         {!allDone && active === null && (
-          <p className="text-center text-[11px] mt-3" style={{ color: 'rgba(26,23,38,0.4)' }}>
+          <p className="text-center text-[11px] mt-3" style={{ color: 'rgb(var(--ink) / 0.4)' }}>
             {done.some(Boolean)
               ? `Sıradaki adım ${STEPS[nextIdx]} dakika — hazır olunca başla.`
               : '1 dakikayla başla, her adımda biraz daha uzat.'}
@@ -612,10 +612,10 @@ export default function JustStart() {
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1 ink-60">Bugünkü Tur</p>
         </div>
         <div className="glass g-neutral rounded-2xl px-4 py-4 text-center animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <p key={stats.allTime} className="display text-3xl font-extrabold tnum animate-value-pop" style={{ color: '#1a1726' }}>
+          <p key={stats.allTime} className="display text-3xl font-extrabold tnum animate-value-pop" style={{ color: 'rgb(var(--ink))' }}>
             {stats.allTime}
           </p>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>Toplam Tur</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>Toplam Tur</p>
         </div>
       </div>
 
@@ -624,7 +624,7 @@ export default function JustStart() {
         <div className="mt-6">
           {confirmReset ? (
             <div className="flex items-center gap-2 animate-fade-up">
-              <span className="text-xs font-semibold flex-1 text-right" style={{ color: 'rgba(26,23,38,0.55)' }}>
+              <span className="text-xs font-semibold flex-1 text-right" style={{ color: 'rgb(var(--ink) / 0.55)' }}>
                 Tüm adımlar silinsin mi?
               </span>
               <button
@@ -645,7 +645,7 @@ export default function JustStart() {
             <button
               onClick={() => setConfirmReset(true)}
               className="btn-press w-full py-2 text-xs font-semibold"
-              style={{ color: 'rgba(26,23,38,0.4)' }}
+              style={{ color: 'rgb(var(--ink) / 0.4)' }}
             >
               ↺ Günü Sıfırla
             </button>
@@ -653,7 +653,7 @@ export default function JustStart() {
         </div>
       )}
 
-      <p className="text-center text-[11px] mt-4" style={{ color: 'rgba(26,23,38,0.4)' }}>
+      <p className="text-center text-[11px] mt-4" style={{ color: 'rgb(var(--ink) / 0.4)' }}>
         10 adımın hepsini bitirince {xpAmount} XP kazanırsın.
       </p>
     </div>

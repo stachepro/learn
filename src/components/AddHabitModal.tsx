@@ -159,7 +159,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
           style={{ borderRadius: 28 }}
         >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
           <h2 className="display text-lg font-bold">
             {editHabit ? 'Alışkanlığı Düzenle' : 'Yeni Alışkanlık'}
           </h2>
@@ -183,19 +183,19 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
               aria-expanded={openPicker === 'emoji'}
               className="btn-press w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all"
               style={{
-                background: openPicker === 'emoji' ? 'rgba(34,197,94,0.1)' : 'rgba(26,23,38,0.04)',
-                border: `1.5px solid ${openPicker === 'emoji' ? 'rgba(34,197,94,0.5)' : 'rgba(26,23,38,0.08)'}`,
+                background: openPicker === 'emoji' ? 'rgba(34,197,94,0.1)' : 'rgb(var(--ink) / 0.04)',
+                border: `1.5px solid ${openPicker === 'emoji' ? 'rgba(34,197,94,0.5)' : 'rgb(var(--ink) / 0.08)'}`,
               }}
             >
               <span className="glass g-cream w-10 h-10 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
                 {emoji}
               </span>
-              <span className="text-sm font-semibold flex-1 text-left" style={{ color: 'rgba(26,23,38,0.6)' }}>
+              <span className="text-sm font-semibold flex-1 text-left" style={{ color: 'rgb(var(--ink) / 0.6)' }}>
                 {openPicker === 'emoji' ? 'Bir emoji seç' : 'Emojiyi değiştir'}
               </span>
               <span
                 className="text-xs transition-transform flex-shrink-0"
-                style={{ transform: openPicker === 'emoji' ? 'rotate(180deg)' : 'rotate(0deg)', color: 'rgba(26,23,38,0.4)' }}
+                style={{ transform: openPicker === 'emoji' ? 'rotate(180deg)' : 'rotate(0deg)', color: 'rgb(var(--ink) / 0.4)' }}
               >
                 ▼
               </span>
@@ -211,8 +211,8 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 disabled={emojiPage === 0}
                 className="btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold"
                 style={{
-                  background: emojiPage === 0 ? 'rgba(26,23,38,0.04)' : 'rgba(26,23,38,0.07)',
-                  color: emojiPage === 0 ? 'rgba(26,23,38,0.25)' : 'rgba(26,23,38,0.78)',
+                  background: emojiPage === 0 ? 'rgb(var(--ink) / 0.04)' : 'rgb(var(--ink) / 0.07)',
+                  color: emojiPage === 0 ? 'rgb(var(--ink) / 0.25)' : 'rgb(var(--ink) / 0.78)',
                 }}
               >
                 ← Geri
@@ -229,7 +229,7 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     style={{
                       width: i === emojiPage ? 22 : 7,
                       height: 7,
-                      background: i === emojiPage ? 'rgb(34,197,94)' : 'rgba(26,23,38,0.25)',
+                      background: i === emojiPage ? 'rgb(34,197,94)' : 'rgb(var(--ink) / 0.25)',
                       boxShadow: i === emojiPage ? '0 0 8px rgba(34,197,94,0.6)' : 'none',
                     }}
                   />
@@ -242,8 +242,8 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 disabled={emojiPage === TOTAL_PAGES - 1}
                 className="btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold"
                 style={{
-                  background: emojiPage === TOTAL_PAGES - 1 ? 'rgba(26,23,38,0.04)' : 'rgba(26,23,38,0.07)',
-                  color: emojiPage === TOTAL_PAGES - 1 ? 'rgba(26,23,38,0.25)' : 'rgba(26,23,38,0.78)',
+                  background: emojiPage === TOTAL_PAGES - 1 ? 'rgb(var(--ink) / 0.04)' : 'rgb(var(--ink) / 0.07)',
+                  color: emojiPage === TOTAL_PAGES - 1 ? 'rgb(var(--ink) / 0.25)' : 'rgb(var(--ink) / 0.78)',
                 }}
               >
                 İleri →
@@ -304,8 +304,8 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
               aria-expanded={openPicker === 'category'}
               className="btn-press w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all"
               style={{
-                background: openPicker === 'category' ? 'rgba(34,197,94,0.1)' : 'rgba(26,23,38,0.04)',
-                border: `1.5px solid ${openPicker === 'category' ? 'rgba(34,197,94,0.5)' : 'rgba(26,23,38,0.08)'}`,
+                background: openPicker === 'category' ? 'rgba(34,197,94,0.1)' : 'rgb(var(--ink) / 0.04)',
+                border: `1.5px solid ${openPicker === 'category' ? 'rgba(34,197,94,0.5)' : 'rgb(var(--ink) / 0.08)'}`,
               }}
             >
               {selectedCat ? (
@@ -321,13 +321,13 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                   )
                 })()
               ) : (
-                <span className="text-sm font-semibold flex-1 text-left" style={{ color: 'rgba(26,23,38,0.6)' }}>
+                <span className="text-sm font-semibold flex-1 text-left" style={{ color: 'rgb(var(--ink) / 0.6)' }}>
                   Kategori Seç
                 </span>
               )}
               <span
                 className="text-xs transition-transform flex-shrink-0"
-                style={{ transform: openPicker === 'category' ? 'rotate(180deg)' : 'rotate(0deg)', color: 'rgba(26,23,38,0.4)' }}
+                style={{ transform: openPicker === 'category' ? 'rotate(180deg)' : 'rotate(0deg)', color: 'rgb(var(--ink) / 0.4)' }}
               >
                 ▼
               </span>
@@ -345,9 +345,9 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     onClick={() => { setCategoryId(cat.id); setOpenPicker(null) }}
                     className="btn-press flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all text-left"
                     style={{
-                      background: sel ? `${c.text}22` : 'rgba(26,23,38,0.05)',
-                      boxShadow: sel ? `inset 0 0 0 1.5px ${c.text}` : 'inset 0 0 0 1px rgba(26,23,38,0.08)',
-                      color: sel ? c.text : 'rgba(26,23,38,0.6)',
+                      background: sel ? `${c.text}22` : 'rgb(var(--ink) / 0.05)',
+                      boxShadow: sel ? `inset 0 0 0 1.5px ${c.text}` : 'inset 0 0 0 1px rgb(var(--ink) / 0.08)',
+                      color: sel ? c.text : 'rgb(var(--ink) / 0.6)',
                     }}
                   >
                     <span>{cat.emoji}</span>
@@ -412,13 +412,13 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     onClick={() => setCompletionMode(id)}
                     className="btn-press flex flex-col items-center gap-1 py-3 px-2 rounded-2xl text-center transition-all"
                     style={{
-                      background: sel ? colors.bg : 'rgba(26,23,38,0.04)',
-                      border: `1.5px solid ${sel ? colors.border : 'rgba(26,23,38,0.08)'}`,
+                      background: sel ? colors.bg : 'rgb(var(--ink) / 0.04)',
+                      border: `1.5px solid ${sel ? colors.border : 'rgb(var(--ink) / 0.08)'}`,
                     }}
                   >
                     <span className="text-xl leading-none">{icon}</span>
-                    <span className="text-xs font-bold" style={{ color: sel ? colors.text : 'rgba(26,23,38,0.72)' }}>{mLabel}</span>
-                    <span className="text-[10px]" style={{ color: 'rgba(26,23,38,0.42)' }}>{desc}</span>
+                    <span className="text-xs font-bold" style={{ color: sel ? colors.text : 'rgb(var(--ink) / 0.72)' }}>{mLabel}</span>
+                    <span className="text-[10px]" style={{ color: 'rgb(var(--ink) / 0.42)' }}>{desc}</span>
                   </button>
                 )
               })}
@@ -480,12 +480,12 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     onClick={() => setRecurrence(id)}
                     className="btn-press flex items-center gap-2 px-3 py-2.5 rounded-2xl text-left transition-all"
                     style={{
-                      background: sel ? 'rgba(34,197,94,0.18)' : 'rgba(26,23,38,0.04)',
-                      border: `1.5px solid ${sel ? 'rgba(34,197,94,0.55)' : 'rgba(26,23,38,0.08)'}`,
+                      background: sel ? 'rgba(34,197,94,0.18)' : 'rgb(var(--ink) / 0.04)',
+                      border: `1.5px solid ${sel ? 'rgba(34,197,94,0.55)' : 'rgb(var(--ink) / 0.08)'}`,
                     }}
                   >
                     <span className="text-base leading-none">{icon}</span>
-                    <span className="text-xs font-semibold" style={{ color: sel ? '#16a34a' : 'rgba(26,23,38,0.72)' }}>{rLabel}</span>
+                    <span className="text-xs font-semibold" style={{ color: sel ? '#16a34a' : 'rgb(var(--ink) / 0.72)' }}>{rLabel}</span>
                   </button>
                 )
               })}
@@ -512,9 +512,9 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                         onClick={() => toggleRecurrenceDay(idx)}
                         className="btn-press flex-1 py-2 rounded-xl text-[11px] font-bold transition-all"
                         style={{
-                          background: sel ? 'rgba(34,197,94,0.22)' : 'rgba(26,23,38,0.05)',
-                          border: `1.5px solid ${sel ? 'rgba(34,197,94,0.6)' : 'rgba(26,23,38,0.1)'}`,
-                          color: sel ? '#16a34a' : 'rgba(26,23,38,0.5)',
+                          background: sel ? 'rgba(34,197,94,0.22)' : 'rgb(var(--ink) / 0.05)',
+                          border: `1.5px solid ${sel ? 'rgba(34,197,94,0.6)' : 'rgb(var(--ink) / 0.1)'}`,
+                          color: sel ? '#16a34a' : 'rgb(var(--ink) / 0.5)',
                           minWidth: 36,
                         }}
                       >
@@ -545,12 +545,12 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                     onClick={() => setTimeOfDay(id)}
                     className="btn-press flex flex-col items-center gap-1 py-2.5 px-1 rounded-2xl text-center transition-all"
                     style={{
-                      background: sel ? 'rgba(245,158,11,0.16)' : 'rgba(26,23,38,0.04)',
-                      border: `1.5px solid ${sel ? 'rgba(245,158,11,0.6)' : 'rgba(26,23,38,0.08)'}`,
+                      background: sel ? 'rgba(245,158,11,0.16)' : 'rgb(var(--ink) / 0.04)',
+                      border: `1.5px solid ${sel ? 'rgba(245,158,11,0.6)' : 'rgb(var(--ink) / 0.08)'}`,
                     }}
                   >
                     <span className="text-lg leading-none">{icon}</span>
-                    <span className="text-[11px] font-bold" style={{ color: sel ? '#b45309' : 'rgba(26,23,38,0.6)' }}>{tLabel}</span>
+                    <span className="text-[11px] font-bold" style={{ color: sel ? '#b45309' : 'rgb(var(--ink) / 0.6)' }}>{tLabel}</span>
                   </button>
                 )
               })}
@@ -568,11 +568,11 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 className="btn-press w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                 title="Renksiz"
                 style={{
-                  background: 'rgba(26,23,38,0.05)',
-                  border: `2px solid ${!labelColor ? 'rgba(26,23,38,0.7)' : 'rgba(26,23,38,0.18)'}`,
+                  background: 'rgb(var(--ink) / 0.05)',
+                  border: `2px solid ${!labelColor ? 'rgb(var(--ink) / 0.7)' : 'rgb(var(--ink) / 0.18)'}`,
                 }}
               >
-                <span style={{ fontSize: 14, color: 'rgba(26,23,38,0.4)' }}>✕</span>
+                <span style={{ fontSize: 14, color: 'rgb(var(--ink) / 0.4)' }}>✕</span>
               </button>
               {LABEL_COLORS.map(({ hex, name: cname }) => (
                 <button
@@ -606,14 +606,14 @@ export default function AddHabitModal({ onClose, editHabit }: Props) {
                 onClick={() => setUseTimeWindow((v) => !v)}
                 className="btn-press flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                 style={{
-                  background: useTimeWindow ? 'rgba(34,197,94,0.18)' : 'rgba(26,23,38,0.05)',
-                  border: `1px solid ${useTimeWindow ? 'rgba(34,197,94,0.45)' : 'rgba(26,23,38,0.1)'}`,
-                  color: useTimeWindow ? '#16a34a' : 'rgba(26,23,38,0.5)',
+                  background: useTimeWindow ? 'rgba(34,197,94,0.18)' : 'rgb(var(--ink) / 0.05)',
+                  border: `1px solid ${useTimeWindow ? 'rgba(34,197,94,0.45)' : 'rgb(var(--ink) / 0.1)'}`,
+                  color: useTimeWindow ? '#16a34a' : 'rgb(var(--ink) / 0.5)',
                 }}
               >
                 <span
                   className="w-3.5 h-3.5 rounded-full transition-all flex-shrink-0"
-                  style={{ background: useTimeWindow ? 'rgb(34,197,94)' : 'rgba(26,23,38,0.25)' }}
+                  style={{ background: useTimeWindow ? 'rgb(34,197,94)' : 'rgb(var(--ink) / 0.25)' }}
                 />
                 {useTimeWindow ? 'Açık' : 'Kapalı'}
               </button>

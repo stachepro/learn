@@ -43,7 +43,7 @@ function contentFor(e: StreakEvent): ToastContent {
         emoji: '🌫️',
         title: 'Seri sıfırlandı',
         body: 'Bugün bir alışkanlık tamamla, alevi yeniden yak',
-        accent: 'rgba(251,247,240,0.5)',
+        accent: 'rgb(var(--canvas) / 0.5)',
         iconBg: 'linear-gradient(150deg, #6b7280, #374151)',
       }
   }
@@ -97,9 +97,9 @@ export default function StreakToast() {
         className={`flex items-center gap-3 pl-3 pr-5 py-3 ${leaving ? 'ach-out' : 'ach-in'}`}
         style={{
           borderRadius: 20,
-          background: '#1a1726',
-          color: '#fbf7f0',
-          boxShadow: `0 14px 34px -12px rgba(26,23,38,0.65), 0 0 0 1px ${current.accent}66`,
+          background: 'rgb(var(--ink))',
+          color: 'rgb(var(--canvas))',
+          boxShadow: `0 14px 34px -12px rgb(var(--ink) / 0.65), 0 0 0 1px ${current.accent}66`,
           maxWidth: 360,
         }}
       >
@@ -114,7 +114,7 @@ export default function StreakToast() {
             Seri
           </p>
           <p className="display text-sm font-bold truncate">{current.title}</p>
-          <p className="text-[11px] truncate" style={{ color: 'rgba(251,247,240,0.6)' }}>{current.body}</p>
+          <p className="text-[11px] truncate" style={{ color: 'rgb(var(--canvas) / 0.6)' }}>{current.body}</p>
         </div>
       </div>
     </div>

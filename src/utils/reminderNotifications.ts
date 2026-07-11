@@ -1,6 +1,25 @@
 import { Capacitor } from '@capacitor/core'
 import { LocalNotifications, type Weekday } from '@capacitor/local-notifications'
 import type { Habit } from '../types'
+import { storage } from './storage'
+import { getDayEndHour } from './date'
+
+// Ayarlar sayfası için: mevcut bildirim izni durumu ve izin isteme.
+export type NotifPermission = 'granted' | 'denied' | 'prompt' | 'unavailable'
+
+export async function getNotificationStatus(): Promise<NotifPermission> {
+  if (!isNative) return 'unavailable'
+  try {
+    const status = await LocalNotifications.checkPermissions()
+    if (status.display === 'granted') return 'granted'
+    if (status.display === 'denied') return 'denied'
+    return 'prompt'
+  } catch { return 'unavailable' }
+}
+
+export async function requestNotificationPermission(): Promise<boolean> {
+  return ensurePermission()
+}
 
 // Alışkanlık hatırlatmaları ve "Uyandım" hedef saati için gerçek mobil bildirimler.
 // Web'de sessizce devre dışı (timerNotifications.ts ile aynı desen).
@@ -133,15 +152,17 @@ const NOTIF_DAILY_SUMMARY = 20_000_003
 export async function scheduleDailySummaryNotification(): Promise<void> {
   if (!isNative) return
   await LocalNotifications.cancel({ notifications: [{ id: NOTIF_DAILY_SUMMARY }] }).catch(() => { /* ignore */ })
+  if (!storage.getNotifPrefs().dailySummary) return
   if (!(await ensurePermission())) return
 
+  // Gün, kullanıcının seçtiği bitiş saatinde döner; özet bildirimi de o an gelir.
   try {
     await LocalNotifications.schedule({
       notifications: [{
         id: NOTIF_DAILY_SUMMARY,
         title: '🎬 Günün özeti hazır',
         body: 'Bugünün hikayesi seni bekliyor — izlemek için dokun.',
-        schedule: { on: { hour: 0, minute: 0 }, allowWhileIdle: true },
+        schedule: { on: { hour: getDayEndHour(), minute: 0 }, allowWhileIdle: true },
         sound: 'default',
         extra: { route: '/ozet' },
       }],
@@ -158,6 +179,7 @@ export async function scheduleStreakRiskReminder(hasCompletedToday: boolean): Pr
   if (!isNative) return
   await LocalNotifications.cancel({ notifications: [{ id: NOTIF_STREAK_RISK }] }).catch(() => { /* ignore */ })
   if (hasCompletedToday) return
+  if (!storage.getNotifPrefs().streakRisk) return
 
   const now = new Date()
   const at = new Date(now)

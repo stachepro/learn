@@ -195,7 +195,7 @@ function HubModal({ onClose }: { onClose: () => void }) {
       className={`fixed inset-x-0 top-0 sm:top-16 bottom-[calc(3.25rem+max(env(safe-area-inset-bottom),12px))] sm:bottom-0 z-[35] flex flex-col ${exiting ? 'animate-hub-close' : 'animate-hub-open'}`}
       style={{
         paddingTop: 'env(safe-area-inset-top)',
-        background: 'rgba(251,247,240,0.97)',
+        background: 'rgb(var(--canvas) / 0.97)',
         backdropFilter: 'blur(24px) saturate(150%)',
         WebkitBackdropFilter: 'blur(24px) saturate(150%)',
       }}
@@ -349,11 +349,11 @@ export default function Nav() {
         className="hidden sm:block sticky top-0 z-40"
         style={{
           paddingTop: 'env(safe-area-inset-top)',
-          background: 'rgba(251,247,240,0.82)',
+          background: 'rgb(var(--canvas) / 0.82)',
           backdropFilter: 'blur(20px) saturate(140%)',
           WebkitBackdropFilter: 'blur(20px) saturate(140%)',
-          borderBottom: '1px solid rgba(26,23,38,0.08)',
-          boxShadow: '0 6px 22px -16px rgba(26,23,38,0.4)',
+          borderBottom: '1px solid rgb(var(--ink) / 0.08)',
+          boxShadow: '0 6px 22px -16px rgb(var(--ink) / 0.4)',
         }}
       >
         <div className="max-w-3xl mx-auto px-4 flex items-center justify-between h-16">
@@ -362,7 +362,7 @@ export default function Nav() {
             <div className="w-9 h-9 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(150deg, #fbbf24, #f97316)', boxShadow: '0 6px 14px -6px rgba(249,115,22,0.55)' }}>
               <span className="display text-[17px] font-black" style={{ color: '#2a1402' }}>L</span>
             </div>
-            <span className="display font-extrabold text-[19px] tracking-tight" style={{ color: '#1a1726' }}>
+            <span className="display font-extrabold text-[19px] tracking-tight" style={{ color: 'rgb(var(--ink))' }}>
               Luupi
             </span>
           </div>
@@ -381,7 +381,7 @@ export default function Nav() {
                 style={({ isActive }) =>
                   isActive
                     ? { background: '#faecd6', color: '#9a4d0a', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }
-                    : { color: 'rgba(26,23,38,0.55)' }
+                    : { color: 'rgb(var(--ink) / 0.55)' }
                 }
               >
                 {label}
@@ -414,7 +414,7 @@ export default function Nav() {
                 style={({ isActive }) =>
                   isActive
                     ? { background: '#faecd6', color: '#9a4d0a', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }
-                    : { color: 'rgba(26,23,38,0.55)' }
+                    : { color: 'rgb(var(--ink) / 0.55)' }
                 }
               >
                 {label}
@@ -429,8 +429,8 @@ export default function Nav() {
               className="btn-press flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-full"
               style={
                 timerActive
-                  ? { background: '#1a1726', color: '#fbf7f0', boxShadow: '0 4px 12px -6px rgba(26,23,38,0.5)' }
-                  : { background: 'rgba(26,23,38,0.06)', color: '#4a4658', boxShadow: 'inset 0 0 0 1px rgba(26,23,38,0.08)' }
+                  ? { background: 'rgb(var(--ink))', color: 'rgb(var(--canvas))', boxShadow: '0 4px 12px -6px rgb(var(--ink) / 0.5)' }
+                  : { background: 'rgb(var(--ink) / 0.06)', color: '#4a4658', boxShadow: 'inset 0 0 0 1px rgb(var(--ink) / 0.08)' }
               }
             >
               {timerActive && <span className="w-1.5 h-1.5 rounded-full animate-live" style={{ background: '#fbbf24' }} />}
@@ -446,11 +446,11 @@ export default function Nav() {
       <div
         className="sm:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center"
         style={{
-          background: 'rgba(251,247,240,0.94)',
+          background: 'rgb(var(--canvas) / 0.94)',
           backdropFilter: 'blur(24px) saturate(150%)',
           WebkitBackdropFilter: 'blur(24px) saturate(150%)',
-          borderTop: '1px solid rgba(26,23,38,0.08)',
-          boxShadow: '0 -10px 30px -16px rgba(26,23,38,0.35)',
+          borderTop: '1px solid rgb(var(--ink) / 0.08)',
+          boxShadow: '0 -10px 30px -16px rgb(var(--ink) / 0.35)',
           paddingTop: 6,
           // Çentiksiz cihazda 12px; çentikli cihazda home göstergesi kadar —
           // ikisini toplamak çubuğu gereğinden fazla yukarı itiyordu
@@ -471,11 +471,11 @@ export default function Nav() {
                 <Icon
                   size={22}
                   strokeWidth={isActive ? 2.4 : 1.7}
-                  color={isActive ? '#e8730f' : 'rgba(26,23,38,0.4)'}
+                  color={isActive ? '#e8730f' : 'rgb(var(--ink) / 0.4)'}
                 />
                 <span
                   className="text-[10px] font-semibold tracking-wide"
-                  style={{ color: isActive ? '#c25e0c' : 'rgba(26,23,38,0.42)' }}
+                  style={{ color: isActive ? '#c25e0c' : 'rgb(var(--ink) / 0.42)' }}
                 >
                   {label}
                 </span>
@@ -493,10 +493,10 @@ export default function Nav() {
             style={{
               marginTop: -26,
               background: 'linear-gradient(135deg, #fbbf24, #f97316)',
-              border: '3px solid rgba(251,247,240,0.95)',
+              border: '3px solid rgb(var(--canvas) / 0.95)',
               boxShadow: showHub
-                ? '0 8px 26px -4px rgba(249,115,22,0.75), 0 5px 14px -4px rgba(26,23,38,0.28)'
-                : '0 8px 22px -6px rgba(249,115,22,0.65), 0 5px 14px -6px rgba(26,23,38,0.22)',
+                ? '0 8px 26px -4px rgba(249,115,22,0.75), 0 5px 14px -4px rgb(var(--ink) / 0.28)'
+                : '0 8px 22px -6px rgba(249,115,22,0.65), 0 5px 14px -6px rgb(var(--ink) / 0.22)',
             }}
           >
             <span className="hub-aura" aria-hidden />
@@ -521,11 +521,11 @@ export default function Nav() {
                 <Icon
                   size={22}
                   strokeWidth={isActive ? 2.4 : 1.7}
-                  color={isActive ? '#e8730f' : 'rgba(26,23,38,0.4)'}
+                  color={isActive ? '#e8730f' : 'rgb(var(--ink) / 0.4)'}
                 />
                 <span
                   className="text-[10px] font-semibold tracking-wide"
-                  style={{ color: isActive ? '#c25e0c' : 'rgba(26,23,38,0.42)' }}
+                  style={{ color: isActive ? '#c25e0c' : 'rgb(var(--ink) / 0.42)' }}
                 >
                   {label}
                 </span>

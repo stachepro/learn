@@ -41,8 +41,8 @@ export default function Stats() {
       <BackBar />
       {/* Header */}
       <div>
-        <h1 className="display text-3xl font-extrabold" style={{ color: '#1a1726' }}>İstatistikler</h1>
-        <p className="text-sm mt-1" style={{ color: 'rgba(26,23,38,0.55)' }}>{trMonthName(now.getMonth())} {now.getFullYear()} özeti</p>
+        <h1 className="display text-3xl font-extrabold" style={{ color: 'rgb(var(--ink))' }}>İstatistikler</h1>
+        <p className="text-sm mt-1" style={{ color: 'rgb(var(--ink) / 0.55)' }}>{trMonthName(now.getMonth())} {now.getFullYear()} özeti</p>
       </div>
 
       {/* Monthly activity grid */}
@@ -52,7 +52,7 @@ export default function Stats() {
 
       {/* Monthly pomodoro stats */}
       <div className="animate-fade-up" style={{ animationDelay: '0.09s' }}>
-        <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>Bu Ay · Pomodoro</p>
+        <p className="display text-sm font-bold mb-3" style={{ color: 'rgb(var(--ink))' }}>Bu Ay · Pomodoro</p>
         <div className="grid grid-cols-2 gap-3">
           <div className="glass glass-lift g-rust p-4" style={{ borderRadius: 20 }}>
             <div className="flex items-start justify-between mb-2">
@@ -76,7 +76,7 @@ export default function Stats() {
       {/* Wake-up stats */}
       {wakeRecords.length > 0 && (
         <div className="animate-fade-up" style={{ animationDelay: '0.12s' }}>
-          <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>Uyanma</p>
+          <p className="display text-sm font-bold mb-3" style={{ color: 'rgb(var(--ink))' }}>Uyanma</p>
           <div className="glass g-cream p-4" style={{ borderRadius: 20 }}>
             <div className="flex items-start justify-between mb-2">
               <span className="text-xl">🌅</span>
@@ -102,7 +102,7 @@ export default function Stats() {
 
       {/* Category distribution */}
       <div className="animate-fade-up" style={{ animationDelay: '0.14s' }}>
-        <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>Kategori Dağılımı</p>
+        <p className="display text-sm font-bold mb-3" style={{ color: 'rgb(var(--ink))' }}>Kategori Dağılımı</p>
         <div className="glass g-neutral p-5" style={{ borderRadius: 24 }}>
           <CategoryPie />
         </div>

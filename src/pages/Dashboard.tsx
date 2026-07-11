@@ -11,7 +11,8 @@ import StreakModal from '../components/StreakModal'
 import LevelModal from '../components/LevelModal'
 import TodayModal from '../components/TodayModal'
 import { getFlameState, getFreezes } from '../utils/streak'
-import { formatDisplayDate, formatMinutes, yesterdayStr, dateStr } from '../utils/date'
+import { useNavigate } from 'react-router-dom'
+import { formatDisplayDate, formatMinutes, yesterdayStr, dateStr, logicalNow, getDayEndHour } from '../utils/date'
 import { isHabitScheduledFor, getWindowStatus } from '../utils/habitSchedule'
 import type { HabitLog, TimeOfDay } from '../types'
 import { getHabitTimeOfDay } from '../types'
@@ -28,6 +29,7 @@ const TIME_GROUPS: { id: TimeOfDay; label: string; icon: string }[] = [
 ]
 
 export default function Dashboard() {
+  const navigate = useNavigate()
   const { habits, profile, todayLog, logs, freeSessions } = useApp()
   const [createStep, setCreateStep] = useState<'chooser' | 'presets' | 'preset-customize' | 'form' | null>(null)
   const [presetInitial, setPresetInitial] = useState<PresetHabit | null>(null)
@@ -176,10 +178,10 @@ export default function Dashboard() {
         {/* Greeting */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: 'rgba(26,23,38,0.42)' }}>
-              {formatDisplayDate(new Date())}
+            <p className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: 'rgb(var(--ink) / 0.42)' }}>
+              {formatDisplayDate(logicalNow())}
             </p>
-            <h1 className="display text-[26px] sm:text-3xl font-extrabold mt-1 leading-tight" style={{ color: '#1a1726' }}>
+            <h1 className="display text-[26px] sm:text-3xl font-extrabold mt-1 leading-tight" style={{ color: 'rgb(var(--ink))' }}>
               Merhaba, {profile.username}
             </h1>
           </div>
@@ -203,7 +205,7 @@ export default function Dashboard() {
                 ? { background: '#e3f3fd', border: '1px solid #bae6fd' }
                 : flameState === 'lit'
                   ? { background: '#faecd6', border: '1px solid #f3dcb0' }
-                  : { background: '#f1ede4', border: '1px solid rgba(26,23,38,0.08)' }
+                  : { background: 'var(--tile-dim)', border: '1px solid rgb(var(--ink) / 0.08)' }
             }
           >
             <StreakFlame state={flameState} size={22} />
@@ -211,13 +213,13 @@ export default function Dashboard() {
               <p
                 key={`${profile.streak}-${flameState}`}
                 className="display text-xl font-black tnum leading-none animate-value-pop"
-                style={{ color: flameState === 'frozen' ? '#0369a1' : flameState === 'lit' ? '#9a4d0a' : 'rgba(26,23,38,0.45)' }}
+                style={{ color: flameState === 'frozen' ? '#0369a1' : flameState === 'lit' ? '#9a4d0a' : 'rgb(var(--ink) / 0.45)' }}
               >
                 {profile.streak}
               </p>
               <p
                 className="text-[10px] font-bold uppercase tracking-wide mt-0.5"
-                style={{ color: flameState === 'frozen' ? '#38a3e0' : flameState === 'lit' ? '#b87520' : 'rgba(26,23,38,0.35)' }}
+                style={{ color: flameState === 'frozen' ? '#38a3e0' : flameState === 'lit' ? '#b87520' : 'rgb(var(--ink) / 0.35)' }}
               >
                 {flameState === 'frozen' ? 'buzda' : 'seri'}
               </p>
@@ -228,7 +230,7 @@ export default function Dashboard() {
                 style={{
                   background: 'linear-gradient(150deg, #bae6fd, #38bdf8)',
                   color: '#0c4a6e',
-                  border: '1.5px solid #fbf7f0',
+                  border: '1.5px solid rgb(var(--canvas))',
                   boxShadow: '0 4px 8px -3px rgba(14,165,233,0.5)',
                 }}
               >
@@ -266,7 +268,7 @@ export default function Dashboard() {
 
         {/* Habits header */}
         <div className="flex items-center justify-between pt-1">
-          <h2 className="display text-lg font-extrabold" style={{ color: '#1a1726' }}>
+          <h2 className="display text-lg font-extrabold" style={{ color: 'rgb(var(--ink))' }}>
             Bugün
           </h2>
           <button
@@ -305,9 +307,9 @@ export default function Dashboard() {
                 <div key={id} className="space-y-2.5">
                   <div className="flex items-center gap-2 px-0.5">
                     <span className="text-sm leading-none">{icon}</span>
-                    <h3 className="display text-sm font-extrabold" style={{ color: '#1a1726' }}>{label}</h3>
+                    <h3 className="display text-sm font-extrabold" style={{ color: 'rgb(var(--ink))' }}>{label}</h3>
                     {remaining > 0 && (
-                      <span className="text-[11px] font-bold tnum" style={{ color: 'rgba(26,23,38,0.4)' }}>
+                      <span className="text-[11px] font-bold tnum" style={{ color: 'rgb(var(--ink) / 0.4)' }}>
                         {remaining}
                       </span>
                     )}
@@ -379,7 +381,7 @@ export default function Dashboard() {
         {/* Daily stats */}
         {habits.length > 0 && (
           <div className="glass g-neutral" style={{ borderRadius: 24 }}>
-            <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+            <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
               Günlük İstatistikler
             </p>
             <div className="grid grid-cols-3">
@@ -394,6 +396,17 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* Gün döngüsü notu — küçük, gri; ayarlara götürür */}
+        <button
+          onClick={() => navigate('/settings')}
+          className="btn-press block w-full text-center text-[11px] leading-relaxed pt-1"
+          style={{ color: 'rgb(var(--ink) / 0.38)' }}
+        >
+          {getDayEndHour() === 0
+            ? 'Gün gece yarısı (00:00) yenilenir · Ayarlar’dan değiştir'
+            : `Gün ${String(getDayEndHour()).padStart(2, '0')}:00’da yenilenir · Ayarlar’dan değiştir`}
+        </button>
 
       </div>
     </>
@@ -420,7 +433,7 @@ function CheckRingIcon({ size = 24, done }: { size?: number; done?: boolean }) {
 
 function StatCell({ label, value, color, border }: { label: string; value: string; color?: string; border?: boolean }) {
   return (
-    <div className="px-5 py-4" style={border ? { borderLeft: '1px solid rgba(26,23,38,0.08)' } : undefined}>
+    <div className="px-5 py-4" style={border ? { borderLeft: '1px solid rgb(var(--ink) / 0.08)' } : undefined}>
       <p className="text-[10px] mb-1 font-semibold uppercase tracking-wider ink-45">{label}</p>
       <p className="display text-xl font-bold tnum" style={color ? { color } : undefined}>{value}</p>
     </div>

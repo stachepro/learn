@@ -48,7 +48,7 @@ export default function TimerDial({ progress, accent, showArc, ticking, children
               key={i}
               x1={CX + rIn * Math.cos(a)} y1={CX + rIn * Math.sin(a)}
               x2={CX + R_TICK_OUT * Math.cos(a)} y2={CX + R_TICK_OUT * Math.sin(a)}
-              stroke={passed ? accent : major ? 'rgba(26,23,38,0.22)' : 'rgba(26,23,38,0.1)'}
+              stroke={passed ? accent : major ? 'rgb(var(--ink) / 0.22)' : 'rgb(var(--ink) / 0.1)'}
               strokeWidth={major ? 2.5 : 1.5}
               strokeLinecap="round"
               style={{ transition: 'stroke 0.6s ease' }}
@@ -57,7 +57,7 @@ export default function TimerDial({ progress, accent, showArc, ticking, children
         })}
 
         {/* Ray */}
-        <circle cx={CX} cy={CX} r={R_ARC} fill="none" stroke="rgba(26,23,38,0.06)" strokeWidth="8" />
+        <circle cx={CX} cy={CX} r={R_ARC} fill="none" stroke="rgb(var(--ink) / 0.06)" strokeWidth="8" />
 
         {/* İlerleme yayı */}
         {showArc && (

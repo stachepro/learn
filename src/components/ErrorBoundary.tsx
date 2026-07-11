@@ -47,7 +47,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
     return (
       <div style={{
-        minHeight: '100dvh', background: '#fbf7f0', color: '#1a1726',
+        minHeight: '100dvh', background: 'rgb(var(--canvas))', color: 'rgb(var(--ink))',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '24px', paddingTop: 'calc(24px + env(safe-area-inset-top))',
       }}>
@@ -60,15 +60,15 @@ export default class ErrorBoundary extends Component<Props, State> {
           </p>
 
           <pre style={{
-            background: 'rgba(26,23,38,0.05)', border: '1px solid rgba(26,23,38,0.12)',
+            background: 'rgb(var(--ink) / 0.05)', border: '1px solid rgb(var(--ink) / 0.12)',
             borderRadius: 12, padding: 12, fontSize: 12, lineHeight: 1.4,
             overflowX: 'auto', marginBottom: 20, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
           }}>{entry.message}</pre>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <button onClick={this.retry} style={btn('#1a1726', '#fbf7f0')}>Tekrar dene</button>
-            <button onClick={this.restart} style={btn('transparent', '#1a1726', true)}>Uygulamayı yeniden başlat</button>
-            <button onClick={this.copy} style={btn('transparent', '#1a1726', true)}>
+            <button onClick={this.retry} style={btn('rgb(var(--ink))', 'rgb(var(--canvas))')}>Tekrar dene</button>
+            <button onClick={this.restart} style={btn('transparent', 'rgb(var(--ink))', true)}>Uygulamayı yeniden başlat</button>
+            <button onClick={this.copy} style={btn('transparent', 'rgb(var(--ink))', true)}>
               {this.state.copied ? 'Kopyalandı ✓' : 'Hata detayını kopyala'}
             </button>
           </div>
@@ -82,7 +82,7 @@ function btn(bg: string, fg: string, outlined = false): React.CSSProperties {
   return {
     width: '100%', padding: '13px 16px', borderRadius: 14,
     background: bg, color: fg, fontWeight: 700, fontSize: 15,
-    border: outlined ? '1.5px solid rgba(26,23,38,0.18)' : 'none',
+    border: outlined ? '1.5px solid rgb(var(--ink) / 0.18)' : 'none',
     cursor: 'pointer',
   }
 }

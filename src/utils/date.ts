@@ -1,5 +1,30 @@
+// Gün bitiş saati: kullanıcı ayarı. Gün varsayılan olarak gece 00:00'da döner;
+// kullanıcı bunu 0–4 arası öteleyebilir (geç yatanlar için gece 03:00'te dönmesi
+// gibi). Anahtar burada tanımlı ki date.ts storage.ts'e bağımlı olmasın (döngüsel
+// import kaçınılır) — storage yalnızca yazma tarafında bu sabiti içe aktarır.
+export const DAY_END_HOUR_KEY = 'luupi_day_end_hour'
+
+// Kayıtlı gün bitiş saatini 0–4 arası tam sayı olarak döndürür (varsayılan 0).
+// localStorage'ı doğrudan okur; native'de açılışta hydrate edilmiş olur.
+export function getDayEndHour(): number {
+  try {
+    const raw = localStorage.getItem(DAY_END_HOUR_KEY)
+    if (raw == null) return 0
+    const n = JSON.parse(raw) as unknown
+    return typeof n === 'number' && !Number.isNaN(n) ? Math.min(4, Math.max(0, Math.floor(n))) : 0
+  } catch { return 0 }
+}
+
+// "Mantıksal şimdi": gerçek zamandan gün bitiş saati kadar geri kaydırılmış an.
+// Böylece 00:00 ile bitiş saati arasındaki erken saatler hâlâ önceki güne sayılır.
+// Öteleme 0 ise gerçek zamanın kendisidir (varsayılan davranış korunur).
+export function logicalNow(base: Date = new Date()): Date {
+  const h = getDayEndHour()
+  return h === 0 ? new Date(base.getTime()) : new Date(base.getTime() - h * 3_600_000)
+}
+
 export function todayStr(): string {
-  return dateStr(new Date())
+  return dateStr(logicalNow())
 }
 
 // Yerel tarihi YYYY-MM-DD üretir. toISOString KULLANMA: UTC verir ve
@@ -12,7 +37,7 @@ export function dateStr(date: Date): string {
 }
 
 export function yesterdayStr(): string {
-  const d = new Date()
+  const d = logicalNow()
   d.setDate(d.getDate() - 1)
   return dateStr(d)
 }

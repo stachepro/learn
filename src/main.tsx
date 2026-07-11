@@ -7,8 +7,10 @@ import { hydrateNativeStorage, isNative } from './utils/nativeStorage'
 import { lockPortrait } from './utils/focusMode'
 import { installGlobalErrorHandlers, captureError } from './utils/errorReporting'
 import { runMigrations } from './utils/storage'
+import { initTheme, applyTheme } from './utils/theme'
 
 installGlobalErrorHandlers()
+initTheme()
 
 if (isNative) {
   CapApp.addListener('backButton', ({ canGoBack }) => {
@@ -24,6 +26,9 @@ hydrateNativeStorage().finally(() => {
   // Render'dan önce: bileşenler her zaman güncel biçimi okur.
   // Geçiş çökerse uygulama yine de açılsın; hata kaydedilir.
   try { runMigrations() } catch (err) { captureError(err, 'manual') }
+  // Native'de tema tercihi Preferences'tan localStorage'a hidrasyonla gelir;
+  // hidrasyon sonrası yeniden uygula ki kayıtlı tema render'da doğru olsun.
+  applyTheme()
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

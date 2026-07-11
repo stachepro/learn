@@ -24,7 +24,7 @@ export default function StreakFlame({ state, size = 24, className }: Props) {
   if (state === 'out') {
     return (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-        <path d={FLAME_PATH} stroke="rgba(26,23,38,0.3)" strokeWidth="1.6" strokeLinejoin="round" />
+        <path d={FLAME_PATH} stroke="rgb(var(--ink) / 0.3)" strokeWidth="1.6" strokeLinejoin="round" />
       </svg>
     )
   }
@@ -32,7 +32,7 @@ export default function StreakFlame({ state, size = 24, className }: Props) {
   if (state === 'pending') {
     return (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-        <path d={FLAME_PATH} fill="rgba(26,23,38,0.22)" />
+        <path d={FLAME_PATH} fill="rgb(var(--ink) / 0.22)" />
         {/* İç kor — sönmek üzere, yavaş nabız */}
         <circle cx="12" cy="15" r="2.4" fill="rgba(249,115,22,0.55)" className="ember-pulse" />
       </svg>

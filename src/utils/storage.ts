@@ -1,8 +1,9 @@
 import type { Habit, DailyLogs, UserProfile, PomodoroSettings, Category, PomodoroSession, NoRushRecord, TodoItem, ActivePomodoroState, WakeRecord, WaterEntry } from '../types'
 import { DEFAULT_CATEGORIES } from './categories'
-import { persistNative } from './nativeStorage'
+import { persistNative, removeNative } from './nativeStorage'
 import { captureError } from './errorReporting'
 import { SCHEMA_VERSION, migrationsToRun, type MigrationOutcome } from './schema'
+import { DAY_END_HOUR_KEY } from './date'
 
 const KEYS = {
   SCHEMA_VERSION: 'luupi_schema_version',
@@ -22,7 +23,15 @@ const KEYS = {
   WATER_BOTTLE_ML: 'luupi_water_bottle_ml',
   WATER_GOAL_ML: 'luupi_water_goal_ml',
   STORY_SEEN: 'luupi_story_seen',
+  NOTIF_PREFS: 'luupi_notif_prefs',
+  DAY_END_HOUR: DAY_END_HOUR_KEY,
 } as const
+
+export interface NotifPrefs {
+  streakRisk: boolean
+  dailySummary: boolean
+}
+const DEFAULT_NOTIF_PREFS: NotifPrefs = { streakRisk: true, dailySummary: true }
 
 export const DEFAULT_WATER_BOTTLE_ML = 200
 export const DEFAULT_WATER_GOAL_ML = 2500
@@ -164,6 +173,73 @@ export const storage = {
   // Özet story'si günde bir kez otomatik oynar; izlenen günün tarihi burada
   getStorySeenDate: (): string | null => read<string | null>(KEYS.STORY_SEEN, null),
   setStorySeenDate: (date: string) => write(KEYS.STORY_SEEN, date),
+
+  // Bildirim tercihleri — hangi otomatik bildirimlerin planlanacağını belirler.
+  // reminderNotifications planlamadan önce buradan okur; kapalıysa hiç kurulmaz.
+  getNotifPrefs: (): NotifPrefs => ({ ...DEFAULT_NOTIF_PREFS, ...read<Partial<NotifPrefs>>(KEYS.NOTIF_PREFS, {}) }),
+  setNotifPrefs: (prefs: NotifPrefs) => write(KEYS.NOTIF_PREFS, prefs),
+
+  // Gün bitiş saati (0–4). date.getDayEndHour ile aynı değeri okur; buradaki
+  // yazma yolu native kalıcılığı da sağlar (write → persistNative).
+  getDayEndHour: (): number => {
+    const n = read<number>(KEYS.DAY_END_HOUR, 0)
+    return typeof n === 'number' && !Number.isNaN(n) ? Math.min(4, Math.max(0, Math.floor(n))) : 0
+  },
+  setDayEndHour: (h: number) => write(KEYS.DAY_END_HOUR, Math.min(4, Math.max(0, Math.floor(h)))),
+}
+
+// ── Veri yönetimi: tüm luupi_ anahtarlarını dışa/içe aktar, sıfırla ──
+const ALL_KEYS: readonly string[] = Object.values(KEYS)
+
+export interface ExportBundle {
+  app: 'luupi'
+  version: number
+  exportedAt: string
+  data: Record<string, unknown>
+}
+
+// Kayıtlı tüm verinin JSON metnini üretir (yedekleme / taşıma için).
+export function exportData(): string {
+  const data: Record<string, unknown> = {}
+  for (const key of ALL_KEYS) {
+    try {
+      const raw = localStorage.getItem(key)
+      if (raw != null) data[key] = JSON.parse(raw)
+    } catch { /* okunamayan anahtarı atla */ }
+  }
+  const bundle: ExportBundle = {
+    app: 'luupi',
+    version: storage.getSchemaVersion() ?? SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    data,
+  }
+  return JSON.stringify(bundle, null, 2)
+}
+
+// Yedek metnini içe aktarır. Yalnızca tanınan luupi_ anahtarları yazılır;
+// başarılıysa true döner (çağıran genelde sayfayı yeniler).
+export function importData(json: string): boolean {
+  let bundle: unknown
+  try { bundle = JSON.parse(json) } catch { return false }
+  if (!bundle || typeof bundle !== 'object') return false
+  const b = bundle as Partial<ExportBundle>
+  if (b.app !== 'luupi' || !b.data || typeof b.data !== 'object') return false
+  const allowed = new Set(ALL_KEYS)
+  let wrote = false
+  for (const [key, value] of Object.entries(b.data)) {
+    if (!allowed.has(key)) continue
+    write(key, value)
+    wrote = true
+  }
+  return wrote
+}
+
+// Tüm luupi_ verisini kalıcı olarak siler (localStorage + native Preferences).
+export function resetAllData(): void {
+  for (const key of ALL_KEYS) {
+    try { localStorage.removeItem(key) } catch { /* ignore */ }
+    removeNative(key)
+  }
 }
 
 /* Açılışta, React render edilmeden önce çalışır.

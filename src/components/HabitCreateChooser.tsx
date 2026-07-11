@@ -45,10 +45,10 @@ export default function HabitCreateChooser({ onClose, onPreset, onCreate }: Prop
       {/* Card */}
       <div className={`glass g-neutral relative w-full max-w-md ${isExiting ? 'animate-fade-down' : 'animate-fade-up'}`} style={{ borderRadius: 28 }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
           <div>
-            <h2 className="display text-lg font-bold" style={{ color: '#1a1726' }}>Yeni Alışkanlık</h2>
-            <p className="text-xs mt-0.5" style={{ color: 'rgba(26,23,38,0.45)' }}>Nasıl başlamak istersin?</p>
+            <h2 className="display text-lg font-bold" style={{ color: 'rgb(var(--ink))' }}>Yeni Alışkanlık</h2>
+            <p className="text-xs mt-0.5" style={{ color: 'rgb(var(--ink) / 0.45)' }}>Nasıl başlamak istersin?</p>
           </div>
           <button
             onClick={close}

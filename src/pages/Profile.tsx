@@ -4,28 +4,13 @@ import { useApp } from '../context/AppContext'
 import { ALL_BADGES } from '../utils/badges'
 import { formatMinutes } from '../utils/date'
 import { expProgressInCurrentLevel } from '../utils/exp'
-import { storage } from '../utils/storage'
-import { formatMl } from '../utils/water'
 
 export default function Profile() {
   const navigate = useNavigate()
-  const { profile, logs, freeSessions, updateUsername, pomodoroSettings, updatePomodoroSettings } = useApp()
-  const [editingName, setEditingName] = useState(false)
-  const [nameInput, setNameInput] = useState(profile.username)
-  const [workDur, setWorkDur] = useState(pomodoroSettings.workDuration)
-  const [breakDur, setBreakDur] = useState(pomodoroSettings.breakDuration)
-  const [autoLoop, setAutoLoop] = useState(pomodoroSettings.autoLoop ?? false)
-  const [saved, setSaved] = useState(false)
-  const [bottleMl, setBottleMl] = useState(() => storage.getWaterBottleMl())
-  const [waterGoalMl, setWaterGoalMl] = useState(() => storage.getWaterGoalMl())
+  const { profile, logs, freeSessions } = useApp()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
-  useEffect(() => {
-    setWorkDur(pomodoroSettings.workDuration)
-    setBreakDur(pomodoroSettings.breakDuration)
-    setAutoLoop(pomodoroSettings.autoLoop ?? false)
-  }, [pomodoroSettings])
 
   const { current, needed, percentage } = expProgressInCurrentLevel(profile.totalExp)
   const allDays = Object.values(logs)
@@ -44,19 +29,23 @@ export default function Profile() {
   const avgDaily = dayTotals.length > 0 ? Math.round(dayTotals.reduce((a, b) => a + b, 0) / dayTotals.length) : 0
   const bestDay = dayTotals.length > 0 ? Math.max(...dayTotals) : 0
 
-  const handleNameSave = () => {
-    if (nameInput.trim()) updateUsername(nameInput.trim())
-    else setNameInput(profile.username)
-    setEditingName(false)
-  }
-  const handleSavePomo = () => {
-    updatePomodoroSettings({ workDuration: workDur, breakDuration: breakDur, autoLoop })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
-
   return (
     <div className={`max-w-3xl mx-auto px-4 py-6 pb-40 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
+
+      {/* Ayarlar butonu — sağ üst */}
+      <div className="flex justify-end -mb-1">
+        <button
+          onClick={() => navigate('/settings')}
+          aria-label="Ayarlar"
+          className="btn-press w-10 h-10 rounded-full flex items-center justify-center"
+          style={{ background: 'rgb(var(--ink) / 0.05)', border: '1px solid rgb(var(--ink) / 0.09)', color: 'rgb(var(--ink) / 0.6)' }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+      </div>
 
       {/* Profile card */}
       <div className="glass g-neutral p-5" style={{ borderRadius: 24 }}>
@@ -71,26 +60,7 @@ export default function Profile() {
             <span className="display font-black" style={{ color: '#2a1402' }}>{profile.username.charAt(0).toUpperCase()}</span>
           </div>
           <div className="flex-1 min-w-0">
-            {editingName ? (
-              <div className="flex items-center gap-2 mb-2">
-                <input
-                  autoFocus
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleNameSave(); if (e.key === 'Escape') { setNameInput(profile.username); setEditingName(false) } }}
-                  className="frost-input text-lg font-bold flex-1"
-                />
-                <button onClick={handleNameSave} className="btn-ink btn-press text-xs px-3 py-2">Kaydet</button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="display text-2xl font-extrabold">{profile.username}</h1>
-                <button onClick={() => { setNameInput(profile.username); setEditingName(true) }}
-                  className="chip btn-press text-[11px] px-2.5 py-1">
-                  Düzenle
-                </button>
-              </div>
-            )}
+            <h1 className="display text-2xl font-extrabold mb-1">{profile.username}</h1>
             <div className="flex items-center gap-2.5 flex-wrap text-xs mb-3 ink-60">
               <span><span className="font-black energy-text">{profile.streak}</span> gün seri 🔥</span>
               <span>·</span>
@@ -126,7 +96,7 @@ export default function Profile() {
           📅
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold" style={{ color: '#1a1726' }}>Geçmiş</p>
+          <p className="text-sm font-bold" style={{ color: 'rgb(var(--ink))' }}>Geçmiş</p>
           <p className="text-xs mt-0.5 ink-60">Takvim ve günlük dökümü görüntüle</p>
         </div>
         <span className="text-lg flex-shrink-0 ink-35">›</span>
@@ -134,7 +104,7 @@ export default function Profile() {
 
       {/* Stats */}
       <div>
-        <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>Tüm Zamanlar</p>
+        <p className="display text-sm font-bold mb-3" style={{ color: 'rgb(var(--ink))' }}>Tüm Zamanlar</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <StatCard variant="g-lime" label="Tamamlanan" value={String(totalCompleted)} emoji="✅" />
           <StatCard variant="g-rust" label="Pomodoro" value={String(totalPomodoros)} emoji="🍅" />
@@ -148,8 +118,8 @@ export default function Profile() {
 
       {/* Badges */}
       <div>
-        <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>
-          Rozetler <span style={{ color: 'rgba(26,23,38,0.5)' }}>({profile.badges.length}/{ALL_BADGES.length})</span>
+        <p className="display text-sm font-bold mb-3" style={{ color: 'rgb(var(--ink))' }}>
+          Rozetler <span style={{ color: 'rgb(var(--ink) / 0.5)' }}>({profile.badges.length}/{ALL_BADGES.length})</span>
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {ALL_BADGES.map((badge) => {
@@ -161,7 +131,7 @@ export default function Profile() {
                 style={{ borderRadius: 18, opacity: earned ? 1 : 0.62 }}
               >
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                  style={{ background: earned ? 'rgba(34,197,94,0.18)' : 'rgba(26,23,38,0.05)', filter: earned ? undefined : 'grayscale(1) opacity(0.55)' }}>
+                  style={{ background: earned ? 'rgba(34,197,94,0.18)' : 'rgb(var(--ink) / 0.05)', filter: earned ? undefined : 'grayscale(1) opacity(0.55)' }}>
                   {earned ? badge.emoji : '🔒'}
                 </div>
                 <div>
@@ -172,112 +142,6 @@ export default function Profile() {
               </div>
             )
           })}
-        </div>
-      </div>
-
-      {/* Pomodoro settings */}
-      <div className="glass g-neutral" style={{ borderRadius: 24 }}>
-        <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
-          🍅 Pomodoro Ayarları
-        </p>
-        <div className="p-5 space-y-5">
-          {[
-            { label: 'Çalışma süresi', value: workDur, set: setWorkDur, min: 5, max: 90, step: 5 },
-            { label: 'Mola süresi', value: breakDur, set: setBreakDur, min: 1, max: 30, step: 1 },
-          ].map(({ label, value, set, min, max, step }) => (
-            <div key={label} className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="ink-60 font-medium">{label}</span>
-                <span className="font-bold tnum">{value} dakika</span>
-              </div>
-              <input type="range" min={min} max={max} step={step} value={value}
-                onChange={(e) => set(Number(e.target.value))} className="w-full" />
-            </div>
-          ))}
-
-          {/* Auto-loop toggle */}
-          <div className="flex items-center justify-between gap-3 pt-1">
-            <div className="min-w-0">
-              <p className="text-sm font-medium ink-60">Otomatik Döngü</p>
-              <p className="text-[11px] mt-0.5" style={{ color: 'rgba(26,23,38,0.45)' }}>
-                {autoLoop
-                  ? 'Mola ve çalışma turları otomatik başlar'
-                  : 'Her tur için manuel başlatma gerekir'}
-              </p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={autoLoop}
-              aria-label="Otomatik Döngü"
-              onClick={() => setAutoLoop((v) => !v)}
-              className="btn-press relative flex-shrink-0 rounded-full transition-all"
-              style={{
-                width: 48, height: 28,
-                background: autoLoop ? 'rgb(34,197,94)' : 'rgba(26,23,38,0.18)',
-                boxShadow: autoLoop ? '0 0 10px rgba(34,197,94,0.45)' : 'none',
-              }}
-            >
-              <span
-                className="absolute top-1 rounded-full bg-white transition-all"
-                style={{ width: 20, height: 20, left: autoLoop ? 24 : 4 }}
-              />
-            </button>
-          </div>
-
-          <button
-            onClick={handleSavePomo}
-            className="btn-ink btn-press px-5 py-2.5 text-sm"
-            style={saved ? { background: 'linear-gradient(160deg, #1f9d4d, #45dc7d)' } : undefined}
-          >
-            {saved ? '✓ Kaydedildi' : 'Kaydet'}
-          </button>
-        </div>
-      </div>
-
-      {/* Su takibi ayarları */}
-      <div className="glass g-sky" style={{ borderRadius: 24 }}>
-        <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
-          💧 Su Takibi Ayarları
-        </p>
-        <div className="p-5 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="ink-60 font-medium">Suluk boyutu</span>
-            <span className="font-bold tnum">{formatMl(bottleMl)}</span>
-          </div>
-          <input
-            type="range"
-            min={200}
-            max={5000}
-            step={50}
-            value={bottleMl}
-            onChange={(e) => {
-              const ml = Number(e.target.value)
-              setBottleMl(ml)
-              storage.setWaterBottleMl(ml)
-            }}
-            className="w-full"
-          />
-          <p className="text-[11px] ink-45">"Suluk" butonu bu miktarı ekler — Su Takibi sayfasında görünür</p>
-
-          <div className="flex justify-between text-sm pt-3">
-            <span className="ink-60 font-medium">Günlük hedef</span>
-            <span className="font-bold tnum">{formatMl(waterGoalMl)}</span>
-          </div>
-          <input
-            type="range"
-            min={500}
-            max={6000}
-            step={250}
-            value={waterGoalMl}
-            onChange={(e) => {
-              const ml = Number(e.target.value)
-              setWaterGoalMl(ml)
-              storage.setWaterGoalMl(ml)
-            }}
-            className="w-full"
-          />
-          <p className="text-[11px] ink-45">Hedefe ulaştığında su animasyonu ekranı tamamen doldurur</p>
         </div>
       </div>
     </div>

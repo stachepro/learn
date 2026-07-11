@@ -15,9 +15,9 @@ export default function BackBar({ title }: { title?: string }) {
         aria-label="Geri"
         className="btn-press flex items-center gap-1 pl-2 pr-3.5 py-1.5 rounded-full text-[13px] font-semibold"
         style={{
-          background: 'rgba(26,23,38,0.05)',
-          border: '1px solid rgba(26,23,38,0.09)',
-          color: 'rgba(26,23,38,0.6)',
+          background: 'rgb(var(--ink) / 0.05)',
+          border: '1px solid rgb(var(--ink) / 0.09)',
+          color: 'rgb(var(--ink) / 0.6)',
         }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -26,7 +26,7 @@ export default function BackBar({ title }: { title?: string }) {
         Geri
       </button>
       {title && (
-        <span className="text-[13px] font-semibold" style={{ color: 'rgba(26,23,38,0.35)' }}>{title}</span>
+        <span className="text-[13px] font-semibold" style={{ color: 'rgb(var(--ink) / 0.35)' }}>{title}</span>
       )}
     </div>
   )

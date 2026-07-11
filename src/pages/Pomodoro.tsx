@@ -44,10 +44,10 @@ export default function Pomodoro() {
 
       {/* Başlık */}
       <div className="mb-7 text-center">
-        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#1a1726' }}>
+        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: 'rgb(var(--ink))' }}>
           Pomodoro
         </h1>
-        <p className="text-xs mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
+        <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
           Serbest odak · {pomodoroSettings.workDuration} dk seans
         </p>
       </div>
@@ -55,13 +55,13 @@ export default function Pomodoro() {
       {otherActive ? (
         <div
           className="glass g-neutral rounded-2xl px-5 py-8 text-center space-y-2 animate-fade-up"
-          style={{ border: '1px solid rgba(26,23,38,0.1)' }}
+          style={{ border: '1px solid rgb(var(--ink) / 0.1)' }}
         >
           <p className="text-3xl leading-none">⏳</p>
-          <p className="text-sm font-semibold" style={{ color: '#1a1726' }}>
+          <p className="text-sm font-semibold" style={{ color: 'rgb(var(--ink))' }}>
             Şu anda başka bir Pomodoro çalışıyor
           </p>
-          <p className="text-xs" style={{ color: 'rgba(26,23,38,0.5)' }}>
+          <p className="text-xs" style={{ color: 'rgb(var(--ink) / 0.5)' }}>
             Serbest seans başlatmak için önce aktif seansı bitir.
           </p>
         </div>
@@ -74,9 +74,9 @@ export default function Pomodoro() {
                 key={phaseLabel + String(isPaused)}
                 className="pom-chip px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.18em]"
                 style={{
-                  background: running ? `${accentSoft}0.12)` : 'rgba(26,23,38,0.05)',
-                  color: running ? accent : 'rgba(26,23,38,0.45)',
-                  border: `1px solid ${running ? `${accentSoft}0.3)` : 'rgba(26,23,38,0.08)'}`,
+                  background: running ? `${accentSoft}0.12)` : 'rgb(var(--ink) / 0.05)',
+                  color: running ? accent : 'rgb(var(--ink) / 0.45)',
+                  border: `1px solid ${running ? `${accentSoft}0.3)` : 'rgb(var(--ink) / 0.08)'}`,
                 }}
               >
                 {isPaused ? 'Durakladı' : phaseLabel}
@@ -85,14 +85,14 @@ export default function Pomodoro() {
                 className="display tnum font-extrabold leading-none mt-2.5"
                 style={{
                   fontSize: 54,
-                  color: running ? '#1a1726' : 'rgba(26,23,38,0.28)',
+                  color: running ? 'rgb(var(--ink))' : 'rgb(var(--ink) / 0.28)',
                   transition: 'color 0.4s ease',
                 }}
               >
                 {(isWorkDone || isDone) ? '✓' : formatSeconds(running ? secondsLeft : pomodoroSettings.workDuration * 60)}
               </span>
               {running && (
-                <span className="text-[11px] font-semibold mt-2" style={{ color: 'rgba(26,23,38,0.45)' }}>
+                <span className="text-[11px] font-semibold mt-2" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
                   {sessionCount} seans tamamlandı
                 </span>
               )}
@@ -116,9 +116,9 @@ export default function Pomodoro() {
                   onClick={pauseResume}
                   className="btn-press flex-1 py-3.5 rounded-2xl text-sm font-bold"
                   style={{
-                    background: isPaused ? 'rgba(34,197,94,0.9)' : 'rgba(26,23,38,0.06)',
-                    color: isPaused ? '#06210f' : '#1a1726',
-                    border: '1px solid rgba(26,23,38,0.08)',
+                    background: isPaused ? 'rgba(34,197,94,0.9)' : 'rgb(var(--ink) / 0.06)',
+                    color: isPaused ? '#06210f' : 'rgb(var(--ink))',
+                    border: '1px solid rgb(var(--ink) / 0.08)',
                   }}
                 >
                   {isPaused ? '▶ Devam Et' : '⏸ Duraklat'}
@@ -128,9 +128,9 @@ export default function Pomodoro() {
                   onClick={toggleFocusMode}
                   className="btn-press flex-1 py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2"
                   style={{
-                    background: '#1a1726',
-                    color: '#fbf7f0',
-                    boxShadow: '0 10px 22px -10px rgba(26,23,38,0.55)',
+                    background: 'rgb(var(--ink))',
+                    color: 'rgb(var(--canvas))',
+                    boxShadow: '0 10px 22px -10px rgb(var(--ink) / 0.55)',
                   }}
                 >
                   <ExpandIcon /> Odak Modu
@@ -150,7 +150,7 @@ export default function Pomodoro() {
                   onClick={toggleFocusMode}
                   aria-label="Odak Modu"
                   className="btn-press w-[52px] rounded-2xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: '#1a1726', color: '#fbf7f0' }}
+                  style={{ background: 'rgb(var(--ink))', color: 'rgb(var(--canvas))' }}
                 >
                   <ExpandIcon />
                 </button>
@@ -170,7 +170,7 @@ export default function Pomodoro() {
                   onClick={toggleFocusMode}
                   aria-label="Odak Modu"
                   className="btn-press w-[52px] rounded-2xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: '#1a1726', color: '#fbf7f0' }}
+                  style={{ background: 'rgb(var(--ink))', color: 'rgb(var(--canvas))' }}
                 >
                   <ExpandIcon />
                 </button>
@@ -212,12 +212,12 @@ export default function Pomodoro() {
               <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1 ink-60">Bugünkü Seans</p>
             </div>
             <div className="glass g-neutral rounded-2xl px-4 py-4 text-center animate-fade-up" style={{ animationDelay: '0.1s' }}>
-              <p className="display text-3xl font-extrabold tnum" style={{ color: '#1a1726' }}>{freeSessions.length}</p>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>Toplam Seans</p>
+              <p className="display text-3xl font-extrabold tnum" style={{ color: 'rgb(var(--ink))' }}>{freeSessions.length}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>Toplam Seans</p>
             </div>
           </div>
 
-          <p className="text-center text-[11px] mt-5" style={{ color: 'rgba(26,23,38,0.4)' }}>
+          <p className="text-center text-[11px] mt-5" style={{ color: 'rgb(var(--ink) / 0.4)' }}>
             Her tamamlanan serbest seans 10 XP kazandırır.
           </p>
         </>

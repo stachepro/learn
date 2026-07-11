@@ -55,7 +55,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const check = () => setToday((cur) => { const t = todayStr(); return cur === t ? cur : t })
     const id = setInterval(check, 30_000)
     document.addEventListener('visibilitychange', check)
-    return () => { clearInterval(id); document.removeEventListener('visibilitychange', check) }
+    // Gün bitiş saati ayarlardan değişince "bugün" anında yeniden hesaplansın
+    window.addEventListener('luupi-daychange', check)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', check)
+      window.removeEventListener('luupi-daychange', check)
+    }
   }, [])
 
   const todayLog: DayLog = logs[today] ?? { date: today, habits: {} }

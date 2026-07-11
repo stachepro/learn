@@ -64,7 +64,7 @@ export default function TodayModal({ onClose }: { onClose: () => void }) {
       >
         <div className="relative w-36 h-36 mx-auto">
           <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
-            <circle cx="60" cy="60" r={RING_R} fill="none" stroke="rgba(26,23,38,0.07)" strokeWidth="9" />
+            <circle cx="60" cy="60" r={RING_R} fill="none" stroke="rgb(var(--ink) / 0.07)" strokeWidth="9" />
             <circle
               cx="60" cy="60" r={RING_R} fill="none"
               stroke="url(#today-ring-grad)" strokeWidth="9" strokeLinecap="round"
@@ -106,7 +106,7 @@ export default function TodayModal({ onClose }: { onClose: () => void }) {
             <div key={id} className="animate-pop" style={{ animationDelay: '80ms' }}>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm leading-none">{icon}</span>
-                <p className="display text-sm font-extrabold" style={{ color: '#1a1726' }}>{label}</p>
+                <p className="display text-sm font-extrabold" style={{ color: 'rgb(var(--ink))' }}>{label}</p>
                 <span className="text-[10px] font-bold tnum ink-45">
                   {group.filter(({ log }) => log.completed).length}/{group.length}
                 </span>
@@ -136,15 +136,15 @@ function HabitStatusRow({ habit, log, now, delay }: { habit: Habit; log: HabitLo
       className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 animate-pop"
       style={{
         animationDelay: `${delay}ms`,
-        background: done ? '#e9f9ee' : missed ? 'rgba(245,158,11,0.07)' : 'rgba(26,23,38,0.03)',
-        border: done ? '1px solid #c2ecd0' : '1px solid rgba(26,23,38,0.05)',
+        background: done ? '#e9f9ee' : missed ? 'rgba(245,158,11,0.07)' : 'rgb(var(--ink) / 0.03)',
+        border: done ? '1px solid #c2ecd0' : '1px solid rgb(var(--ink) / 0.05)',
         opacity: missed ? 0.8 : 1,
       }}
     >
       <span className="text-base leading-none flex-shrink-0">{habit.emoji}</span>
       <p
         className="text-xs font-semibold flex-1 min-w-0 truncate"
-        style={{ color: done ? '#15803d' : '#1a1726', textDecoration: done ? 'line-through' : 'none', textDecorationColor: 'rgba(21,128,61,0.4)' }}
+        style={{ color: done ? '#15803d' : 'rgb(var(--ink))', textDecoration: done ? 'line-through' : 'none', textDecorationColor: 'rgba(21,128,61,0.4)' }}
       >
         {habit.name}
       </p>

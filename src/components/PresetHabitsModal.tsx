@@ -69,7 +69,7 @@ export default function PresetHabitsModal({ onClose, onBack, onSelect }: Props) 
       {/* Card */}
       <div className={`glass g-neutral relative w-full max-w-md flex flex-col ${isExiting ? 'animate-fade-down' : 'animate-fade-up'}`} style={{ borderRadius: 28, maxHeight: '85vh' }}>
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+        <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
           <button
             onClick={onBack}
             aria-label="Geri"
@@ -78,8 +78,8 @@ export default function PresetHabitsModal({ onClose, onBack, onSelect }: Props) 
             ←
           </button>
           <div className="flex-1 min-w-0">
-            <h2 className="display text-lg font-bold" style={{ color: '#1a1726' }}>Hazır Alışkanlıklar</h2>
-            <p className="text-xs mt-0.5" style={{ color: 'rgba(26,23,38,0.45)' }}>Bir alışkanlık seç, ardından "Seç"e bas</p>
+            <h2 className="display text-lg font-bold" style={{ color: 'rgb(var(--ink))' }}>Hazır Alışkanlıklar</h2>
+            <p className="text-xs mt-0.5" style={{ color: 'rgb(var(--ink) / 0.45)' }}>Bir alışkanlık seç, ardından "Seç"e bas</p>
           </div>
           <button
             onClick={close}
@@ -103,13 +103,13 @@ export default function PresetHabitsModal({ onClose, onBack, onSelect }: Props) 
                 aria-pressed={isSelected}
                 className="btn-press w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-left transition-all"
                 style={{
-                  background: isSelected ? 'rgba(34,197,94,0.14)' : 'rgba(26,23,38,0.04)',
-                  border: `1.5px solid ${isSelected ? 'rgba(34,197,94,0.6)' : 'rgba(26,23,38,0.08)'}`,
+                  background: isSelected ? 'rgba(34,197,94,0.14)' : 'rgb(var(--ink) / 0.04)',
+                  border: `1.5px solid ${isSelected ? 'rgba(34,197,94,0.6)' : 'rgb(var(--ink) / 0.08)'}`,
                 }}
               >
                 <span className="text-xl flex-shrink-0">{p.emoji}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate" style={{ color: '#1a1726' }}>{p.name}</p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'rgb(var(--ink))' }}>{p.name}</p>
                   {cat && (
                     <p className="text-[11px] font-semibold" style={{ color: colors.text }}>
                       {cat.emoji} {cat.name}
@@ -125,7 +125,7 @@ export default function PresetHabitsModal({ onClose, onBack, onSelect }: Props) 
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 space-y-2" style={{ borderTop: '1px solid rgba(26,23,38,0.08)' }}>
+        <div className="px-5 py-4 space-y-2" style={{ borderTop: '1px solid rgb(var(--ink) / 0.08)' }}>
           <button
             onClick={handleConfirm}
             disabled={!selected}

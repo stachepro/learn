@@ -24,8 +24,9 @@ import Todo from './pages/Todo'
 import WakeUp from './pages/WakeUp'
 import WaterTracker from './pages/WaterTracker'
 import DailySummary from './pages/DailySummary'
+import Settings from './pages/Settings'
 
-const ROUTE_ORDER = ['/', '/habits', '/ozet', '/profile', '/just-start', '/stats', '/pomodoro', '/acele-yok', '/todo', '/uyandim', '/su-takibi', '/history']
+const ROUTE_ORDER = ['/', '/habits', '/ozet', '/profile', '/settings', '/just-start', '/stats', '/pomodoro', '/acele-yok', '/todo', '/uyandim', '/su-takibi', '/history']
 
 function AnimatedOutlet() {
   const location = useLocation()
@@ -79,7 +80,7 @@ function Layout() {
           className="sm:hidden fixed top-0 inset-x-0 z-40 pointer-events-none"
           style={{
             height: 'env(safe-area-inset-top)',
-            background: 'rgba(251,247,240,0.82)',
+            background: 'rgb(var(--canvas) / 0.82)',
             backdropFilter: 'blur(20px) saturate(140%)',
             WebkitBackdropFilter: 'blur(20px) saturate(140%)',
           }}
@@ -109,6 +110,7 @@ export default function App() {
                 <Route path="ozet" element={<DailySummary />} />
                 <Route path="history" element={<History />} />
                 <Route path="profile" element={<Profile />} />
+                <Route path="settings" element={<Settings />} />
                 <Route path="just-start" element={<JustStart />} />
                 <Route path="stats" element={<Stats />} />
                 <Route path="pomodoro" element={<Pomodoro />} />

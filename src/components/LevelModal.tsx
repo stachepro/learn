@@ -50,7 +50,7 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
       <div className="rounded-3xl px-4 pt-6 pb-5 text-center animate-pop" style={{ background: 'radial-gradient(circle at 50% 30%, rgba(163,230,53,0.28), rgba(99,153,34,0.05))' }}>
         <div className="relative w-36 h-36 mx-auto">
           <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
-            <circle cx="60" cy="60" r={RING_R} fill="none" stroke="rgba(26,23,38,0.07)" strokeWidth="9" />
+            <circle cx="60" cy="60" r={RING_R} fill="none" stroke="rgb(var(--ink) / 0.07)" strokeWidth="9" />
             <circle
               cx="60" cy="60" r={RING_R} fill="none"
               stroke="url(#lvl-ring-grad)" strokeWidth="9" strokeLinecap="round"
@@ -79,8 +79,8 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
 
       {/* ── Özet ── */}
       <div className="grid grid-cols-2 gap-2.5 animate-pop" style={{ animationDelay: '60ms' }}>
-        <div className="rounded-2xl px-3 py-3 text-center" style={{ background: 'rgba(26,23,38,0.03)', border: '1px solid rgba(26,23,38,0.06)' }}>
-          <p className="display text-lg font-black tnum leading-none" style={{ color: '#1a1726' }}>{shownTotal.toLocaleString('tr-TR')}</p>
+        <div className="rounded-2xl px-3 py-3 text-center" style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.06)' }}>
+          <p className="display text-lg font-black tnum leading-none" style={{ color: 'rgb(var(--ink))' }}>{shownTotal.toLocaleString('tr-TR')}</p>
           <p className="text-[9px] font-bold uppercase tracking-wide mt-1.5 ink-45">Toplam XP</p>
         </div>
         <div className="rounded-2xl px-3 py-3 text-center" style={{ background: '#e7f4d8', border: '1px solid #cfe7af' }}>
@@ -90,20 +90,20 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* ── XP kaynakları ── */}
-      <div className="rounded-3xl p-4 space-y-2 animate-pop" style={{ background: 'rgba(26,23,38,0.03)', border: '1px solid rgba(26,23,38,0.06)', animationDelay: '120ms' }}>
-        <p className="display text-sm font-extrabold mb-1" style={{ color: '#1a1726' }}>XP nasıl kazanılır?</p>
+      <div className="rounded-3xl p-4 space-y-2 animate-pop" style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.06)', animationDelay: '120ms' }}>
+        <p className="display text-sm font-extrabold mb-1" style={{ color: 'rgb(var(--ink))' }}>XP nasıl kazanılır?</p>
         <XpRow emoji="✅" label="Alışkanlık tamamlama" xp={`+${HABIT_COMPLETION_EXP}`} />
         <XpRow emoji="🍅" label="Pomodoro oturumu" xp={`+${DEFAULT_SESSION_EXP}`} />
         <XpRow emoji="⚡" label="Boost pomodoro (tek seferde bitir)" xp="+15" />
         <XpRow emoji="🚀" label="Just Start turu (10 adım)" xp="süreye göre" />
-        <p className="text-[11px] leading-relaxed pt-1" style={{ color: 'rgba(26,23,38,0.5)' }}>
+        <p className="text-[11px] leading-relaxed pt-1" style={{ color: 'rgb(var(--ink) / 0.5)' }}>
           XP asla silinmez: alışkanlığı kaldırsan bile kazandığın puanlar hesabında kalır.
         </p>
       </div>
 
       {/* ── Seviye merdiveni ── */}
       <div className="animate-pop" style={{ animationDelay: '180ms' }}>
-        <p className="display text-sm font-extrabold mb-2.5" style={{ color: '#1a1726' }}>Seviye merdiveni</p>
+        <p className="display text-sm font-extrabold mb-2.5" style={{ color: 'rgb(var(--ink))' }}>Seviye merdiveni</p>
         <div className="space-y-2">
           {ladder.map((lvl, i) => {
             const isCurrent = lvl === profile.level
@@ -115,23 +115,23 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
                 className="flex items-center gap-3 rounded-2xl px-3.5 py-2.5 animate-pop"
                 style={{
                   animationDelay: `${220 + i * 60}ms`,
-                  background: isCurrent ? '#e7f4d8' : 'rgba(26,23,38,0.03)',
-                  border: isCurrent ? '1px solid #cfe7af' : '1px solid rgba(26,23,38,0.05)',
+                  background: isCurrent ? '#e7f4d8' : 'rgb(var(--ink) / 0.03)',
+                  border: isCurrent ? '1px solid #cfe7af' : '1px solid rgb(var(--ink) / 0.05)',
                   opacity: isPast ? 0.65 : 1,
                 }}
               >
                 <span
                   className="w-9 h-9 rounded-xl flex items-center justify-center display text-sm font-black tnum flex-shrink-0"
                   style={{
-                    background: isCurrent ? 'linear-gradient(150deg, #a3e635, #639922)' : isPast ? 'rgba(99,153,34,0.15)' : 'rgba(26,23,38,0.05)',
-                    color: isCurrent ? '#1a2e05' : isPast ? '#3b6d11' : 'rgba(26,23,38,0.4)',
+                    background: isCurrent ? 'linear-gradient(150deg, #a3e635, #639922)' : isPast ? 'rgba(99,153,34,0.15)' : 'rgb(var(--ink) / 0.05)',
+                    color: isCurrent ? '#1a2e05' : isPast ? '#3b6d11' : 'rgb(var(--ink) / 0.4)',
                     boxShadow: isCurrent ? '0 6px 14px -6px rgba(99,153,34,0.6)' : 'none',
                   }}
                 >
                   {isPast ? '✓' : lvl}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold" style={{ color: isCurrent ? '#3b6d11' : '#1a1726' }}>
+                  <p className="text-xs font-bold" style={{ color: isCurrent ? '#3b6d11' : 'rgb(var(--ink))' }}>
                     Seviye {lvl}{isCurrent && ' — buradasın'}
                   </p>
                   <p className="text-[10px] tnum ink-45 mt-0.5">
@@ -147,7 +147,7 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
             )
           })}
         </div>
-        <p className="text-[11px] leading-relaxed mt-2.5" style={{ color: 'rgba(26,23,38,0.5)' }}>
+        <p className="text-[11px] leading-relaxed mt-2.5" style={{ color: 'rgb(var(--ink) / 0.5)' }}>
           Her yeni seviye bir öncekinden %20 daha fazla XP ister — istikrar büyüdükçe rozetler de seninle büyür.
         </p>
       </div>
@@ -159,7 +159,7 @@ function XpRow({ emoji, label, xp }: { emoji: string; label: string; xp: string 
   return (
     <div className="flex items-center gap-2.5">
       <span className="text-sm leading-none">{emoji}</span>
-      <p className="text-xs font-semibold flex-1" style={{ color: 'rgba(26,23,38,0.7)' }}>{label}</p>
+      <p className="text-xs font-semibold flex-1" style={{ color: 'rgb(var(--ink) / 0.7)' }}>{label}</p>
       <span className="text-xs font-black tnum" style={{ color: '#3b6d11' }}>{xp}</span>
     </div>
   )

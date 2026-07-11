@@ -58,9 +58,9 @@ export default function AchievementToast() {
         className={`flex items-center gap-3 pl-3 pr-5 py-3 ${leaving ? 'ach-out' : 'ach-in'}`}
         style={{
           borderRadius: 20,
-          background: '#1a1726',
-          color: '#fbf7f0',
-          boxShadow: '0 14px 34px -12px rgba(26,23,38,0.65), 0 0 0 1px rgba(251,191,36,0.4)',
+          background: 'rgb(var(--ink))',
+          color: 'rgb(var(--canvas))',
+          boxShadow: '0 14px 34px -12px rgb(var(--ink) / 0.65), 0 0 0 1px rgba(251,191,36,0.4)',
           maxWidth: 360,
         }}
       >
@@ -75,7 +75,7 @@ export default function AchievementToast() {
             Başarım Kazanıldı!
           </p>
           <p className="display text-sm font-bold truncate">{current.name}</p>
-          <p className="text-[11px] truncate" style={{ color: 'rgba(251,247,240,0.6)' }}>{current.description}</p>
+          <p className="text-[11px] truncate" style={{ color: 'rgb(var(--canvas) / 0.6)' }}>{current.description}</p>
         </div>
       </div>
     </div>

@@ -81,8 +81,8 @@ function TodoRow({ todo, removing, onChangeText, onToggle, onDelete, delay = 0 }
     <div
       className={`flex items-center gap-2.5 rounded-2xl px-3 py-2.5 soft-trans ${removing ? 'animate-fade-down' : 'animate-fade-up'}`}
       style={{
-        background: todo.done ? 'rgba(26,23,38,0.04)' : '#ffffff',
-        border: `1.5px solid ${todo.done ? 'rgba(26,23,38,0.09)' : todo.color}`,
+        background: todo.done ? 'rgb(var(--ink) / 0.04)' : '#ffffff',
+        border: `1.5px solid ${todo.done ? 'rgb(var(--ink) / 0.09)' : todo.color}`,
         animationDelay: removing ? '0s' : `${delay}s`,
         opacity: todo.done ? 0.75 : 1,
       }}
@@ -107,7 +107,7 @@ function TodoRow({ todo, removing, onChangeText, onToggle, onDelete, delay = 0 }
         placeholder="Ne yapılacak?"
         className="flex-1 min-w-0 text-sm bg-transparent outline-none soft-trans"
         style={{
-          color: todo.done ? 'rgba(26,23,38,0.4)' : '#1a1726',
+          color: todo.done ? 'rgb(var(--ink) / 0.4)' : 'rgb(var(--ink))',
           textDecoration: todo.done ? 'line-through' : 'none',
         }}
       />
@@ -117,7 +117,7 @@ function TodoRow({ todo, removing, onChangeText, onToggle, onDelete, delay = 0 }
         aria-label="Sil"
         title="Sil"
         className="btn-press w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-        style={{ color: 'rgba(26,23,38,0.28)' }}
+        style={{ color: 'rgb(var(--ink) / 0.28)' }}
       >
         <IconX />
       </button>
@@ -211,16 +211,16 @@ export default function Todo() {
 
       {/* Başlık */}
       <div className="mb-6 text-center">
-        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#1a1726' }}>
+        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: 'rgb(var(--ink))' }}>
           To-do
         </h1>
-        <p className="text-xs mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
+        <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
           Basit yapılacaklar listesi
           {todos.length > 0 && ` · ${doneList.length}/${todos.length} tamam`}
         </p>
         {/* İnce ilerleme çizgisi */}
         {todos.length > 0 && (
-          <div className="mt-3 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(26,23,38,0.07)' }}>
+          <div className="mt-3 h-1 rounded-full overflow-hidden" style={{ background: 'rgb(var(--ink) / 0.07)' }}>
             <div
               className="progress-fill h-full rounded-full"
               style={{
@@ -260,7 +260,7 @@ export default function Todo() {
       {todos.length === 0 && (
         <div
           className="rounded-2xl px-5 py-8 text-center mb-4 animate-fade-up"
-          style={{ background: 'rgba(26,23,38,0.03)', border: '1.5px dashed rgba(26,23,38,0.14)' }}
+          style={{ background: 'rgb(var(--ink) / 0.03)', border: '1.5px dashed rgb(var(--ink) / 0.14)' }}
         >
           <span
             className="inline-flex w-12 h-12 rounded-2xl items-center justify-center mb-3"
@@ -268,8 +268,8 @@ export default function Todo() {
           >
             <IconClipboard size={24} />
           </span>
-          <p className="text-sm font-semibold" style={{ color: 'rgba(26,23,38,0.6)' }}>Liste boş</p>
-          <p className="text-xs mt-1" style={{ color: 'rgba(26,23,38,0.4)' }}>
+          <p className="text-sm font-semibold" style={{ color: 'rgb(var(--ink) / 0.6)' }}>Liste boş</p>
+          <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.4)' }}>
             Aşağıya yaz, Enter'a bas — bu kadar.
           </p>
         </div>
@@ -293,9 +293,9 @@ export default function Todo() {
       {/* Hızlı ekleme — Enter ya da Ekle */}
       <div
         className="flex items-center gap-2.5 rounded-2xl px-3 py-2 mt-2"
-        style={{ background: 'rgba(255,255,255,0.6)', border: '1.5px dashed rgba(26,23,38,0.18)' }}
+        style={{ background: 'rgba(255,255,255,0.6)', border: '1.5px dashed rgb(var(--ink) / 0.18)' }}
       >
-        <span className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ color: 'rgba(26,23,38,0.35)' }}>
+        <span className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ color: 'rgb(var(--ink) / 0.35)' }}>
           <IconPlus size={14} />
         </span>
         <input
@@ -305,14 +305,14 @@ export default function Todo() {
           onKeyDown={(e) => { if (e.key === 'Enter') addDraft() }}
           placeholder="Yeni madde ekle…"
           className="flex-1 min-w-0 text-sm bg-transparent outline-none py-1"
-          style={{ color: '#1a1726' }}
+          style={{ color: 'rgb(var(--ink))' }}
         />
         <button
           onClick={addDraft}
           disabled={!draft.trim()}
           aria-label="Madde ekle"
           className="btn-press px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 disabled:opacity-30"
-          style={{ background: '#1a1726', color: '#fbf7f0' }}
+          style={{ background: 'rgb(var(--ink))', color: 'rgb(var(--canvas))' }}
         >
           Ekle
         </button>
@@ -322,7 +322,7 @@ export default function Todo() {
       {doneList.length > 0 && (
         <div className="mt-6">
           <div className="flex items-center justify-between mb-2 px-0.5">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(26,23,38,0.45)' }}>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
               Tamamlananlar · {doneList.length}
             </span>
             <button

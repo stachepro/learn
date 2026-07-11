@@ -82,7 +82,7 @@ export default function PresetCustomizeModal({ preset, onClose, onBack }: Props)
           style={{ borderRadius: 28 }}
         >
           {/* Header */}
-          <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+          <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
             <button
               onClick={onBack}
               aria-label="Geri"
@@ -90,7 +90,7 @@ export default function PresetCustomizeModal({ preset, onClose, onBack }: Props)
             >
               ←
             </button>
-            <h2 className="display text-lg font-bold flex-1" style={{ color: '#1a1726' }}>Alışkanlığı Özelleştir</h2>
+            <h2 className="display text-lg font-bold flex-1" style={{ color: 'rgb(var(--ink))' }}>Alışkanlığı Özelleştir</h2>
             <button
               onClick={handleClose}
               aria-label="Kapat"
@@ -107,7 +107,7 @@ export default function PresetCustomizeModal({ preset, onClose, onBack }: Props)
                 {preset.emoji}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold truncate" style={{ color: '#1a1726' }}>{preset.name}</p>
+                <p className="text-sm font-bold truncate" style={{ color: 'rgb(var(--ink))' }}>{preset.name}</p>
                 {cat && (
                   <p className="text-[11px] font-semibold mt-0.5" style={{ color: colors.text }}>
                     {cat.emoji} {cat.name}
@@ -116,7 +116,7 @@ export default function PresetCustomizeModal({ preset, onClose, onBack }: Props)
               </div>
               <span
                 className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full flex-shrink-0"
-                style={{ background: 'rgba(26,23,38,0.06)', color: 'rgba(26,23,38,0.45)' }}
+                style={{ background: 'rgb(var(--ink) / 0.06)', color: 'rgb(var(--ink) / 0.45)' }}
               >
                 Sabit
               </span>
@@ -140,12 +140,12 @@ export default function PresetCustomizeModal({ preset, onClose, onBack }: Props)
                       onClick={() => setRecurrence(id)}
                       className="btn-press flex items-center gap-2 px-3 py-2.5 rounded-2xl text-left transition-all"
                       style={{
-                        background: sel ? 'rgba(34,197,94,0.18)' : 'rgba(26,23,38,0.04)',
-                        border: `1.5px solid ${sel ? 'rgba(34,197,94,0.55)' : 'rgba(26,23,38,0.08)'}`,
+                        background: sel ? 'rgba(34,197,94,0.18)' : 'rgb(var(--ink) / 0.04)',
+                        border: `1.5px solid ${sel ? 'rgba(34,197,94,0.55)' : 'rgb(var(--ink) / 0.08)'}`,
                       }}
                     >
                       <span className="text-base leading-none">{icon}</span>
-                      <span className="text-xs font-semibold" style={{ color: sel ? '#16a34a' : 'rgba(26,23,38,0.72)' }}>{rLabel}</span>
+                      <span className="text-xs font-semibold" style={{ color: sel ? '#16a34a' : 'rgb(var(--ink) / 0.72)' }}>{rLabel}</span>
                     </button>
                   )
                 })}
@@ -170,9 +170,9 @@ export default function PresetCustomizeModal({ preset, onClose, onBack }: Props)
                           onClick={() => toggleRecurrenceDay(idx)}
                           className="btn-press flex-1 py-2 rounded-xl text-[11px] font-bold transition-all"
                           style={{
-                            background: sel ? 'rgba(34,197,94,0.22)' : 'rgba(26,23,38,0.05)',
-                            border: `1.5px solid ${sel ? 'rgba(34,197,94,0.6)' : 'rgba(26,23,38,0.1)'}`,
-                            color: sel ? '#16a34a' : 'rgba(26,23,38,0.5)',
+                            background: sel ? 'rgba(34,197,94,0.22)' : 'rgb(var(--ink) / 0.05)',
+                            border: `1.5px solid ${sel ? 'rgba(34,197,94,0.6)' : 'rgb(var(--ink) / 0.1)'}`,
+                            color: sel ? '#16a34a' : 'rgb(var(--ink) / 0.5)',
                             minWidth: 36,
                           }}
                         >
@@ -203,12 +203,12 @@ export default function PresetCustomizeModal({ preset, onClose, onBack }: Props)
                       onClick={() => setTimeOfDay(id)}
                       className="btn-press flex flex-col items-center gap-1 py-2.5 px-1 rounded-2xl text-center transition-all"
                       style={{
-                        background: sel ? 'rgba(245,158,11,0.16)' : 'rgba(26,23,38,0.04)',
-                        border: `1.5px solid ${sel ? 'rgba(245,158,11,0.6)' : 'rgba(26,23,38,0.08)'}`,
+                        background: sel ? 'rgba(245,158,11,0.16)' : 'rgb(var(--ink) / 0.04)',
+                        border: `1.5px solid ${sel ? 'rgba(245,158,11,0.6)' : 'rgb(var(--ink) / 0.08)'}`,
                       }}
                     >
                       <span className="text-lg leading-none">{icon}</span>
-                      <span className="text-[11px] font-bold" style={{ color: sel ? '#b45309' : 'rgba(26,23,38,0.6)' }}>{tLabel}</span>
+                      <span className="text-[11px] font-bold" style={{ color: sel ? '#b45309' : 'rgb(var(--ink) / 0.6)' }}>{tLabel}</span>
                     </button>
                   )
                 })}
@@ -225,11 +225,11 @@ export default function PresetCustomizeModal({ preset, onClose, onBack }: Props)
                   className="btn-press w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                   title="Renksiz"
                   style={{
-                    background: 'rgba(26,23,38,0.05)',
-                    border: `2px solid ${!labelColor ? 'rgba(26,23,38,0.7)' : 'rgba(26,23,38,0.18)'}`,
+                    background: 'rgb(var(--ink) / 0.05)',
+                    border: `2px solid ${!labelColor ? 'rgb(var(--ink) / 0.7)' : 'rgb(var(--ink) / 0.18)'}`,
                   }}
                 >
-                  <span style={{ fontSize: 14, color: 'rgba(26,23,38,0.4)' }}>✕</span>
+                  <span style={{ fontSize: 14, color: 'rgb(var(--ink) / 0.4)' }}>✕</span>
                 </button>
                 {LABEL_COLORS.map(({ hex, name: cname }) => (
                   <button

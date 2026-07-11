@@ -17,7 +17,7 @@ const NAVY = '#0c2a5c'
 const NAVY_60 = 'rgba(12,42,92,0.6)'
 
 function intensity(ml: number, goal: number): string {
-  if (ml <= 0) return 'rgba(26,23,38,0.05)'
+  if (ml <= 0) return 'rgb(var(--ink) / 0.05)'
   const t = Math.min(ml / goal, 1)
   const alpha = 0.22 + t * 0.68
   return `rgba(37,99,235,${alpha.toFixed(2)})`
@@ -73,10 +73,10 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className={`fixed inset-0 ${isExiting ? 'animate-fade-out' : 'animate-fade-in'}`} style={{ background: 'rgba(26,23,38,0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} onClick={close} />
+      <div className={`fixed inset-0 ${isExiting ? 'animate-fade-out' : 'animate-fade-in'}`} style={{ background: 'rgb(var(--ink) / 0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} onClick={close} />
       <div className="relative min-h-full flex items-center justify-center p-4">
         <div className={`glass g-neutral w-full max-w-sm ${isExiting ? 'animate-fade-down' : 'animate-pop'}`} style={{ borderRadius: 24 }}>
-          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
             <p className="display text-base font-bold">💧 Su İstatistikleri</p>
             <div className="flex items-center gap-2">
               {entries.length > 0 && (
@@ -93,8 +93,8 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
           </div>
 
           {confirmReset && (
-            <div className="px-5 py-4 animate-fade-up" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)', background: 'rgba(239,68,68,0.05)' }}>
-              <p className="text-sm font-semibold mb-3" style={{ color: '#1a1726' }}>Tüm su geçmişin silinecek, emin misin?</p>
+            <div className="px-5 py-4 animate-fade-up" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)', background: 'rgba(239,68,68,0.05)' }}>
+              <p className="text-sm font-semibold mb-3" style={{ color: 'rgb(var(--ink))' }}>Tüm su geçmişin silinecek, emin misin?</p>
               <div className="flex gap-2">
                 <button
                   onClick={() => { onReset(); setConfirmReset(false) }}
@@ -109,7 +109,7 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
           )}
 
           {/* Genel özet */}
-          <div className="grid grid-cols-3 px-5 py-4 text-center" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+          <div className="grid grid-cols-3 px-5 py-4 text-center" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Günlük Ort.</p>
               <p className="display text-lg font-bold tnum" style={{ color: '#1d4ed8' }}>{formatMl(globalAvg)}</p>
@@ -133,7 +133,7 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
                 className="btn-press flex-1 text-xs font-bold py-2 rounded-xl transition-all"
                 style={tab === key
                   ? { background: '#1d4ed8', color: '#eaf1ff' }
-                  : { background: 'rgba(26,23,38,0.05)', color: 'rgba(26,23,38,0.5)' }}
+                  : { background: 'rgb(var(--ink) / 0.05)', color: 'rgb(var(--ink) / 0.5)' }}
               >
                 {label}
               </button>
@@ -199,9 +199,9 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
                         key={dNum}
                         title={`${dNum} ${trMonthName(ym.month)}: ${formatMl(ml)}`}
                         className="aspect-square rounded-lg flex items-center justify-center"
-                        style={{ background: intensity(ml, goalMl), boxShadow: 'inset 0 0 0 1px rgba(26,23,38,0.06)' }}
+                        style={{ background: intensity(ml, goalMl), boxShadow: 'inset 0 0 0 1px rgb(var(--ink) / 0.06)' }}
                       >
-                        <span className="text-[9px] font-bold tnum" style={{ color: ml > goalMl * 0.5 ? '#eaf1ff' : 'rgba(26,23,38,0.5)' }}>{dNum}</span>
+                        <span className="text-[9px] font-bold tnum" style={{ color: ml > goalMl * 0.5 ? '#eaf1ff' : 'rgb(var(--ink) / 0.5)' }}>{dNum}</span>
                       </div>
                     )
                   })}
@@ -245,7 +245,7 @@ function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
                         className="w-full rounded-t-md soft-trans"
                         style={{
                           height: `${Math.max(3, (m.ml / maxMonthMl) * 100)}%`,
-                          background: m.ml > 0 ? 'linear-gradient(180deg, #60a5fa, #1d4ed8)' : 'rgba(26,23,38,0.06)',
+                          background: m.ml > 0 ? 'linear-gradient(180deg, #60a5fa, #1d4ed8)' : 'rgb(var(--ink) / 0.06)',
                         }}
                         title={`${m.label}: ${formatMl(m.ml)}`}
                       />
@@ -409,7 +409,7 @@ export default function WaterTracker() {
                   className="btn-press flex-1 text-[11px] font-bold py-1.5 rounded-full"
                   style={goalMl === g
                     ? { background: '#1d4ed8', color: '#eaf1ff' }
-                    : { background: 'rgba(26,23,38,0.05)', color: 'rgba(26,23,38,0.55)' }}
+                    : { background: 'rgb(var(--ink) / 0.05)', color: 'rgb(var(--ink) / 0.55)' }}
                 >
                   {formatMl(g)}
                 </button>
@@ -472,7 +472,7 @@ export default function WaterTracker() {
                   className="btn-press flex-1 text-[11px] font-bold py-1.5 rounded-full"
                   style={customMl === c
                     ? { background: '#1d4ed8', color: '#eaf1ff' }
-                    : { background: 'rgba(26,23,38,0.05)', color: 'rgba(26,23,38,0.55)' }}
+                    : { background: 'rgb(var(--ink) / 0.05)', color: 'rgb(var(--ink) / 0.55)' }}
                 >
                   {c} ml
                 </button>
@@ -494,7 +494,7 @@ export default function WaterTracker() {
         {/* Bugünkü kayıtlar */}
         {todayEntries.length > 0 && (
           <div className="glass g-neutral mb-3" style={{ borderRadius: 18 }}>
-            <div className="flex items-center justify-between px-4 py-2" style={{ borderBottom: '1px solid rgba(26,23,38,0.07)' }}>
+            <div className="flex items-center justify-between px-4 py-2" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.07)' }}>
               <p className="text-xs font-bold">Bugün İçtiklerin</p>
               <span className="text-[11px] font-bold tnum ink-45">{todayEntries.length} kez</span>
             </div>

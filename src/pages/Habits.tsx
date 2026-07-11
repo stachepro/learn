@@ -67,11 +67,11 @@ export default function Habits() {
           <div className="glass g-neutral relative w-full max-w-sm animate-fade-up p-5" style={{ borderRadius: 24 }}>
             <div className="flex items-center gap-3 mb-3">
               <span className="text-2xl">{confirmDelete.emoji}</span>
-              <h2 className="display text-lg font-bold" style={{ color: '#1a1726' }}>
+              <h2 className="display text-lg font-bold" style={{ color: 'rgb(var(--ink))' }}>
                 "{confirmDelete.name}" silinsin mi?
               </h2>
             </div>
-            <p className="text-sm" style={{ color: 'rgba(26,23,38,0.6)' }}>
+            <p className="text-sm" style={{ color: 'rgb(var(--ink) / 0.6)' }}>
               Bu alışkanlığı silersen tüm istatistik geçmişi de kalıcı olarak silinecek. Devam etmek istiyor musun?
             </p>
             <div className="flex gap-3 mt-5">
@@ -98,8 +98,8 @@ export default function Habits() {
         {/* Header */}
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="display text-3xl font-extrabold" style={{ color: '#1a1726' }}>Alışkanlıklar</h1>
-            <p className="text-sm mt-1" style={{ color: 'rgba(26,23,38,0.55)' }}>
+            <h1 className="display text-3xl font-extrabold" style={{ color: 'rgb(var(--ink))' }}>Alışkanlıklar</h1>
+            <p className="text-sm mt-1" style={{ color: 'rgb(var(--ink) / 0.55)' }}>
               {habits.length} alışkanlık tanımlı
             </p>
           </div>
@@ -166,7 +166,7 @@ export default function Habits() {
                     <button
                       onClick={() => setConfirmDelete(h)}
                       className="btn-press text-xs px-3 py-1.5 rounded-full font-semibold soft-trans whitespace-nowrap"
-                      style={{ background: 'rgba(26,23,38,0.05)', color: 'rgba(204,60,40,0.9)', border: '1px solid rgba(26,23,38,0.08)' }}
+                      style={{ background: 'rgb(var(--ink) / 0.05)', color: 'rgba(204,60,40,0.9)', border: '1px solid rgb(var(--ink) / 0.08)' }}
                     >
                       Sil
                     </button>
@@ -180,7 +180,7 @@ export default function Habits() {
         {/* Custom categories */}
         {customCats.length > 0 && (
           <div>
-            <p className="display text-sm font-bold mb-3" style={{ color: '#1a1726' }}>
+            <p className="display text-sm font-bold mb-3" style={{ color: 'rgb(var(--ink))' }}>
               Özel Kategoriler
             </p>
             <div className="space-y-2.5">

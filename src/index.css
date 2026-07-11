@@ -27,13 +27,14 @@ body {
   user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
-  color: #1a1726;
+  color: rgb(var(--ink));
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   background:
     radial-gradient(120% 80% at 50% -8%, rgba(249,115,22,0.05) 0%, transparent 42%),
     radial-gradient(90% 70% at 90% 4%, rgba(34,197,94,0.045) 0%, transparent 50%),
-    #fbf7f0;
+    rgb(var(--canvas));
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Form alanları seçilebilir kalmalı — yoksa yazı yazılamaz/düzeltilemez */
@@ -65,13 +66,77 @@ input, textarea, [contenteditable] {
 }
 .tnum { font-variant-numeric: tabular-nums; }
 
-/* Accent tokens — green = "done", amber/orange = "energy" */
+/* Accent tokens — green = "done", amber/orange = "energy".
+   --ink = birincil metin/çizgi rengi, --canvas = zemin. Karanlık temada bu iki
+   token ters çevrilir; uygulama genelinde satır-içi renkler bu token'ları
+   kullandığı için tema tek noktadan döner. */
 :root {
   --acc: 34 197 94;
   --energy: 245 158 11;
   --energy2: 249 115 22;
-  --ink: 26 23 38;       /* primary dark text */
+  --ink: 26 23 38;        /* primary dark text (light theme) */
+  --canvas: 251 247 240;  /* warm cream page (light theme) */
 }
+
+/* ════════════════ KARANLIK TEMA ════════════════
+   Kök öğeye data-theme="dark" gelince token'lar ters döner; ek olarak yüzeyler
+   (.glass varyantları), girişler, düğmeler ve kaydırma çubuğu koyulaştırılır. */
+:root[data-theme="dark"] {
+  --ink: 228 228 238;
+  --canvas: 15 16 21;
+}
+
+/* Nötr (aksan olmayan) sabit-renkli karolar için token — açık temada krem,
+   karanlıkta koyu yüzey. Satır-içi stil bu değişkeni kullanınca tema ile döner. */
+:root { --tile-dim: #f1ede4; }
+:root[data-theme="dark"] { --tile-dim: rgba(255,255,255,0.06); }
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(120% 80% at 50% -8%, rgba(249,115,22,0.08) 0%, transparent 42%),
+    radial-gradient(90% 70% at 90% 4%, rgba(34,197,94,0.06) 0%, transparent 50%),
+    rgb(var(--canvas));
+}
+
+/* Kart yüzeyleri: koyu, hafif renk tonlu; metin açık. --c1 yüzey dolgusu,
+   --txt metin. ink-60/45/35 --txt'ten türediği için tek satırda hepsi döner. */
+:root[data-theme="dark"] .glass    { --c1: 32 33 42;  --txt: 228 228 238; border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 26px -14px rgba(0,0,0,0.7); }
+:root[data-theme="dark"] .g-neutral { --c1: 32 33 42;  --txt: 228 228 238; }
+:root[data-theme="dark"] .g-lime    { --c1: 28 41 26;  --txt: 200 228 184; }
+:root[data-theme="dark"] .g-teal    { --c1: 20 40 38;  --txt: 188 226 216; }
+:root[data-theme="dark"] .g-cream   { --c1: 46 38 26;  --txt: 236 214 176; }
+:root[data-theme="dark"] .g-amber   { --c1: 46 38 26;  --txt: 236 214 176; }
+:root[data-theme="dark"] .g-sky     { --c1: 22 34 50;  --txt: 190 214 242; }
+:root[data-theme="dark"] .g-navy    { --c1: 32 32 52;  --txt: 208 204 244; }
+:root[data-theme="dark"] .g-rust    { --c1: 48 30 26;  --txt: 236 200 186; }
+:root[data-theme="dark"] .g-flame   { --c1: 46 38 26;  --txt: 236 214 176; }
+
+:root[data-theme="dark"] .glass-lift:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 20px 36px -16px rgba(0,0,0,0.75);
+}
+
+/* Girişler, çipler, kuyu, kontroller — koyu yüzeyde açık üzerinde */
+:root[data-theme="dark"] .frost-input {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.16);
+  color: rgb(var(--ink));
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+}
+:root[data-theme="dark"] .frost-input::placeholder { color: rgba(255,255,255,0.36); }
+:root[data-theme="dark"] .well { background: rgba(255,255,255,0.06); box-shadow: inset 0 1px 2px rgba(0,0,0,0.35); }
+:root[data-theme="dark"] .chip { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); color: rgb(var(--ink) / 0.85); }
+:root[data-theme="dark"] .chip:hover { background: rgba(255,255,255,0.13); }
+:root[data-theme="dark"] .ctrl { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.1); color: rgb(var(--ink) / 0.7); }
+:root[data-theme="dark"] .ctrl:hover { background: rgba(255,255,255,0.13); color: rgb(var(--ink) / 0.95); }
+
+/* Koyu-mürekkep birincil düğme açık temada koyu; karanlıkta ters çevrilir */
+:root[data-theme="dark"] .btn-ink { background: #ece9f4; color: #1a1726; border-color: rgba(255,255,255,0.15); box-shadow: 0 8px 18px -10px rgba(0,0,0,0.7); }
+:root[data-theme="dark"] .btn-ink:hover { background: #ffffff; }
+:root[data-theme="dark"] .btn-dark { background: #2a2b36; color: rgb(var(--ink)); border-color: rgba(255,255,255,0.12); }
+:root[data-theme="dark"] .btn-dark:hover { background: #34353f; }
+
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
 
 /* ── Energetic gradient text accents ── */
 .energy-text {

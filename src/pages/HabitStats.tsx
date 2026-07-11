@@ -19,9 +19,9 @@ const STATUS_STYLE: Record<DayStatus, { bg: string; ring: string; color: string 
   done:          { bg: 'rgb(34,197,94)',        ring: 'rgba(34,197,94,0.5)',  color: '#06210f' },
   missed:        { bg: 'rgba(225,90,60,0.85)',  ring: 'rgba(225,90,60,0.5)',  color: '#fff5f2' },
   'today-pending': { bg: 'rgba(245,158,11,0.18)', ring: 'rgb(245,158,11)',     color: '#b45309' },
-  off:           { bg: 'rgba(26,23,38,0.05)',   ring: 'rgba(26,23,38,0.06)',  color: 'rgba(26,23,38,0.3)' },
-  future:        { bg: 'rgba(26,23,38,0.03)',   ring: 'rgba(26,23,38,0.05)',  color: 'rgba(26,23,38,0.25)' },
-  none:          { bg: 'rgba(26,23,38,0.04)',   ring: 'rgba(26,23,38,0.05)',  color: 'rgba(26,23,38,0.25)' },
+  off:           { bg: 'rgb(var(--ink) / 0.05)',   ring: 'rgb(var(--ink) / 0.06)',  color: 'rgb(var(--ink) / 0.3)' },
+  future:        { bg: 'rgb(var(--ink) / 0.03)',   ring: 'rgb(var(--ink) / 0.05)',  color: 'rgb(var(--ink) / 0.25)' },
+  none:          { bg: 'rgb(var(--ink) / 0.04)',   ring: 'rgb(var(--ink) / 0.05)',  color: 'rgb(var(--ink) / 0.25)' },
 }
 
 export default function HabitStats() {
@@ -102,7 +102,7 @@ export default function HabitStats() {
     return (
       <div className="max-w-sm mx-auto px-4 py-20 text-center">
         <p className="text-4xl mb-3">🔍</p>
-        <p className="display text-base font-bold" style={{ color: '#1a1726' }}>Alışkanlık bulunamadı</p>
+        <p className="display text-base font-bold" style={{ color: 'rgb(var(--ink))' }}>Alışkanlık bulunamadı</p>
         <button onClick={() => navigate('/habits')} className="btn-ink btn-press mt-5 px-5 py-2.5 text-sm">
           Alışkanlıklara dön
         </button>
@@ -126,7 +126,7 @@ export default function HabitStats() {
         </button>
         <span className="text-2xl">{habit.emoji}</span>
         <div className="min-w-0">
-          <h1 className="display text-xl font-extrabold truncate" style={{ color: '#1a1726' }}>{habit.name}</h1>
+          <h1 className="display text-xl font-extrabold truncate" style={{ color: 'rgb(var(--ink))' }}>{habit.name}</h1>
           {cat && (
             <p className="text-[11px] font-semibold" style={{ color: colors.text }}>
               {cat.emoji} {cat.name}
@@ -140,14 +140,14 @@ export default function HabitStats() {
         <div className="glass g-lime p-4" style={{ borderRadius: 20, border: '1px solid rgba(34,197,94,0.3)' }}>
           <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#15803d' }}>Bu Ay</p>
           <p className="display text-3xl font-extrabold tnum mt-1" style={{ color: '#15803d' }}>%{monthStat.pct}</p>
-          <p className="text-[11px] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
+          <p className="text-[11px] mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
             {monthStat.done}/{monthStat.total} gün başarılı
           </p>
         </div>
         <div className="glass g-neutral p-4" style={{ borderRadius: 20 }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(26,23,38,0.5)' }}>Tüm Zamanlar</p>
-          <p className="display text-3xl font-extrabold tnum mt-1" style={{ color: '#1a1726' }}>%{allStat.pct}</p>
-          <p className="text-[11px] mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
+          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ink) / 0.5)' }}>Tüm Zamanlar</p>
+          <p className="display text-3xl font-extrabold tnum mt-1" style={{ color: 'rgb(var(--ink))' }}>%{allStat.pct}</p>
+          <p className="text-[11px] mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
             {allStat.done}/{allStat.total} gün başarılı
           </p>
         </div>
@@ -163,7 +163,7 @@ export default function HabitStats() {
           >
             ←
           </button>
-          <p className="display text-sm font-bold" style={{ color: '#1a1726' }}>
+          <p className="display text-sm font-bold" style={{ color: 'rgb(var(--ink))' }}>
             {trMonthName(viewMonth)} {viewYear}
           </p>
           <button
@@ -180,7 +180,7 @@ export default function HabitStats() {
         {/* Day-of-week headers */}
         <div className="grid grid-cols-7 gap-1 mb-1">
           {TR_DAY_SHORTS.map((d) => (
-            <div key={d} className="text-center text-[9px] py-0.5 font-semibold" style={{ color: 'rgba(26,23,38,0.45)' }}>
+            <div key={d} className="text-center text-[9px] py-0.5 font-semibold" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
               {d}
             </div>
           ))}
@@ -234,7 +234,7 @@ export default function HabitStats() {
                 className="w-3 h-3 rounded-[5px]"
                 style={{ background: STATUS_STYLE[st].bg, boxShadow: `inset 0 0 0 1px ${STATUS_STYLE[st].ring}` }}
               />
-              <span className="text-[10px]" style={{ color: 'rgba(26,23,38,0.5)' }}>{lbl}</span>
+              <span className="text-[10px]" style={{ color: 'rgb(var(--ink) / 0.5)' }}>{lbl}</span>
             </div>
           ))}
         </div>

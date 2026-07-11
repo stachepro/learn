@@ -50,8 +50,8 @@ export default function CategoryPie() {
     return (
       <div className="text-center py-8">
         <p className="text-3xl mb-2">📊</p>
-        <p className="text-sm font-semibold" style={{ color: '#1a1726' }}>Henüz veri yok</p>
-        <p className="text-xs mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
+        <p className="text-sm font-semibold" style={{ color: 'rgb(var(--ink))' }}>Henüz veri yok</p>
+        <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
           Alışkanlık tamamladıkça kategori dağılımın burada görünecek.
         </p>
       </div>
@@ -68,7 +68,7 @@ export default function CategoryPie() {
       {/* Donut */}
       <div className="relative flex-shrink-0" style={{ width: 180, height: 180 }}>
         <svg width="180" height="180" viewBox="0 0 200 200" className="-rotate-90">
-          <circle cx="100" cy="100" r={R} fill="none" stroke="rgba(26,23,38,0.05)" strokeWidth="28" />
+          <circle cx="100" cy="100" r={R} fill="none" stroke="rgb(var(--ink) / 0.05)" strokeWidth="28" />
           {slices.map((s) => {
             const frac = s.count / total
             const segLen = frac * C
@@ -90,8 +90,8 @@ export default function CategoryPie() {
         </svg>
         {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center animate-fade-in">
-          <span className="display text-2xl font-extrabold tnum" style={{ color: '#1a1726' }}>{total}</span>
-          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(26,23,38,0.45)' }}>
+          <span className="display text-2xl font-extrabold tnum" style={{ color: 'rgb(var(--ink))' }}>{total}</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
             Tamamlama
           </span>
         </div>
@@ -106,7 +106,7 @@ export default function CategoryPie() {
             style={{ animationDelay: `${i * 0.05}s` }}
           >
             <span className="w-3 h-3 rounded-[4px] flex-shrink-0" style={{ background: s.color }} />
-            <span className="text-sm flex-1 min-w-0 truncate" style={{ color: 'rgba(26,23,38,0.7)' }}>
+            <span className="text-sm flex-1 min-w-0 truncate" style={{ color: 'rgb(var(--ink) / 0.7)' }}>
               {s.emoji} {s.name}
             </span>
             <span className="text-sm font-bold tnum flex-shrink-0" style={{ color: s.color }}>

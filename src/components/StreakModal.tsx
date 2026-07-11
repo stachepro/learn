@@ -16,9 +16,9 @@ type DayState = 'done' | 'frozen' | 'missed' | 'pending' | 'future'
 
 const STATUS_TEXT: Record<string, { text: string; color: string }> = {
   lit:     { text: 'Bugün serini devam ettirdin, alev yanıyor!', color: '#9a4d0a' },
-  pending: { text: 'Bugün henüz devam ettirmedin — bir alışkanlık tamamla, alevi yak.', color: 'rgba(26,23,38,0.55)' },
+  pending: { text: 'Bugün henüz devam ettirmedin — bir alışkanlık tamamla, alevi yak.', color: 'rgb(var(--ink) / 0.55)' },
   frozen:  { text: 'Serin dondurma ile kurtarıldı. Bugün tamamla, alev geri gelsin!', color: '#0369a1' },
-  out:     { text: 'Henüz seri yok. Bugün bir alışkanlık tamamla, seriyi başlat.', color: 'rgba(26,23,38,0.55)' },
+  out:     { text: 'Henüz seri yok. Bugün bir alışkanlık tamamla, seriyi başlat.', color: 'rgb(var(--ink) / 0.55)' },
 }
 
 function SnowFall() {
@@ -104,7 +104,7 @@ export default function StreakModal({ onClose }: { onClose: () => void }) {
     ? 'radial-gradient(circle at 50% 30%, rgba(125,211,252,0.35), rgba(125,211,252,0.08))'
     : flame === 'lit'
       ? 'radial-gradient(circle at 50% 30%, rgba(251,191,36,0.4), rgba(249,115,22,0.08))'
-      : 'radial-gradient(circle at 50% 30%, rgba(26,23,38,0.08), rgba(26,23,38,0.02))'
+      : 'radial-gradient(circle at 50% 30%, rgb(var(--ink) / 0.08), rgb(var(--ink) / 0.02))'
 
   return (
     <StatModalShell
@@ -120,15 +120,15 @@ export default function StreakModal({ onClose }: { onClose: () => void }) {
           className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center ${flame === 'lit' ? 'flame-glow' : flame === 'frozen' ? 'ice-glow' : ''}`}
           style={{
             background: flame === 'frozen' ? '#e3f3fd' : flame === 'lit' ? '#faecd6' : '#f1ede4',
-            border: `1px solid ${flame === 'frozen' ? '#bae6fd' : flame === 'lit' ? '#f3dcb0' : 'rgba(26,23,38,0.08)'}`,
+            border: `1px solid ${flame === 'frozen' ? '#bae6fd' : flame === 'lit' ? '#f3dcb0' : 'rgb(var(--ink) / 0.08)'}`,
           }}
         >
           <StreakFlame state={flame} size={44} />
         </div>
-        <p className="display text-5xl font-black tnum mt-3 leading-none" style={{ color: flame === 'frozen' ? '#0369a1' : flame === 'lit' ? '#9a4d0a' : '#1a1726' }}>
+        <p className="display text-5xl font-black tnum mt-3 leading-none" style={{ color: flame === 'frozen' ? '#0369a1' : flame === 'lit' ? '#9a4d0a' : 'rgb(var(--ink))' }}>
           {shownStreak}
         </p>
-        <p className="text-[11px] font-bold uppercase tracking-widest mt-1" style={{ color: 'rgba(26,23,38,0.4)' }}>günlük seri</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest mt-1" style={{ color: 'rgb(var(--ink) / 0.4)' }}>günlük seri</p>
         <p className="text-xs font-semibold mt-2 px-4" style={{ color: STATUS_TEXT[flame].color }}>
           {STATUS_TEXT[flame].text}
         </p>
@@ -152,8 +152,8 @@ export default function StreakModal({ onClose }: { onClose: () => void }) {
                 className="w-8 h-8 rounded-xl flex items-center justify-center text-sm animate-cell-pop"
                 style={{
                   animationDelay: `${200 + i * 90}ms`,
-                  background: i < freezes ? 'linear-gradient(150deg, #bae6fd, #38bdf8)' : 'rgba(26,23,38,0.05)',
-                  border: i < freezes ? '1px solid #7dd3fc' : '1px dashed rgba(26,23,38,0.18)',
+                  background: i < freezes ? 'linear-gradient(150deg, #bae6fd, #38bdf8)' : 'rgb(var(--ink) / 0.05)',
+                  border: i < freezes ? '1px solid #7dd3fc' : '1px dashed rgb(var(--ink) / 0.18)',
                   boxShadow: i < freezes ? '0 4px 10px -4px rgba(14,165,233,0.5)' : 'none',
                 }}
               >
@@ -186,7 +186,7 @@ export default function StreakModal({ onClose }: { onClose: () => void }) {
 
       {/* ── Son 7 gün ── */}
       <div className="animate-pop" style={{ animationDelay: '180ms' }}>
-        <p className="display text-sm font-extrabold mb-2.5" style={{ color: '#1a1726' }}>Son 7 gün</p>
+        <p className="display text-sm font-extrabold mb-2.5" style={{ color: 'rgb(var(--ink))' }}>Son 7 gün</p>
         <div className="grid grid-cols-7 gap-1.5">
           {last7.map((d, i) => (
             <div key={d.date} className="text-center animate-cell-pop" style={{ animationDelay: `${240 + i * 50}ms` }}>
@@ -199,7 +199,7 @@ export default function StreakModal({ onClose }: { onClose: () => void }) {
 
       {/* ── Aylık takvim ── */}
       <div className="animate-pop" style={{ animationDelay: '240ms' }}>
-        <p className="display text-sm font-extrabold mb-2.5" style={{ color: '#1a1726' }}>{trMonthName(month)} {year}</p>
+        <p className="display text-sm font-extrabold mb-2.5" style={{ color: 'rgb(var(--ink))' }}>{trMonthName(month)} {year}</p>
         <div className="grid grid-cols-7 gap-1 mb-1">
           {TR_DAY_SHORTS.map((d) => (
             <div key={d} className="text-center text-[9px] ink-45 py-0.5 font-semibold">{d}</div>
@@ -213,15 +213,15 @@ export default function StreakModal({ onClose }: { onClose: () => void }) {
             const isToday = date === today
             const bg = s === 'done' ? 'rgba(249,115,22,0.75)'
               : s === 'frozen' ? 'rgba(56,189,248,0.65)'
-              : s === 'future' ? 'rgba(26,23,38,0.03)'
-              : 'rgba(26,23,38,0.05)'
+              : s === 'future' ? 'rgb(var(--ink) / 0.03)'
+              : 'rgb(var(--ink) / 0.05)'
             return (
               <div
                 key={date}
                 className="contrib-cell animate-cell-pop aspect-square rounded-lg flex items-center justify-center"
                 style={{
                   background: bg,
-                  boxShadow: isToday ? '0 0 0 2px rgb(249,115,22)' : 'inset 0 0 0 1px rgba(26,23,38,0.06)',
+                  boxShadow: isToday ? '0 0 0 2px rgb(249,115,22)' : 'inset 0 0 0 1px rgb(var(--ink) / 0.06)',
                   '--cell-opacity': s === 'future' ? 0.5 : 1,
                   animationDelay: `${(i % 7) * 0.02 + Math.floor(i / 7) * 0.015}s`,
                 } as CSSProperties}
@@ -236,13 +236,13 @@ export default function StreakModal({ onClose }: { onClose: () => void }) {
         <div className="flex items-center justify-end gap-3 mt-2.5 text-[10px] ink-45">
           <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded inline-block" style={{ background: 'rgba(249,115,22,0.75)' }} /> aktif</span>
           <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded inline-block" style={{ background: 'rgba(56,189,248,0.65)' }} /> donduruldu</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded inline-block" style={{ background: 'rgba(26,23,38,0.05)', boxShadow: 'inset 0 0 0 1px rgba(26,23,38,0.1)' }} /> boş</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded inline-block" style={{ background: 'rgb(var(--ink) / 0.05)', boxShadow: 'inset 0 0 0 1px rgb(var(--ink) / 0.1)' }} /> boş</span>
         </div>
       </div>
 
       {/* ── Nasıl işler ── */}
-      <div className="rounded-3xl p-4 space-y-2.5 animate-pop" style={{ background: 'rgba(26,23,38,0.03)', border: '1px solid rgba(26,23,38,0.06)', animationDelay: '300ms' }}>
-        <p className="display text-sm font-extrabold" style={{ color: '#1a1726' }}>Seri nasıl işler?</p>
+      <div className="rounded-3xl p-4 space-y-2.5 animate-pop" style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.06)', animationDelay: '300ms' }}>
+        <p className="display text-sm font-extrabold" style={{ color: 'rgb(var(--ink))' }}>Seri nasıl işler?</p>
         <Rule emoji="🔥" text="Günün ilk tamamlaması seriyi +1 ilerletir. Aynı gün içindeki diğer tamamlamalar sayıyı değiştirmez." />
         <Rule emoji="🧊" text="Bir günü tamamen boş geçersen dondurma hakkın otomatik devreye girer — serin bozulmaz, sayı aynı kalır." />
         <Rule emoji="📆" text="Kaçırılan her gün 1 hak harcar. Hak yetmezse seri sıfırlanır ama dondurmaların cebinde kalır." />
@@ -254,8 +254,8 @@ export default function StreakModal({ onClose }: { onClose: () => void }) {
 
 function MiniStat({ label, value, suffix }: { label: string; value: string; suffix?: string }) {
   return (
-    <div className="rounded-2xl px-3 py-3 text-center" style={{ background: 'rgba(26,23,38,0.03)', border: '1px solid rgba(26,23,38,0.06)' }}>
-      <p className="display text-lg font-black tnum leading-none" style={{ color: '#1a1726' }}>
+    <div className="rounded-2xl px-3 py-3 text-center" style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.06)' }}>
+      <p className="display text-lg font-black tnum leading-none" style={{ color: 'rgb(var(--ink))' }}>
         {value}{suffix && <span className="text-[10px] font-bold ml-0.5 ink-45">{suffix}</span>}
       </p>
       <p className="text-[9px] font-bold uppercase tracking-wide mt-1.5 ink-45">{label}</p>
@@ -267,9 +267,9 @@ function DayCell({ state, isToday, dayNum }: { state: DayState; isToday: boolean
   const styles: Record<DayState, CSSProperties> = {
     done:    { background: 'linear-gradient(150deg, #fbbf24, #f97316)', color: '#4a1d05', boxShadow: '0 4px 10px -4px rgba(249,115,22,0.55)' },
     frozen:  { background: 'linear-gradient(150deg, #bae6fd, #38bdf8)', color: '#0c4a6e', boxShadow: '0 4px 10px -4px rgba(14,165,233,0.5)' },
-    missed:  { background: 'rgba(26,23,38,0.05)', color: 'rgba(26,23,38,0.35)' },
+    missed:  { background: 'rgb(var(--ink) / 0.05)', color: 'rgb(var(--ink) / 0.35)' },
     pending: { background: 'rgba(249,115,22,0.08)', color: 'rgba(154,77,10,0.7)', border: '1.5px dashed rgba(249,115,22,0.5)' },
-    future:  { background: 'rgba(26,23,38,0.03)', color: 'rgba(26,23,38,0.2)' },
+    future:  { background: 'rgb(var(--ink) / 0.03)', color: 'rgb(var(--ink) / 0.2)' },
   }
   return (
     <div
@@ -285,7 +285,7 @@ function Rule({ emoji, text }: { emoji: string; text: string }) {
   return (
     <div className="flex gap-2.5 items-start">
       <span className="text-sm leading-none mt-0.5">{emoji}</span>
-      <p className="text-[11.5px] leading-relaxed flex-1" style={{ color: 'rgba(26,23,38,0.6)' }}>{text}</p>
+      <p className="text-[11.5px] leading-relaxed flex-1" style={{ color: 'rgb(var(--ink) / 0.6)' }}>{text}</p>
     </div>
   )
 }

@@ -22,3 +22,8 @@ export function persistNative(key: string, value: string): void {
   if (!isNative) return
   void Preferences.set({ key, value })
 }
+
+export function removeNative(key: string): void {
+  if (!isNative) return
+  void Preferences.remove({ key })
+}

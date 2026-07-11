@@ -33,7 +33,7 @@ const BROWN_TEXT = '#4a3222'
 /* ── Icons ── */
 type IconProps = { size?: number; color?: string }
 
-function IconGrip({ size = 16, color = 'rgba(26,23,38,0.32)' }: IconProps) {
+function IconGrip({ size = 16, color = 'rgb(var(--ink) / 0.32)' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
       <circle cx="9" cy="6" r="1.6" /><circle cx="15" cy="6" r="1.6" />
@@ -151,10 +151,10 @@ function HistoryModal({ onClose }: { onClose: () => void }) {
           className={`glass g-neutral w-full max-w-md ${exiting ? 'animate-fade-down' : 'animate-fade-up'}`}
           style={{ borderRadius: 28, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
         >
-          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(26,23,38,0.08)' }}>
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
             <h2 className="display text-lg font-bold">Geçmiş Görevler</h2>
             <button onClick={handleClose} aria-label="Kapat" className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center">
-              <IconX color="rgba(26,23,38,0.7)" />
+              <IconX color="rgb(var(--ink) / 0.7)" />
             </button>
           </div>
           <div className="overflow-y-auto">
@@ -165,10 +165,10 @@ function HistoryModal({ onClose }: { onClose: () => void }) {
                 <div
                   key={r.id}
                   className="flex items-center gap-3 px-5 py-3.5"
-                  style={{ borderBottom: idx < records.length - 1 ? '1px solid rgba(26,23,38,0.06)' : 'none' }}
+                  style={{ borderBottom: idx < records.length - 1 ? '1px solid rgb(var(--ink) / 0.06)' : 'none' }}
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: '#1a1726' }}>{r.title || 'İsimsiz görev'}</p>
+                    <p className="text-sm font-semibold truncate" style={{ color: 'rgb(var(--ink))' }}>{r.title || 'İsimsiz görev'}</p>
                     <p className="text-xs mt-1 ink-45">
                       {new Date(r.completedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} · {r.stageCount} aşama · {formatHMS(r.totalSeconds)}
                     </p>
@@ -235,10 +235,10 @@ function SummaryModal({ title, stages, totalSeconds, onClose }: {
                   >
                     <IconCheck />
                   </span>
-                  <span className="flex-1 text-sm font-medium truncate" style={{ color: '#1a1726' }}>
+                  <span className="flex-1 text-sm font-medium truncate" style={{ color: 'rgb(var(--ink))' }}>
                     {s.text || 'İsimsiz aşama'}
                   </span>
-                  <span className="tnum text-xs font-mono flex-shrink-0" style={{ color: 'rgba(26,23,38,0.45)' }}>
+                  <span className="tnum text-xs font-mono flex-shrink-0" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
                     {formatHMS(s.elapsedSeconds)}
                   </span>
                 </div>
@@ -415,7 +415,7 @@ export default function NoRush() {
       return {
         transform: `translateY(${dragDy}px) scale(1.02)`,
         zIndex: 5, position: 'relative',
-        boxShadow: '0 14px 28px -10px rgba(26,23,38,0.3)',
+        boxShadow: '0 14px 28px -10px rgb(var(--ink) / 0.3)',
       }
     }
     if (dragFrom < dragOver && index > dragFrom && index <= dragOver) {
@@ -463,10 +463,10 @@ export default function NoRush() {
 
       {/* Başlık */}
       <div className="mb-6 text-center">
-        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: '#1a1726' }}>
+        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: 'rgb(var(--ink))' }}>
           Acele Yok
         </h1>
-        <p className="text-xs mt-1" style={{ color: 'rgba(26,23,38,0.45)' }}>
+        <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
           Küçük adımlar, senin hızında · süre ileri sayar
         </p>
       </div>
@@ -474,7 +474,7 @@ export default function NoRush() {
       {/* ── Görev kartı: isim + ilerleme + toplam süre ── */}
       <div
         className="glass g-cream mb-4 px-5 py-4 animate-fade-up"
-        style={{ borderRadius: 22, boxShadow: '0 10px 26px -18px rgba(180,120,30,0.55), 0 1px 2px rgba(26,23,38,0.04)' }}
+        style={{ borderRadius: 22, boxShadow: '0 10px 26px -18px rgba(180,120,30,0.55), 0 1px 2px rgb(var(--ink) / 0.04)' }}
       >
         <p className="text-[11px] font-bold uppercase tracking-[0.16em] mb-1.5" style={{ color: '#b45309' }}>
           Ne yapıyoruz?
@@ -485,7 +485,7 @@ export default function NoRush() {
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Yapacağımız şeye bir isim ver"
           className="w-full text-xl font-bold bg-transparent outline-none"
-          style={{ color: '#1a1726' }}
+          style={{ color: 'rgb(var(--ink))' }}
         />
         {stages.length > 0 && (
           <>
@@ -545,7 +545,7 @@ export default function NoRush() {
               className="btn-press flex-1 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-1.5"
               style={{
                 background: isPaused ? `linear-gradient(150deg, ${BROWN_SOFT}, ${BROWN})` : 'rgba(74,50,34,0.08)',
-                color: isPaused ? '#fbf7f0' : BROWN_TEXT,
+                color: isPaused ? 'rgb(var(--canvas))' : BROWN_TEXT,
                 border: isPaused ? 'none' : '1px solid rgba(74,50,34,0.14)',
               }}
             >
@@ -564,11 +564,11 @@ export default function NoRush() {
 
       {/* ── Aşamalar ── */}
       <div className="flex items-center justify-between mb-2 px-0.5">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(26,23,38,0.45)' }}>
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
           Aşamalar
         </span>
         {stages.length > 1 && (
-          <span className="text-[10px] font-semibold" style={{ color: 'rgba(26,23,38,0.35)' }}>
+          <span className="text-[10px] font-semibold" style={{ color: 'rgb(var(--ink) / 0.35)' }}>
             ⠿ tutamaçtan sürükleyip sıralayabilirsin
           </span>
         )}
@@ -577,12 +577,12 @@ export default function NoRush() {
       {stages.length === 0 && (
         <div
           className="rounded-2xl px-5 py-6 text-center mb-3 animate-fade-up"
-          style={{ background: 'rgba(26,23,38,0.03)', border: '1.5px dashed rgba(26,23,38,0.14)' }}
+          style={{ background: 'rgb(var(--ink) / 0.03)', border: '1.5px dashed rgb(var(--ink) / 0.14)' }}
         >
-          <p className="text-sm font-semibold" style={{ color: 'rgba(26,23,38,0.6)' }}>
+          <p className="text-sm font-semibold" style={{ color: 'rgb(var(--ink) / 0.6)' }}>
             Gözünde büyüyen işi küçücük parçalara böl.
           </p>
-          <p className="text-xs mt-1.5" style={{ color: 'rgba(26,23,38,0.4)' }}>
+          <p className="text-xs mt-1.5" style={{ color: 'rgb(var(--ink) / 0.4)' }}>
             "Kitabı masaya koy" kadar küçük olabilir — aşağıdan ilk aşamayı ekle.
           </p>
         </div>
@@ -598,8 +598,8 @@ export default function NoRush() {
               key={stage.id}
               className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
               style={{
-                background: isDone ? 'rgba(26,23,38,0.04)' : '#ffffff',
-                border: `1.5px solid ${isRunning ? 'rgba(34,197,94,0.6)' : isDone ? 'rgba(26,23,38,0.07)' : 'rgba(26,23,38,0.1)'}`,
+                background: isDone ? 'rgb(var(--ink) / 0.04)' : '#ffffff',
+                border: `1.5px solid ${isRunning ? 'rgba(34,197,94,0.6)' : isDone ? 'rgb(var(--ink) / 0.07)' : 'rgb(var(--ink) / 0.1)'}`,
                 boxShadow: isRunning ? '0 0 0 3px rgba(34,197,94,0.13)' : 'none',
                 opacity: isDone ? 0.65 : 1,
                 ...dragStyle(index),
@@ -627,8 +627,8 @@ export default function NoRush() {
                 <span
                   className="tnum w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                   style={{
-                    background: isRunning ? 'rgba(34,197,94,0.14)' : 'rgba(26,23,38,0.06)',
-                    color: isRunning ? '#15803d' : 'rgba(26,23,38,0.55)',
+                    background: isRunning ? 'rgba(34,197,94,0.14)' : 'rgb(var(--ink) / 0.06)',
+                    color: isRunning ? '#15803d' : 'rgb(var(--ink) / 0.55)',
                   }}
                 >
                   {index + 1}
@@ -642,13 +642,13 @@ export default function NoRush() {
                 readOnly={isDone}
                 placeholder="Bu aşamada ne yapılacak?"
                 className="flex-1 min-w-0 text-sm bg-transparent outline-none"
-                style={{ color: '#1a1726' }}
+                style={{ color: 'rgb(var(--ink))' }}
               />
 
               {(isRunning || isDone) && (
                 <span
                   className="tnum text-xs font-mono font-semibold flex-shrink-0"
-                  style={{ color: isRunning ? (isStagePaused ? 'rgba(26,23,38,0.4)' : '#15803d') : 'rgba(26,23,38,0.4)' }}
+                  style={{ color: isRunning ? (isStagePaused ? 'rgb(var(--ink) / 0.4)' : '#15803d') : 'rgb(var(--ink) / 0.4)' }}
                 >
                   {formatHMS(liveStageSeconds(stage, now))}
                 </span>
@@ -681,8 +681,8 @@ export default function NoRush() {
                     title={runningStage !== null ? 'Önce çalışan aşamayı bitir' : undefined}
                     className="btn-press px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 disabled:cursor-not-allowed"
                     style={{
-                      background: runningStage !== null ? 'rgba(26,23,38,0.06)' : `linear-gradient(150deg, ${BROWN_SOFT}, ${BROWN})`,
-                      color: runningStage !== null ? 'rgba(26,23,38,0.3)' : '#fbf7f0',
+                      background: runningStage !== null ? 'rgb(var(--ink) / 0.06)' : `linear-gradient(150deg, ${BROWN_SOFT}, ${BROWN})`,
+                      color: runningStage !== null ? 'rgb(var(--ink) / 0.3)' : 'rgb(var(--canvas))',
                     }}
                   >
                     Başladım
@@ -692,7 +692,7 @@ export default function NoRush() {
                     aria-label="Aşamayı sil"
                     title="Aşamayı sil"
                     className="btn-press w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ color: 'rgba(26,23,38,0.3)' }}
+                    style={{ color: 'rgb(var(--ink) / 0.3)' }}
                   >
                     <IconX size={13} />
                   </button>
@@ -706,9 +706,9 @@ export default function NoRush() {
       {/* Hızlı aşama ekleme — Enter ya da + */}
       <div
         className="flex items-center gap-2.5 rounded-2xl px-3 py-2 mt-2"
-        style={{ background: 'rgba(255,255,255,0.6)', border: '1.5px dashed rgba(26,23,38,0.18)' }}
+        style={{ background: 'rgba(255,255,255,0.6)', border: '1.5px dashed rgb(var(--ink) / 0.18)' }}
       >
-        <span className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ color: 'rgba(26,23,38,0.35)' }}>
+        <span className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ color: 'rgb(var(--ink) / 0.35)' }}>
           <IconPlus size={14} />
         </span>
         <input
@@ -718,14 +718,14 @@ export default function NoRush() {
           onKeyDown={(e) => { if (e.key === 'Enter') addDraft() }}
           placeholder="Yeni aşama ekle…"
           className="flex-1 min-w-0 text-sm bg-transparent outline-none py-1"
-          style={{ color: '#1a1726' }}
+          style={{ color: 'rgb(var(--ink))' }}
         />
         <button
           onClick={addDraft}
           disabled={!draft.trim()}
           aria-label="Aşama ekle"
           className="btn-press px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 disabled:opacity-30"
-          style={{ background: '#1a1726', color: '#fbf7f0' }}
+          style={{ background: 'rgb(var(--ink))', color: 'rgb(var(--canvas))' }}
         >
           Ekle
         </button>
@@ -738,15 +738,15 @@ export default function NoRush() {
         title={!allStagesDone ? 'Önce tüm aşamaları tamamla' : undefined}
         className="btn-press w-full py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 disabled:cursor-not-allowed mt-6"
         style={{
-          background: allStagesDone ? 'rgba(34,197,94,0.9)' : 'rgba(26,23,38,0.07)',
-          color: allStagesDone ? '#06210f' : 'rgba(26,23,38,0.35)',
+          background: allStagesDone ? 'rgba(34,197,94,0.9)' : 'rgb(var(--ink) / 0.07)',
+          color: allStagesDone ? '#06210f' : 'rgb(var(--ink) / 0.35)',
         }}
       >
         {!allStagesDone && <IconLock size={14} />}
         Görevi Bitir
       </button>
 
-      <p className="text-center text-[11px] mt-4" style={{ color: 'rgba(26,23,38,0.4)' }}>
+      <p className="text-center text-[11px] mt-4" style={{ color: 'rgb(var(--ink) / 0.4)' }}>
         Süre geriye değil ileriye sayar — acele ettiren kimse yok.
       </p>
     </div>
