@@ -24,7 +24,7 @@ export default function StreakFlame({ state, size = 24, className }: Props) {
   if (state === 'out') {
     return (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-        <path d={FLAME_PATH} stroke="rgb(var(--ink) / 0.3)" strokeWidth="1.6" strokeLinejoin="round" />
+        <path d={FLAME_PATH} stroke="currentColor" strokeOpacity="0.42" strokeWidth="1.6" strokeLinejoin="round" />
       </svg>
     )
   }
@@ -32,9 +32,9 @@ export default function StreakFlame({ state, size = 24, className }: Props) {
   if (state === 'pending') {
     return (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-        <path d={FLAME_PATH} fill="rgb(var(--ink) / 0.22)" />
+        <path d={FLAME_PATH} fill="currentColor" fillOpacity="0.24" />
         {/* İç kor — sönmek üzere, yavaş nabız */}
-        <circle cx="12" cy="15" r="2.4" fill="rgba(249,115,22,0.55)" className="ember-pulse" />
+        <circle cx="12" cy="15" r="2.4" fill="rgb(var(--energy-orange))" fillOpacity="0.62" className="ember-pulse" />
       </svg>
     )
   }
@@ -44,16 +44,16 @@ export default function StreakFlame({ state, size = 24, className }: Props) {
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
         <defs>
           <linearGradient id={iceId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--sf-ice-br)" />
-            <stop offset="55%" stopColor="#7dd3fc" />
-            <stop offset="100%" stopColor="#0ea5e9" />
+            <stop offset="0%" stopColor="rgb(var(--streak-ice-bright, var(--status-info)))" />
+            <stop offset="55%" stopColor="rgb(var(--status-info))" />
+            <stop offset="100%" stopColor="rgb(var(--streak-ice-deep, var(--status-info)))" />
           </linearGradient>
         </defs>
         <path d={FLAME_PATH} fill={`url(#${iceId})`} />
         {/* Buz parlaması */}
-        <path d="M9.2 9.5c-.9 1-1.6 2.2-1.7 3.6" stroke="rgba(255,255,255,0.85)" strokeWidth="1.1" strokeLinecap="round" className="frost-glint" />
+        <path d="M9.2 9.5c-.9 1-1.6 2.2-1.7 3.6" stroke="rgb(var(--streak-icon-highlight))" strokeOpacity="0.85" strokeWidth="1.1" strokeLinecap="round" className="frost-glint" />
         {/* Kar kristali */}
-        <g stroke="#fff" strokeWidth="0.9" strokeLinecap="round" className="frost-spin" style={{ transformOrigin: '14.5px 13.5px' }}>
+        <g stroke="rgb(var(--streak-icon-highlight))" strokeWidth="0.9" strokeLinecap="round" className="frost-spin" style={{ transformOrigin: '14.5px 13.5px' }}>
           <path d="M14.5 10.5v6" />
           <path d="M11.9 12l5.2 3" />
           <path d="M17.1 12l-5.2 3" />
@@ -66,8 +66,8 @@ export default function StreakFlame({ state, size = 24, className }: Props) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fbbf24" />
-          <stop offset="100%" stopColor="#f97316" />
+          <stop offset="0%" stopColor="rgb(var(--streak-flame-top, var(--energy-amber)))" />
+          <stop offset="100%" stopColor="rgb(var(--energy-orange))" />
         </linearGradient>
       </defs>
       <g className="flame-flicker" style={{ transformOrigin: '12px 20px' }}>
@@ -75,7 +75,7 @@ export default function StreakFlame({ state, size = 24, className }: Props) {
         {/* İç alev — daha sıcak çekirdek */}
         <path
           d="M12 10.5c.3 1.4 1.3 2.2 1.9 3.1.5.8.7 1.5.7 2.2a2.6 2.6 0 1 1-5.2 0c0-.9.4-1.7 1-2.4.5-.6.9-1.2 1-2 .3.3.5.7.6 1.1z"
-          fill="#fde68a"
+          fill="rgb(var(--streak-flame-core, var(--brand-lime)))"
           opacity="0.9"
         />
       </g>

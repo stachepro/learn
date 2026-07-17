@@ -1,352 +1,227 @@
 import { useEffect, useRef, useState } from 'react'
-import { storage } from '../utils/storage'
 import BackBar from '../components/BackBar'
-import Confetti from '../components/Confetti'
+import AppButton from '../components/ui/AppButton'
+import TodoTaskCard from '../components/todo/TodoTaskCard'
+import TodoResultShelf from '../components/todo/TodoResultShelf'
+import { TodoActionsSheet, TodoCompletedSheet, TodoDeleteDialog } from '../components/todo/TodoSheets'
+import { storage } from '../utils/storage'
 import { playConfirm } from '../utils/sound'
+import { hapticEvent } from '../utils/haptics'
+import { MOTION } from '../utils/motion'
+import { showToast } from '../utils/toast'
 import { awardStandaloneBadges } from '../utils/badges'
+import { visibleActiveTodos, visibleCompletedTodos } from '../utils/todo'
 import type { TodoItem } from '../types'
 
-/* ════════════════════════════════════════════════
-   TO-DO — basit liste, ama keyifli. Enter'la hızlı
-   ekleme, solda renkli onay halkası, bitenler alta
-   "Tamamlananlar" grubuna iner, tek dokunuşla
-   temizlenir. Liste tamamen bitince konfeti yağar.
-   ════════════════════════════════════════════════ */
-
-const OUTLINE_COLORS = [
-  '#f97316', '#3b82f6', '#22c55e', '#ec4899',
-  '#a855f7', '#eab308', '#06b6d4', '#ef4444',
-]
-
-function randomColor(): string {
-  return OUTLINE_COLORS[Math.floor(Math.random() * OUTLINE_COLORS.length)]
-}
-
-function IconPlus({ size = 16 }: { size?: number }) {
+function PlusIcon() {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+      <path d="M12 5v14M5 12h14" />
     </svg>
   )
 }
 
-function IconCheck({ size = 13, className }: { size?: number; className?: string }) {
+function ListIcon() {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <polyline points="20 6 9 17 4 12" />
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M9 6h11M9 12h11M9 18h11" /><path d="m3.5 6 1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2" />
     </svg>
-  )
-}
-
-function IconX({ size = 13 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.3} strokeLinecap="round">
-      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  )
-}
-
-function IconClipboard({ size = 28, color = 'currentColor' }: { size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="8" y="2" width="8" height="4" rx="1" />
-      <path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3" />
-      <line x1="9" y1="12" x2="15" y2="12" />
-      <line x1="9" y1="16" x2="13" y2="16" />
-    </svg>
-  )
-}
-
-/* Çizilerek beliren onay — kutlama kartında */
-function CheckDraw({ size = 15, color = 'currentColor', strokeWidth = 2.4 }: {
-  size?: number; color?: string; strokeWidth?: number
-}) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-      <polyline className="js-check-draw" points="2.5 8.5 6.5 12.5 13.5 4" />
-    </svg>
-  )
-}
-
-function TodoRow({ todo, removing, onChangeText, onToggle, onDelete, delay = 0 }: {
-  todo: TodoItem
-  removing: boolean
-  onChangeText: (text: string) => void
-  onToggle: () => void
-  onDelete: () => void
-  delay?: number
-}) {
-  return (
-    <div
-      className={`flex items-center gap-2.5 rounded-2xl px-3 py-2.5 soft-trans ${removing ? 'animate-fade-down' : 'animate-fade-up'}`}
-      style={{
-        background: todo.done ? 'rgb(var(--ink) / 0.04)' : 'var(--tile-raised)',
-        border: `1.5px solid ${todo.done ? 'rgb(var(--ink) / 0.09)' : todo.color}`,
-        animationDelay: removing ? '0s' : `${delay}s`,
-        opacity: todo.done ? 0.75 : 1,
-      }}
-    >
-      {/* Onay halkası — solda, madde renginde */}
-      <button
-        onClick={onToggle}
-        aria-label={todo.done ? 'Geri al' : 'Tamamla'}
-        className="btn-press soft-trans w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-        style={todo.done
-          ? { background: 'rgba(34,197,94,0.9)', color: '#fff', border: '2px solid transparent' }
-          : { background: 'transparent', color: 'transparent', border: `2px solid ${todo.color}` }}
-      >
-        <IconCheck className={todo.done ? 'animate-check' : ''} />
-      </button>
-
-      <input
-        type="text"
-        value={todo.text}
-        onChange={(e) => onChangeText(e.target.value)}
-        readOnly={todo.done}
-        placeholder="Ne yapılacak?"
-        className="flex-1 min-w-0 text-sm bg-transparent outline-none soft-trans"
-        style={{
-          color: todo.done ? 'rgb(var(--ink) / 0.4)' : 'rgb(var(--ink))',
-          textDecoration: todo.done ? 'line-through' : 'none',
-        }}
-      />
-
-      <button
-        onClick={onDelete}
-        aria-label="Sil"
-        title="Sil"
-        className="btn-press w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-        style={{ color: 'rgb(var(--ink) / 0.28)' }}
-      >
-        <IconX />
-      </button>
-    </div>
   )
 }
 
 export default function Todo() {
-  const [todos, setTodos] = useState<TodoItem[]>(() => storage.getTodos())
+  const [todos, setTodos] = useState<TodoItem[]>(storage.getTodos)
   const [draft, setDraft] = useState('')
-  const [removingIds, setRemovingIds] = useState<string[]>([])
-  const [showConfetti, setShowConfetti] = useState(false)
-  const confettiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
-  useEffect(() => () => { if (confettiTimerRef.current) clearTimeout(confettiTimerRef.current) }, [])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [managedId, setManagedId] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [resultsOpen, setResultsOpen] = useState(false)
+  const [newlyAddedId, setNewlyAddedId] = useState<string | null>(null)
+  const newItemTimerRef = useRef<number | null>(null)
 
-  const persist = (next: TodoItem[]) => {
+  useEffect(() => () => {
+    if (newItemTimerRef.current !== null) window.clearTimeout(newItemTimerRef.current)
+  }, [])
+
+  const activeTodos = visibleActiveTodos(todos)
+  const completedTodos = visibleCompletedTodos(todos)
+  const visibleCount = activeTodos.length + completedTodos.length
+  const allDone = completedTodos.length > 0 && activeTodos.length === 0
+  const progress = visibleCount === 0 ? 0 : completedTodos.length / visibleCount
+  const managedTodo = todos.find((todo) => todo.id === managedId) ?? null
+  const deletingTodo = todos.find((todo) => todo.id === deleteId) ?? null
+
+  const save = (next: TodoItem[], checkBadges = false) => {
     setTodos(next)
     storage.setTodos(next)
-    awardStandaloneBadges()
+    if (checkBadges) awardStandaloneBadges()
   }
 
-  const activeList = todos.filter((t) => !t.done)
-  const doneList = todos.filter((t) => t.done)
-  const allDone = todos.length > 0 && activeList.length === 0
-  const progress = todos.length > 0 ? doneList.length / todos.length : 0
-
-  // Liste oturum içinde tamamen bitince (sayfa yüklenirken değil) konfeti
-  const prevAllDoneRef = useRef(allDone)
-  useEffect(() => {
-    if (allDone && !prevAllDoneRef.current) {
-      setShowConfetti(true)
-      if (confettiTimerRef.current) clearTimeout(confettiTimerRef.current)
-      confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 3600)
-    }
-    prevAllDoneRef.current = allDone
-  }, [allDone])
-
-  const addDraft = () => {
+  const addTask = () => {
     const text = draft.trim()
     if (!text) return
-    playConfirm()
-    persist([...todos, {
-      id: crypto.randomUUID(),
+    const id = crypto.randomUUID()
+    const minimumOrder = todos.reduce((minimum, todo) => Math.min(minimum, todo.order ?? 0), 0)
+    const next: TodoItem = {
+      id,
       text,
-      color: randomColor(),
       done: false,
       createdAt: new Date().toISOString(),
-    }])
+      order: minimumOrder - 1,
+    }
+    save([next, ...todos])
     setDraft('')
-  }
-
-  const changeText = (id: string, text: string) => {
-    persist(todos.map((t) => (t.id === id ? { ...t, text } : t)))
-  }
-
-  const toggle = (id: string) => {
+    setNewlyAddedId(id)
+    void hapticEvent('control')
     playConfirm()
-    persist(todos.map((t) => (
-      t.id === id
-        ? { ...t, done: !t.done, completedAt: !t.done ? new Date().toISOString() : undefined }
-        : t
-    )))
+    if (newItemTimerRef.current !== null) window.clearTimeout(newItemTimerRef.current)
+    newItemTimerRef.current = window.setTimeout(() => setNewlyAddedId(null), MOTION.reward)
   }
 
-  // Silme: önce kısa çıkış animasyonu, sonra listeden düşür
-  const remove = (id: string) => {
-    playConfirm()
-    setRemovingIds((prev) => [...prev, id])
-    setTimeout(() => {
-      setRemovingIds((prev) => prev.filter((x) => x !== id))
-      setTodos((prev) => {
-        const next = prev.filter((t) => t.id !== id)
-        storage.setTodos(next)
-        return next
-      })
-      awardStandaloneBadges()
-    }, 180)
+  const commitEdit = (id: string, text: string) => {
+    const normalized = text.trim()
+    if (normalized) save(todos.map((todo) => todo.id === id ? { ...todo, text: normalized } : todo))
+    setEditingId(null)
   }
 
-  const clearCompleted = () => {
+  const completeTask = (id: string, thresholdSignalled = false) => {
+    const task = todos.find((todo) => todo.id === id)
+    if (!task || task.done) return
+    const completedAt = new Date().toISOString()
+    const next = todos.map((todo) => todo.id === id ? { ...todo, done: true, completedAt, archivedAt: undefined } : todo)
+    save(next)
+    storage.recordTodoCompletion(id)
+    awardStandaloneBadges()
     playConfirm()
-    persist(todos.filter((t) => !t.done))
+    showToast({
+      id: `todo-complete-${id}-${completedAt}`,
+      tone: 'success',
+      title: 'Görev tamamlandı',
+      message: task.text,
+      haptic: thresholdSignalled ? 'none' : 'success',
+      action: { label: 'Geri Al', onPress: () => undoTask(id, false) },
+    })
+  }
+
+  const undoTask = (id: string, feedbackHaptic = true) => {
+    const task = todos.find((todo) => todo.id === id)
+    if (!task) return
+    save(todos.map((todo) => todo.id === id ? { ...todo, done: false, completedAt: undefined, archivedAt: undefined } : todo))
+    if (completedTodos.length === 1) setResultsOpen(false)
+    showToast({ tone: 'info', contextIcon: '↺', title: 'Aktif listeye geri alındı', message: task.text, haptic: feedbackHaptic ? 'light' : 'none' })
+  }
+
+  const pinTask = (id: string) => {
+    const task = todos.find((todo) => todo.id === id)
+    if (!task) return
+    const pinned = !task.pinned
+    save(todos.map((todo) => todo.id === id ? { ...todo, pinned } : todo))
+    showToast({ tone: 'info', icon: pinned ? '◆' : '○', title: task.text, message: pinned ? 'Listenin önüne taşındı.' : 'Normal sırasına döndü.', haptic: 'selection' })
+  }
+
+  const archiveCompleted = () => {
+    const archivedAt = new Date().toISOString()
+    save(todos.map((todo) => todo.done && !todo.archivedAt ? { ...todo, archivedAt } : todo))
+    setResultsOpen(false)
+    showToast({ tone: 'info', icon: '↓', title: 'Tamamlananlar arşivlendi', message: 'Özet ve rozet geçmişin korunuyor.', haptic: 'light' })
+  }
+
+  const deleteTask = (id: string) => {
+    const task = todos.find((todo) => todo.id === id)
+    if (!task) return
+    save(todos.filter((todo) => todo.id !== id))
+    setDeleteId(null)
+    setManagedId(null)
+    showToast({ tone: 'warning', title: 'Görev silindi', message: task.text, haptic: 'warning' })
   }
 
   return (
-    <div className={`max-w-sm mx-auto px-4 pt-6 pb-40 ${mounted ? 'page-enter' : 'opacity-0'}`}>
-      <BackBar />
-      {showConfetti && <Confetti />}
+    <div className="todo-page">
+      <div className="todo-page__inner">
+        <BackBar />
 
-      {/* Başlık */}
-      <div className="mb-6 text-center">
-        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: 'rgb(var(--ink))' }}>
-          To-do
-        </h1>
-        <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
-          Basit yapılacaklar listesi
-          {todos.length > 0 && ` · ${doneList.length}/${todos.length} tamam`}
-        </p>
-        {/* İnce ilerleme çizgisi */}
-        {todos.length > 0 && (
-          <div className="mt-3 h-1 rounded-full overflow-hidden" style={{ background: 'rgb(var(--ink) / 0.07)' }}>
-            <div
-              className="progress-fill h-full rounded-full"
-              style={{
-                width: `${progress * 100}%`,
-                background: allDone
-                  ? 'linear-gradient(90deg, #22c55e, #4ade80)'
-                  : 'linear-gradient(90deg, #fbbf24, #f97316)',
-                boxShadow: progress > 0 ? `0 0 8px ${allDone ? 'rgba(34,197,94,0.5)' : 'rgba(249,115,22,0.4)'}` : 'none',
-              }}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Hepsi bitti kutlaması */}
-      {allDone && (
-        <div
-          className="glass g-lime rounded-2xl px-4 py-4 mb-4 flex items-center gap-3 animate-pop"
-          style={{ border: '1px solid rgba(34,197,94,0.35)' }}
-        >
-          <span
-            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(34,197,94,0.9)', color: '#06210f' }}
-          >
-            <CheckDraw size={17} />
-          </span>
+        <header className="todo-header">
           <div>
-            <p className="text-sm font-bold" style={{ color: '#15803d' }}>Hepsi tamam!</p>
-            <p className="text-xs mt-0.5" style={{ color: 'rgba(21,128,61,0.65)' }}>
-              Listedeki her şey bitti — günün keyfini çıkar.
-            </p>
+            <span>HIZLI AKSİYON LİSTESİ</span>
+            <h1>To-do</h1>
+            <p>{activeTodos.length === 0 ? 'Liste temiz' : `${activeTodos.length} görev harekete hazır`}</p>
           </div>
-        </div>
-      )}
+          <div className="todo-header__meter" style={{ '--todo-progress': progress } as React.CSSProperties} aria-label={`Yüzde ${Math.round(progress * 100)} tamamlandı`}>
+            <strong>{Math.round(progress * 100)}</strong><small>%</small>
+          </div>
+        </header>
 
-      {/* Boş durum */}
-      {todos.length === 0 && (
-        <div
-          className="rounded-2xl px-5 py-8 text-center mb-4 animate-fade-up"
-          style={{ background: 'rgb(var(--ink) / 0.03)', border: '1.5px dashed rgb(var(--ink) / 0.14)' }}
-        >
-          <span
-            className="inline-flex w-12 h-12 rounded-2xl items-center justify-center mb-3"
-            style={{ background: 'rgba(34,197,94,0.12)', color: '#15803d' }}
-          >
-            <IconClipboard size={24} />
-          </span>
-          <p className="text-sm font-semibold" style={{ color: 'rgb(var(--ink) / 0.6)' }}>Liste boş</p>
-          <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.4)' }}>
-            Aşağıya yaz, Enter'a bas — bu kadar.
-          </p>
-        </div>
-      )}
-
-      {/* Aktif maddeler */}
-      <div className="space-y-2">
-        {activeList.map((todo, i) => (
-          <TodoRow
-            key={todo.id}
-            todo={todo}
-            removing={removingIds.includes(todo.id)}
-            delay={i * 0.04}
-            onChangeText={(text) => changeText(todo.id, text)}
-            onToggle={() => toggle(todo.id)}
-            onDelete={() => remove(todo.id)}
+        <section className="todo-composer" aria-label="Yeni görev ekle">
+          <span className="todo-composer__icon"><PlusIcon /></span>
+          <input
+            value={draft}
+            maxLength={140}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => { if (event.key === 'Enter') addTask() }}
+            placeholder="Şimdi ne yapılacak?"
+            aria-label="Yeni görev"
           />
-        ))}
+          <AppButton tone="primary" size="sm" haptic="none" disabled={!draft.trim()} onClick={addTask}>Ekle</AppButton>
+        </section>
+
+        {allDone && (
+          <section className="todo-clean-sweep" role="status">
+            <span aria-hidden>✓</span>
+            <div><strong>Liste tamamlandı</strong><p>{completedTodos.length} görev sonuç rafına taşındı.</p></div>
+            <i aria-hidden />
+          </section>
+        )}
+
+        {visibleCount === 0 && (
+          <section className="todo-empty">
+            <span aria-hidden><ListIcon /></span>
+            <h2>Alan hazır</h2>
+            <p>Aklındaki ilk işi yukarıya yaz. Küçük ve net tut.</p>
+          </section>
+        )}
+
+        {activeTodos.length > 0 && (
+          <main className="todo-active-list" aria-label="Aktif görevler">
+            <div className="todo-active-list__heading">
+              <div><span>ŞİMDİ</span><h2>Aktif görevler</h2></div>
+              <p>Sağa kaydır <b>→</b></p>
+            </div>
+            <div className="todo-active-list__cards">
+              {activeTodos.map((todo, index) => (
+                <TodoTaskCard
+                  key={todo.id}
+                  todo={todo}
+                  index={index}
+                  editing={editingId === todo.id}
+                  newlyAdded={newlyAddedId === todo.id}
+                  onCommitEdit={(text) => commitEdit(todo.id, text)}
+                  onComplete={(thresholdSignalled) => completeTask(todo.id, thresholdSignalled)}
+                  onManage={() => setManagedId(todo.id)}
+                />
+              ))}
+            </div>
+            <p className="todo-active-list__gesture-note">Sağa kaydır: tamamla · Uzun bas: yönet</p>
+          </main>
+        )}
+
+        <TodoResultShelf todos={completedTodos} onOpen={() => setResultsOpen(true)} />
       </div>
 
-      {/* Hızlı ekleme — Enter ya da Ekle */}
-      <div
-        className="flex items-center gap-2.5 rounded-2xl px-3 py-2 mt-2"
-        style={{ background: 'var(--tile-raised)', border: '1.5px dashed rgb(var(--ink) / 0.18)' }}
-      >
-        <span className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ color: 'rgb(var(--ink) / 0.35)' }}>
-          <IconPlus size={14} />
-        </span>
-        <input
-          type="text"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') addDraft() }}
-          placeholder="Yeni madde ekle…"
-          className="flex-1 min-w-0 text-sm bg-transparent outline-none py-1"
-          style={{ color: 'rgb(var(--ink))' }}
+      {managedTodo && (
+        <TodoActionsSheet
+          todo={managedTodo}
+          onClose={() => setManagedId(null)}
+          onEdit={() => setEditingId(managedTodo.id)}
+          onPin={() => pinTask(managedTodo.id)}
+          onToggle={() => managedTodo.done ? undoTask(managedTodo.id) : completeTask(managedTodo.id)}
+          onDelete={() => setDeleteId(managedTodo.id)}
         />
-        <button
-          onClick={addDraft}
-          disabled={!draft.trim()}
-          aria-label="Madde ekle"
-          className="btn-press px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 disabled:opacity-30"
-          style={{ background: 'rgb(var(--ink))', color: 'rgb(var(--canvas))' }}
-        >
-          Ekle
-        </button>
-      </div>
-
-      {/* Tamamlananlar — altta toplanır, tek dokunuşla temizlenir */}
-      {doneList.length > 0 && (
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-2 px-0.5">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
-              Tamamlananlar · {doneList.length}
-            </span>
-            <button
-              onClick={clearCompleted}
-              className="btn-press text-[11px] font-bold"
-              style={{ color: '#b3422a' }}
-            >
-              Temizle
-            </button>
-          </div>
-          <div className="space-y-2">
-            {doneList.map((todo, i) => (
-              <TodoRow
-                key={todo.id}
-                todo={todo}
-                removing={removingIds.includes(todo.id)}
-                delay={i * 0.04}
-                onChangeText={(text) => changeText(todo.id, text)}
-                onToggle={() => toggle(todo.id)}
-                onDelete={() => remove(todo.id)}
-              />
-            ))}
-          </div>
-        </div>
+      )}
+      {deletingTodo && (
+        <TodoDeleteDialog todo={deletingTodo} onClose={() => setDeleteId(null)} onConfirm={() => deleteTask(deletingTodo.id)} />
+      )}
+      {resultsOpen && completedTodos.length > 0 && (
+        <TodoCompletedSheet todos={completedTodos} onClose={() => setResultsOpen(false)} onUndo={undoTask} onArchive={archiveCompleted} />
       )}
     </div>
   )

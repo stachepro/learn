@@ -25,7 +25,11 @@ export function getFreezeProgress(profile: UserProfile): number {
 // seriyi bir daha artırmaz. Tamamlama geri alınsa bile gün seriden düşmez:
 // kullanıcı o gün uygulamaya girip işlem yapmıştır.
 export function applyCompletionStreak(profile: UserProfile, today: string, yesterday: string): UserProfile {
-  if (profile.lastActiveDate === today) return profile
+  const activeDates = profile.streakActiveDates ?? []
+  if (profile.lastActiveDate === today) {
+    if (activeDates.includes(today)) return profile
+    return { ...profile, streakActiveDates: [...activeDates, today] }
+  }
   const continued = !profile.lastActiveDate || profile.lastActiveDate === yesterday
   const streak = continued ? (profile.streak || 0) + 1 : 1
 
@@ -45,6 +49,7 @@ export function applyCompletionStreak(profile: UserProfile, today: string, yeste
     streak,
     longestStreak: Math.max(streak, profile.longestStreak),
     lastActiveDate: today,
+    streakActiveDates: activeDates.includes(today) ? activeDates : [...activeDates, today],
     streakFreezes: freezes,
     freezeProgress: progress,
   }

@@ -1,29 +1,16 @@
 import type { Category } from '../types'
 
 export const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'fitness', name: 'Fitness', emoji: '🏃', color: '#f97316' },
-  { id: 'saglik', name: 'Sağlık', emoji: '🧘', color: '#22c55e' },
-  { id: 'egitim', name: 'Eğitim', emoji: '📚', color: '#3b82f6' },
-  { id: 'zihin', name: 'Zihin', emoji: '💡', color: '#a78bfa' },
-  { id: 'uretkenlik', name: 'Üretkenlik', emoji: '💼', color: '#f59e0b' },
-  { id: 'yaraticilik', name: 'Yaratıcılık', emoji: '🎨', color: '#ec4899' },
-  { id: 'sosyal', name: 'Sosyal', emoji: '👥', color: '#22d3ee' },
-  { id: 'finans', name: 'Finans', emoji: '💰', color: '#10b981' },
-  { id: 'gelisim', name: 'Gelişim', emoji: '🌱', color: '#84cc16' },
-  { id: 'diger', name: 'Diğer', emoji: '⚙️', color: '#6b7280' },
-]
-
-export const EMOJI_LIST = [
-  '🏃','🏋️','🧘','🚴','🏊','💪','🧗','🤸','⛹️','🤾',
-  '📚','📖','✏️','🎓','💻','📝','🔬','🗺️','📐','🔭',
-  '💡','🧠','🎯','🔍','💭','🌟','⚡','🎲','♟️','🎭',
-  '📋','✅','📊','📈','💼','⏰','🗓️','📌','🔧','⚙️',
-  '🎨','🎵','🎸','🎹','✍️','📷','🎬','🎙️','🖌️','🎻',
-  '👥','💬','🤝','❤️','🫂','👋','🙏','🌍','🎉','🥳',
-  '💰','💵','🏦','💳','🪙','💎','📊','💹','🏷️','🧾',
-  '🌱','🌳','🌺','🦋','🌅','🌈','⭐','🏆','🎖️','🥇',
-  '🥗','🥦','🍎','💊','🫀','🌿','☕','🍵','🥛','🍳',
-  '😴','💤','🌙','🛌','🌌','🔥','✨','🦁','🐯','🦅',
+  { id: 'fitness', name: 'Fitness', icon: 'run', color: '#f97316' },
+  { id: 'saglik', name: 'Sağlık', icon: 'heart', color: '#22c55e' },
+  { id: 'egitim', name: 'Eğitim', icon: 'books', color: '#3b82f6' },
+  { id: 'zihin', name: 'Zihin', icon: 'bulb', color: '#a78bfa' },
+  { id: 'uretkenlik', name: 'Üretkenlik', icon: 'briefcase', color: '#f59e0b' },
+  { id: 'yaraticilik', name: 'Yaratıcılık', icon: 'palette', color: '#ec4899' },
+  { id: 'sosyal', name: 'Sosyal', icon: 'users', color: '#22d3ee' },
+  { id: 'finans', name: 'Finans', icon: 'coin', color: '#10b981' },
+  { id: 'gelisim', name: 'Gelişim', icon: 'seedling', color: '#84cc16' },
+  { id: 'diger', name: 'Diğer', icon: 'settings', color: '#6b7280' },
 ]
 
 export const POMODORO_CATEGORY_IDS = new Set(['egitim', 'zihin', 'uretkenlik', 'yaraticilik'])

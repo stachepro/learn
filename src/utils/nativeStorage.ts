@@ -27,3 +27,8 @@ export function removeNative(key: string): void {
   if (!isNative) return
   void Preferences.remove({ key })
 }
+
+export async function removeNativeAsync(key: string): Promise<void> {
+  if (!isNative) return
+  await Preferences.remove({ key })
+}

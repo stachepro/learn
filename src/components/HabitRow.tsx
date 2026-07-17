@@ -7,6 +7,9 @@ import { formatMinutes } from '../utils/date'
 import { playBell } from '../utils/sound'
 import type { Habit, HabitLog } from '../types'
 import { getHabitMode, getHabitGoal } from '../types'
+import { showToast } from '../utils/toast'
+import { hapticEvent } from '../utils/haptics'
+import LuupiIcon from './ui/LuupiIcon'
 
 /* ── Shared sub-components (used in both desktop & mobile rows) ── */
 
@@ -30,12 +33,12 @@ function BoostButton({ boostUsedLocked, boostTimerLocked, boostLocked, boostOn, 
         }}
         title={
           boostUsedLocked ? 'Bu gün boost kullanıldı ✓'
-          : boostTimerLocked ? 'Pomodoro çalışırken değiştirilemez 🔒'
+          : boostTimerLocked ? 'Pomodoro çalışırken değiştirilemez'
           : boostOn ? 'Boost aktif (×1.5 süre + ×1.5 XP)'
           : 'Boost aç'
         }
       >
-        {boostUsedLocked ? '⚡✓' : boostOn ? '⚡ON' : 'BOOST'}
+        {boostUsedLocked ? <><LuupiIcon name="bolt" size={12} />✓</> : boostOn ? <><LuupiIcon name="bolt" size={12} />ON</> : 'BOOST'}
       </button>
       <span className="absolute -top-1.5 -right-1.5 text-[8px] font-black px-1 rounded-full leading-tight"
         style={{ background: '#f59e0b', color: '#2a1804' }}>1.5×</span>
@@ -74,7 +77,7 @@ function PomodoroBtn({ timerRunning, boostActive, extraActive, goalMet, habit, s
         boxShadow: timerRunning ? '0 4px 12px -5px rgba(0,0,0,0.4)' : '0 6px 16px -7px rgba(34,197,94,0.6)',
       }}
     >
-      {timerRunning ? (boostActive ? '⚡Aktif' : extraActive ? '🍅+1.5×' : '🍅Aktif') : goalMet ? '🍅 +Ekstra' : '🍅 Başlat'}
+      <LuupiIcon name={boostActive ? 'bolt' : 'timer'} size={14} /> {timerRunning ? (boostActive ? 'Aktif' : extraActive ? '+1.5×' : 'Aktif') : goalMet ? '+Ekstra' : 'Başlat'}
     </button>
   )
 }
@@ -140,6 +143,20 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
       setFlash(true)
       setTimeout(() => setFlash(false), 560)
       if (soundEnabled) playBell()
+      showToast({
+        tone: 'success',
+        contextIcon: <LuupiIcon name={habit.icon} size={16} />,
+        title: habit.name,
+        message: 'Bugün tamamlandı.',
+      })
+    } else {
+      showToast({
+        tone: 'info',
+        icon: '↶',
+        title: 'Tamamlama geri alındı',
+        message: habit.name,
+        haptic: 'light',
+      })
     }
     toggleHabitComplete(habit.id)
   }
@@ -147,6 +164,11 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
   const handleIncrement = () => {
     const willReachGoal = !multiGoalMet && completionCount + 1 >= habitGoal
     if (willReachGoal && soundEnabled) playBell()
+    if (willReachGoal) {
+      showToast({ tone: 'success', contextIcon: <LuupiIcon name={habit.icon} size={16} />, title: habit.name, message: 'Günlük hedef tamamlandı.' })
+    } else {
+      void hapticEvent('selection')
+    }
     incrementCompletion(habit.id)
   }
 
@@ -175,7 +197,7 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
         <button
           onClick={multiAtMax ? undefined : handleIncrement}
           aria-label={multiAtMax ? 'Günlük maksimuma ulaşıldı' : `Tamamla (${completionCount}/${habitGoal})`}
-          title={multiAtMax ? 'Bu günlük bu kadar yeter, yoruldun 💪' : undefined}
+          title={multiAtMax ? 'Bu günlük bu kadar yeter.' : undefined}
           className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold soft-trans ${checkAnim ? 'animate-check' : ''}`}
           style={{
             background: multiGoalMet ? '#16a34a' : pal.chip,
@@ -185,7 +207,7 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
             opacity: multiAtMax ? 0.55 : 1,
           }}
         >
-          {multiAtMax ? '🔒' : multiGoalMet ? '✓' : completionCount > 0 ? completionCount : '+'}
+            {multiAtMax ? <LuupiIcon name="lock" size={14} /> : multiGoalMet ? '✓' : completionCount > 0 ? completionCount : '+'}
         </button>
       )
     }
@@ -214,7 +236,7 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
         }}
       >
         {checkboxLocked
-          ? <span className="text-sm">🍅</span>
+          ? <LuupiIcon name="timer" size={16} />
           : <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1.5 6L5 9.5L12.5 1.5" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" opacity="0.55" /></svg>}
       </button>
     )
@@ -248,7 +270,7 @@ export default function HabitRow({ habit, log, justCompleted }: Props) {
             className="w-11 h-11 rounded-2xl flex items-center justify-center text-[22px] leading-none flex-shrink-0"
             style={{ background: pal.iconBg }}
           >
-            {habit.emoji}
+            <LuupiIcon name={habit.icon} size={24} />
           </div>
 
           {/* Name + meta */}

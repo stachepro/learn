@@ -4,6 +4,10 @@ import { storage } from './storage'
 import { migrateHabitLog } from './habitLog'
 import { isHabitScheduledFor } from './habitSchedule'
 import { dayTotalMl } from './water'
+import { isWakeOnGoal, wakeGoalDifference } from './wake'
+import type { IconName } from './icons'
+
+export type SummaryHabitStatus = 'completed' | 'skipped' | 'pending'
 
 /* Günlük Özet'in tek veri kaynağı: statik sayfa ve story slaytları aynı
    yapıyı okur. Kural: su/uyanma yalnızca hedef GİRİLMİŞSE var (null =
@@ -11,14 +15,17 @@ import { dayTotalMl } from './water'
 
 export interface DaySummary {
   date: string
-  habitEntries: { habit: Habit; log: HabitLog }[]
+  habitEntries: { habit: Habit; log: HabitLog; status: SummaryHabitStatus }[]
   doneCount: number
+  skippedCount: number
+  pendingCount: number
   water: { goal: number; actual: number } | null
   wake: { goal: string; actualTime: string | null; onTime: boolean } | null
   sessions: PomodoroSession[]
   totalPomMin: number
   noRush: NoRushRecord[]
   todos: TodoItem[]
+  justStartCount: number
 }
 
 export function collectDaySummary(
@@ -29,16 +36,21 @@ export function collectDaySummary(
 ): DaySummary {
   const habitEntries = habits
     .filter((h) => isHabitScheduledFor(h, date))
-    .map((h) => ({ habit: h, log: migrateHabitLog(todayLog.habits[h.id] ?? {}) }))
+    .map((h) => {
+      const log = migrateHabitLog(todayLog.habits[h.id] ?? {})
+      const status: SummaryHabitStatus = log.completed ? 'completed' : log.skippedAt ? 'skipped' : 'pending'
+      return { habit: h, log, status }
+    })
 
   const water = storage.hasWaterGoal()
-    ? { goal: storage.getWaterGoalMl(), actual: dayTotalMl(storage.getWaterEntries(), date) }
+    ? { goal: storage.getWaterGoalForDate(date), actual: dayTotalMl(storage.getWaterEntries(), date) }
     : null
 
   const wakeGoal = storage.getWakeGoal()
   const wakeRecord = wakeGoal ? storage.getWakeRecords().find((r) => r.date === date) : undefined
+  const recordGoal = wakeRecord?.goal === undefined ? wakeGoal : wakeRecord.goal
   const wake = wakeGoal
-    ? { goal: wakeGoal, actualTime: wakeRecord?.time ?? null, onTime: !!wakeRecord && wakeRecord.time <= wakeGoal }
+    ? { goal: recordGoal ?? wakeGoal, actualTime: wakeRecord?.time ?? null, onTime: !!wakeRecord && isWakeOnGoal(wakeRecord, wakeGoal) === true }
     : null
 
   const habitSessions = Object.values(todayLog.habits)
@@ -46,16 +58,23 @@ export function collectDaySummary(
   const sessions = [...habitSessions, ...freeSessions.filter((s) => s.date === date)]
     .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
 
+  const doneCount = habitEntries.filter(({ status }) => status === 'completed').length
+  const skippedCount = habitEntries.filter(({ status }) => status === 'skipped').length
+  const justStartCount = storage.getJustStartStats().dailyCounts[date] ?? 0
+
   return {
     date,
     habitEntries,
-    doneCount: habitEntries.filter(({ log }) => log.completed).length,
+    doneCount,
+    skippedCount,
+    pendingCount: habitEntries.length - doneCount - skippedCount,
     water,
     wake,
     sessions,
     totalPomMin: sessions.reduce((acc, s) => acc + s.workDuration, 0),
     noRush: storage.getNoRushHistory().filter((r) => r.completedAt.startsWith(date)),
     todos: storage.getTodos().filter((t) => t.done && t.completedAt?.startsWith(date)),
+    justStartCount,
   }
 }
 
@@ -64,10 +83,15 @@ export function summaryHasAnything(s: DaySummary): boolean {
     s.sessions.length > 0 || s.noRush.length > 0 || s.todos.length > 0
 }
 
-export function sessionLabel(s: PomodoroSession, habits: Habit[]): { emoji: string; name: string } {
-  if (s.habitId === FREE_ID) return { emoji: '🧘', name: 'Serbest odak' }
+export function summaryHasActivity(s: DaySummary): boolean {
+  return s.doneCount > 0 || s.skippedCount > 0 || (s.water?.actual ?? 0) > 0 || !!s.wake?.actualTime ||
+    s.sessions.length > 0 || s.noRush.length > 0 || s.todos.length > 0 || s.justStartCount > 0
+}
+
+export function sessionLabel(s: PomodoroSession, habits: Habit[]): { icon: IconName; name: string } {
+  if (s.habitId === FREE_ID) return { icon: 'yoga', name: 'Serbest odak' }
   const h = habits.find((x) => x.id === s.habitId)
-  return h ? { emoji: h.emoji, name: h.name } : { emoji: '🍅', name: 'Pomodoro' }
+  return h ? { icon: h.icon, name: h.name } : { icon: 'timer', name: 'Pomodoro' }
 }
 
 /* ── Gün puanı ──────────────────────────────────────────────
@@ -84,17 +108,12 @@ export function sessionLabel(s: PomodoroSession, habits: Habit[]): { emoji: stri
 export interface DayScore {
   score: number | null   // 0–10, bir ondalık; null = puanlanacak veri yok
   label: string
-  emoji: string
-}
-
-function timeToMin(t: string): number {
-  const [h, m] = t.split(':').map(Number)
-  return h * 60 + m
+  icon: IconName
 }
 
 function wakePart(wake: NonNullable<DaySummary['wake']>): number {
   if (!wake.actualTime) return 0
-  const late = timeToMin(wake.actualTime) - timeToMin(wake.goal)
+  const late = wakeGoalDifference(wake.actualTime, wake.goal)
   if (late <= 0) return 1
   if (late <= 15) return 0.8
   if (late <= 30) return 0.6
@@ -108,7 +127,7 @@ export function calcDayScore(s: DaySummary): DayScore {
   if (s.water) parts.push({ weight: 2.5, value: Math.min(1, s.water.actual / s.water.goal) })
   if (s.wake) parts.push({ weight: 2.5, value: wakePart(s.wake) })
 
-  const toolsUsed = [s.sessions.length, s.noRush.length, s.todos.length].filter((n) => n > 0).length
+  const toolsUsed = [s.sessions.length, s.justStartCount, s.noRush.length, s.todos.length].filter((n) => n > 0).length
 
   let score: number | null
   if (parts.length > 0) {
@@ -122,11 +141,11 @@ export function calcDayScore(s: DaySummary): DayScore {
     score = null
   }
 
-  if (score === null) return { score: null, label: 'Bugün puanlanacak kayıt yok', emoji: '🌤️' }
+  if (score === null) return { score: null, label: 'Bugün puanlanacak kayıt yok', icon: 'cloud' }
   score = Math.round(score * 10) / 10
-  if (score >= 9) return { score, label: 'Efsane bir gün!', emoji: '🏆' }
-  if (score >= 7.5) return { score, label: 'Harika bir gün', emoji: '🌟' }
-  if (score >= 6) return { score, label: 'Sağlam bir gün', emoji: '💪' }
-  if (score >= 4) return { score, label: 'Fena değil', emoji: '🌱' }
-  return { score, label: 'Yarın yeni bir gün', emoji: '🌅' }
+  if (score >= 9) return { score, label: 'Efsane bir gün!', icon: 'trophy' }
+  if (score >= 7.5) return { score, label: 'Harika bir gün', icon: 'star' }
+  if (score >= 6) return { score, label: 'Sağlam bir gün', icon: 'barbell' }
+  if (score >= 4) return { score, label: 'Fena değil', icon: 'seedling' }
+  return { score, label: 'Yarın yeni bir gün', icon: 'sunrise' }
 }

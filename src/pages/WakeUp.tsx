@@ -1,310 +1,161 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import BackBar from '../components/BackBar'
-import { storage } from '../utils/storage'
-import { todayStr, formatShortDate } from '../utils/date'
-import { scheduleWakeGoalReminder } from '../utils/reminderNotifications'
-import { awardStandaloneBadges } from '../utils/badges'
-import { useModalDismiss } from '../utils/useModalDismiss'
+import AppButton from '../components/ui/AppButton'
+import WakeHero from '../components/wake/WakeHero'
+import {
+  WakeDeleteDialog,
+  WakeGoalSheet,
+  WakeInsightsSheet,
+  WakeRecordActionsSheet,
+  WakeRecordSheet,
+} from '../components/wake/WakeSheets'
+import WakeWeek from '../components/wake/WakeWeek'
 import type { WakeRecord } from '../types'
+import { awardStandaloneBadges } from '../utils/badges'
+import { todayStr } from '../utils/date'
+import { scheduleAfterMotion } from '../utils/motion'
+import { scheduleWakeGoalReminder } from '../utils/reminderNotifications'
+import { storage } from '../utils/storage'
+import { showToast } from '../utils/toast'
+import { wakeRhythmStreak } from '../utils/wake'
+import LuupiIcon from '../components/ui/LuupiIcon'
 
-function timeToMinutes(t: string): number {
-  const [h, m] = t.split(':').map(Number)
-  return h * 60 + m
-}
+type WakeSheet = 'goal' | 'insights' | 'record-actions' | 'record-edit' | null
+type DeleteTarget = { kind: 'record'; record: WakeRecord } | { kind: 'all' } | null
 
-function minutesToTime(mins: number): string {
-  const h = Math.floor(mins / 60) % 24
-  const m = Math.round(mins % 60)
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
-}
-
-export function averageWakeTime(records: WakeRecord[]): string | null {
-  if (records.length === 0) return null
-  const avg = records.reduce((a, r) => a + timeToMinutes(r.time), 0) / records.length
-  return minutesToTime(avg)
-}
-
-export function earliestWakeTime(records: WakeRecord[]): string | null {
-  if (records.length === 0) return null
-  return records.reduce((a, r) => (timeToMinutes(r.time) < timeToMinutes(a) ? r.time : a), records[0].time)
-}
-
-export function latestWakeTime(records: WakeRecord[]): string | null {
-  if (records.length === 0) return null
-  return records.reduce((a, r) => (timeToMinutes(r.time) > timeToMinutes(a) ? r.time : a), records[0].time)
-}
-
-/* ── Gece→gündüz geçiş animasyonu ── */
-function SunriseOverlay() {
-  const stars = useMemo(() =>
-    Array.from({ length: 16 }, (_, i) => ({
-      left: `${(i * 61) % 96 + 2}%`,
-      top: `${(i * 37) % 42 + 3}%`,
-      size: 2 + (i % 3),
-      delay: `${(i % 5) * 0.12}s`,
-    })), [])
-  return (
-    <div className="wake-overlay">
-      {stars.map((s, i) => (
-        <span key={i} className="wake-star" style={{ left: s.left, top: s.top, width: s.size, height: s.size, animationDelay: s.delay }} />
-      ))}
-      <div className="wake-sun" />
-      <div className="wake-greet">
-        <p className="display text-4xl font-black" style={{ color: '#fff8e7', textShadow: '0 2px 30px rgba(251,191,36,0.8)' }}>
-          Günaydın ☀️
-        </p>
-        <p className="text-sm font-semibold mt-2" style={{ color: 'rgba(255,248,231,0.85)' }}>
-          Yeni bir gün seni bekliyor
-        </p>
-      </div>
-    </div>
-  )
-}
-
-/* ── "Kaçta uyanıyorum?" istatistik modalı ── */
-function WakeStatsModal({ records, goal, onClose, onReset }: { records: WakeRecord[]; goal: string | null; onClose: () => void; onReset: () => void }) {
-  const { isExiting, close } = useModalDismiss(onClose)
-  const [confirmReset, setConfirmReset] = useState(false)
-  const sorted = [...records].sort((a, b) => b.date.localeCompare(a.date))
-  const avg = averageWakeTime(records)
-  const goalMins = goal ? timeToMinutes(goal) : null
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className={`fixed inset-0 ${isExiting ? 'animate-fade-out' : 'animate-fade-in'}`} style={{ background: 'rgb(var(--ink) / 0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} onClick={close} />
-      <div className="relative min-h-full flex items-center justify-center p-4">
-        <div className={`glass g-neutral w-full max-w-sm ${isExiting ? 'animate-fade-down' : 'animate-pop'}`} style={{ borderRadius: 24 }}>
-          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
-            <p className="display text-base font-bold">Kaçta uyanıyorum?</p>
-            <div className="flex items-center gap-2">
-              {records.length > 0 && (
-                <button
-                  onClick={() => setConfirmReset(true)}
-                  className="btn-press text-xs font-bold px-3 py-1.5 rounded-full"
-                  style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--sf-red-tx)', border: '1px solid rgba(239,68,68,0.25)' }}
-                >
-                  Sıfırla
-                </button>
-              )}
-              <button onClick={close} aria-label="Kapat" className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm">✕</button>
-            </div>
-          </div>
-
-          {confirmReset && (
-            <div className="px-5 py-4 animate-fade-up" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)', background: 'rgba(239,68,68,0.05)' }}>
-              <p className="text-sm font-semibold mb-3" style={{ color: 'rgb(var(--ink))' }}>
-                İstatistiklerin sıfırlanacak, emin misin?
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { onReset(); setConfirmReset(false) }}
-                  className="btn-press flex-1 py-2 rounded-xl text-sm font-bold"
-                  style={{ background: '#e2503f', color: '#fff5f2', boxShadow: '0 8px 18px -10px rgba(226,80,63,0.7)' }}
-                >
-                  Eminim, Sil
-                </button>
-                <button
-                  onClick={() => setConfirmReset(false)}
-                  className="ctrl btn-press flex-1 py-2 rounded-xl text-sm font-bold"
-                >
-                  Vazgeç
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-3 px-5 py-4 text-center" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Ortalama</p>
-              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-amber-tx)' }}>{avg ?? '--'}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En erken</p>
-              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-mint-tx)' }}>{earliestWakeTime(records) ?? '--'}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En geç</p>
-              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-red-tx)' }}>{latestWakeTime(records) ?? '--'}</p>
-            </div>
-          </div>
-
-          <div className="px-5 py-4 max-h-64 overflow-y-auto">
-            {sorted.length === 0 ? (
-              <p className="text-sm text-center ink-45 py-4">Henüz kayıt yok — yarın sabah ilk "Uyandım"ına bas!</p>
-            ) : (
-              <div className="space-y-1.5">
-                {sorted.slice(0, 14).map((r) => {
-                  const diff = goalMins != null ? timeToMinutes(r.time) - goalMins : null
-                  return (
-                    <div key={r.date} className="flex items-center justify-between text-sm py-1">
-                      <span className="ink-60 font-medium">{formatShortDate(new Date(r.date + 'T12:00:00'))}</span>
-                      <span className="flex items-center gap-2">
-                        <span className="display font-bold tnum">{r.time}</span>
-                        {diff != null && (
-                          <span className="text-[11px] font-bold tnum px-1.5 py-0.5 rounded-full" style={diff <= 0
-                            ? { background: 'rgba(34,197,94,0.15)', color: 'var(--sf-mint-tx)' }
-                            : { background: 'rgba(239,68,68,0.12)', color: 'var(--sf-red-tx)' }}>
-                            {diff <= 0 ? `${Math.abs(diff)}dk erken` : `${diff}dk geç`}
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+function currentTime(date = new Date()): string {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
 export default function WakeUp() {
+  const navigate = useNavigate()
   const [records, setRecords] = useState<WakeRecord[]>(() => storage.getWakeRecords())
   const [goal, setGoal] = useState<string | null>(() => storage.getWakeGoal())
-  const [anim, setAnim] = useState(false)
-  const [statsOpen, setStatsOpen] = useState(false)
-  const [, setMinuteTick] = useState(0)
+  const [nowTime, setNowTime] = useState(() => currentTime())
+  const [sheet, setSheet] = useState<WakeSheet>(null)
+  const [selectedRecord, setSelectedRecord] = useState<WakeRecord | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null)
+  const [celebrating, setCelebrating] = useState(false)
 
-  // Gün değişince buton kendiliğinden tekrar aktifleşsin
   useEffect(() => {
-    const id = setInterval(() => setMinuteTick((t) => t + 1), 60_000)
-    return () => clearInterval(id)
+    const tick = () => setNowTime(currentTime())
+    const id = window.setInterval(tick, 30_000)
+    window.addEventListener('focus', tick)
+    return () => { window.clearInterval(id); window.removeEventListener('focus', tick) }
   }, [])
 
-  // Uygulama açıldığında hedef saat bildirimini tazele
-  useEffect(() => { void scheduleWakeGoalReminder(goal) }, [])
+  useEffect(() => { void scheduleWakeGoalReminder(goal) }, [goal])
 
   const today = todayStr()
-  const todayRecord = records.find((r) => r.date === today)
-  const avg = averageWakeTime(records)
+  const todayRecord = records.find((record) => record.date === today)
+  const streak = wakeRhythmStreak(records, today)
+
+  const syncRecords = () => setRecords(storage.getWakeRecords())
 
   const wakeUp = () => {
     if (todayRecord) return
-    const now = new Date()
-    const record: WakeRecord = {
-      date: today,
-      time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
-    }
+    const time = currentTime()
+    const record: WakeRecord = { date: today, time, goal }
     storage.addWakeRecord(record)
-    setRecords(storage.getWakeRecords())
-    awardStandaloneBadges()
-    setAnim(true)
-    setTimeout(() => setAnim(false), 3600)
+    syncRecords()
+    setCelebrating(true)
+    window.setTimeout(() => setCelebrating(false), 760)
+    const freshBadges = awardStandaloneBadges()
+    showToast({
+      tone: 'success',
+      contextIcon: <LuupiIcon name="sunrise" size={16} />,
+      title: `Gün başladı · ${time}`,
+      message: goal ? 'Sabah ritmin kaydedildi.' : 'Bugünün başlangıç saati kaydedildi.',
+      haptic: freshBadges.length > 0 ? 'none' : 'success',
+    })
   }
 
-  const changeGoal = (value: string) => {
-    if (!value) return
-    setGoal(value)
+  const saveGoal = (value: string) => {
     storage.setWakeGoal(value)
-    void scheduleWakeGoalReminder(value)
+    setGoal(value)
+    setSheet(null)
+    showToast({ tone: 'info', icon: '◎', title: 'Sabah hedefi güncellendi', message: `Yeni hedefin ${value}.`, haptic: 'selection' })
+  }
+
+  const openRecordActions = (record: WakeRecord) => {
+    setSelectedRecord(record)
+    setSheet('record-actions')
+  }
+
+  const openRecordFromInsights = (record: WakeRecord) => {
+    setSheet(null)
+    scheduleAfterMotion(() => openRecordActions(record))
+  }
+
+  const saveRecord = (record: WakeRecord) => {
+    storage.addWakeRecord(record)
+    syncRecords()
+    setSelectedRecord(record)
+    setSheet(null)
+    showToast({ tone: 'info', icon: '↺', title: 'Uyanma saati düzeltildi', message: `${record.time} olarak kaydedildi.`, haptic: 'light' })
+  }
+
+  const requestRecordDelete = (record: WakeRecord) => {
+    setSheet(null)
+    setDeleteTarget({ kind: 'record', record })
+  }
+
+  const requestReset = () => {
+    setSheet(null)
+    scheduleAfterMotion(() => setDeleteTarget({ kind: 'all' }))
+  }
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return
+    if (deleteTarget.kind === 'all') {
+      storage.clearWakeRecords()
+      setRecords([])
+      showToast({ tone: 'warning', title: 'Uyanma geçmişi silindi', message: 'Yeni ritmin ilk kayıtla başlayacak.', haptic: 'warning' })
+    } else {
+      storage.deleteWakeRecord(deleteTarget.record.date)
+      syncRecords()
+      showToast({ tone: 'info', icon: '↺', title: 'Uyanma kaydı kaldırıldı', message: 'Sabah ritmin güncellendi.', haptic: 'light' })
+    }
+    setDeleteTarget(null)
+    setSelectedRecord(null)
   }
 
   return (
-    <div className="max-w-sm mx-auto px-4 pt-6 pb-40">
-      <BackBar />
-      {anim && <SunriseOverlay />}
-      {statsOpen && (
-        <WakeStatsModal
-          records={records}
-          goal={goal}
-          onClose={() => setStatsOpen(false)}
-          onReset={() => { storage.clearWakeRecords(); setRecords([]) }}
-        />
-      )}
+    <main className="wake-page">
+      <div className="wake-page__ambient" aria-hidden />
+      <div className="wake-page__content">
+        <BackBar title="Araçlar" />
 
-      {/* Header */}
-      <div className="mb-8 text-center">
-        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: 'rgb(var(--ink))' }}>Uyandım</h1>
-        <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>Güne merhaba demenin en kısa yolu</p>
-      </div>
+        <header className="wake-page__intro">
+          <div><span>SABAH CHECK-IN</span><h1>Uyandım</h1><p>Güne merhaba demenin en kısa yolu.</p></div>
+        <button type="button" onClick={() => setSheet('insights')} aria-label="Sabah içgörülerini aç"><span aria-hidden><LuupiIcon name="chart-line" size={16} /></span> İçgörüler</button>
+        </header>
 
-      {/* Büyük Uyandım butonu */}
-      <div className="flex justify-center mb-8">
-        <button
-          onClick={wakeUp}
-          disabled={!!todayRecord}
-          className={`btn-press flex-shrink-0 flex flex-col items-center justify-center rounded-full ${todayRecord ? '' : 'flame-glow'}`}
-          style={{
-            width: 200,
-            height: 200,
-            background: todayRecord
-              ? 'linear-gradient(160deg, var(--sf-lime), var(--sf-lime-br))'
-              : 'linear-gradient(160deg, #fbbf24, #f97316)',
-            border: todayRecord ? '3px solid rgba(99,153,34,0.4)' : '3px solid rgba(255,255,255,0.5)',
-            boxShadow: todayRecord
-              ? '0 12px 30px -12px rgba(99,153,34,0.4)'
-              : '0 18px 44px -14px rgba(249,115,22,0.65)',
-            cursor: todayRecord ? 'default' : 'pointer',
-          }}
-        >
-          {todayRecord ? (
-            <>
-              <span className="display text-lg font-black" style={{ color: 'var(--sf-lime-tx)' }}>Uyandın!</span>
-              <span className="display text-3xl font-black tnum mt-1" style={{ color: 'var(--sf-lime-tx)' }}>{todayRecord.time}</span>
-              <span className="text-[10px] font-bold mt-2" style={{ color: 'rgba(59,109,17,0.6)' }}>yarın tekrar görüşürüz</span>
-            </>
-          ) : (
-            <span className="display text-3xl font-black" style={{ color: '#2a1402' }}>Uyandım</span>
-          )}
+        <button type="button" className="wake-goal-chip" onClick={() => setSheet('goal')}>
+          <span aria-hidden>◎</span><span>{goal ? 'Sabah hedefin' : 'Hedef belirle'}</span><strong>{goal ?? 'Başla'}</strong><i aria-hidden>›</i>
         </button>
+
+        <WakeHero
+          nowTime={nowTime}
+          record={todayRecord}
+          goal={goal}
+          streak={streak}
+          celebrating={celebrating}
+          onWake={wakeUp}
+          onManage={() => todayRecord && openRecordActions(todayRecord)}
+        />
+
+        {todayRecord && <AppButton className="wake-dashboard-cta" tone="secondary" size="lg" block haptic="light" onClick={() => navigate('/')}>Bugüne Dön</AppButton>}
+
+        <WakeWeek records={records} today={today} goal={goal} />
       </div>
 
-      {/* Ortalama uyanma saati — süslü kutu */}
-      <div
-        className="relative overflow-hidden rounded-3xl px-5 py-4 mb-3 text-center"
-        style={{
-          background: 'linear-gradient(135deg, #fdf3dd 0%, #faecd6 55%, #fbe3c9 100%)',
-          border: '1.5px solid #f3dcb0',
-          boxShadow: '0 10px 26px -14px rgba(249,115,22,0.35), inset 0 1px 0 rgba(255,255,255,0.8)',
-        }}
-      >
-        <span className="absolute text-lg" style={{ top: 8, left: 14, opacity: 0.55 }}>✨</span>
-        <span className="absolute text-lg" style={{ bottom: 8, right: 14, opacity: 0.55 }}>✨</span>
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: '#b87520' }}>Ortalama uyanma saatin</p>
-        <p className="display text-3xl font-black tnum mt-1" style={{ color: '#9a4d0a' }}>
-          {avg ?? '--:--'}
-        </p>
-        {records.length > 0 && (
-          <p className="text-[10px] font-semibold mt-0.5" style={{ color: 'rgba(184,117,32,0.75)' }}>{records.length} günlük kayda göre</p>
-        )}
-      </div>
-
-      {/* Hedef uyanma saati */}
-      <label
-        className="flex items-center justify-between rounded-2xl px-4 py-3.5 mb-3 cursor-pointer"
-        style={{ background: 'var(--tile-raised)', border: '1px solid rgb(var(--ink) / 0.09)', boxShadow: '0 1px 2px rgb(var(--ink) / 0.04)' }}
-      >
-        <span className="flex items-center gap-2.5">
-          <span className="text-lg">🎯</span>
-          <span className="text-sm font-bold" style={{ color: 'rgb(var(--ink))' }}>Hedef uyanma saati</span>
-        </span>
-        <span className="relative flex items-center">
-          {!goal && (
-            <span
-              className="text-xs font-bold px-3.5 py-1.5 rounded-full pointer-events-none"
-              style={{ background: 'var(--sf-amber)', color: 'var(--sf-amber-tx)', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.35)' }}
-            >
-              Seç
-            </span>
-          )}
-          <input
-            type="time"
-            value={goal ?? ''}
-            onChange={(e) => changeGoal(e.target.value)}
-            className={`display text-base font-bold tnum bg-transparent outline-none text-right ${goal ? '' : 'absolute inset-0 opacity-0 w-full cursor-pointer'}`}
-            style={{ color: '#9a4d0a', border: 'none' }}
-          />
-        </span>
-      </label>
-
-      {/* Kaçta uyanıyorum? */}
-      <button
-        onClick={() => setStatsOpen(true)}
-        className="btn-dark btn-press w-full py-3 text-sm flex items-center justify-center gap-2"
-      >
-        🕐 Kaçta uyanıyorum?
-      </button>
-    </div>
+      {sheet === 'goal' && <WakeGoalSheet goal={goal} onClose={() => setSheet(null)} onSave={saveGoal} />}
+      {sheet === 'insights' && <WakeInsightsSheet records={records} today={today} goal={goal} onClose={() => setSheet(null)} onManage={openRecordFromInsights} onReset={requestReset} />}
+      {sheet === 'record-actions' && selectedRecord && <WakeRecordActionsSheet record={selectedRecord} currentGoal={goal} onClose={() => setSheet(null)} onEdit={() => setSheet('record-edit')} onDelete={() => requestRecordDelete(selectedRecord)} />}
+      {sheet === 'record-edit' && selectedRecord && <WakeRecordSheet record={selectedRecord} currentGoal={goal} onClose={() => setSheet(null)} onSave={saveRecord} />}
+      {deleteTarget && <WakeDeleteDialog record={deleteTarget.kind === 'record' ? deleteTarget.record : undefined} all={deleteTarget.kind === 'all'} onClose={() => setDeleteTarget(null)} onConfirm={confirmDelete} />}
+    </main>
   )
 }

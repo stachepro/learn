@@ -1,17 +1,14 @@
-import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import ContributionsGrid from '../components/ContributionsGrid'
 import BackBar from '../components/BackBar'
 import CategoryPie from '../components/CategoryPie'
 import { formatMinutes, trMonthName } from '../utils/date'
 import { storage } from '../utils/storage'
-import { averageWakeTime, earliestWakeTime, latestWakeTime } from './WakeUp'
+import { averageWakeTime, earliestWakeTime, latestWakeTime } from '../utils/wake'
+import LuupiIcon from '../components/ui/LuupiIcon'
 
 export default function Stats() {
   const { logs, freeSessions } = useApp()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
-
   const wakeRecords = storage.getWakeRecords()
   const wakeAvg = averageWakeTime(wakeRecords)
 
@@ -37,7 +34,7 @@ export default function Stats() {
   }
 
   return (
-    <div className={`max-w-3xl mx-auto px-4 py-6 pb-40 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
+    <div className="max-w-3xl mx-auto px-4 py-6 pb-40 sm:pb-8 space-y-5">
       <BackBar />
       {/* Header */}
       <div>
@@ -56,7 +53,7 @@ export default function Stats() {
         <div className="grid grid-cols-2 gap-3">
           <div className="glass glass-lift g-rust p-4" style={{ borderRadius: 20 }}>
             <div className="flex items-start justify-between mb-2">
-              <span className="text-xl">🍅</span>
+              <span className="text-xl"><LuupiIcon name="timer" /></span>
               <span className="text-[10px] font-semibold uppercase tracking-wider ink-60">Süre</span>
             </div>
             <p className="display text-2xl font-extrabold tnum animate-value-pop" key={pomMinutes}>{formatMinutes(pomMinutes)}</p>
@@ -64,7 +61,7 @@ export default function Stats() {
           </div>
           <div className="glass glass-lift g-cream p-4" style={{ borderRadius: 20 }}>
             <div className="flex items-start justify-between mb-2">
-              <span className="text-xl">⏱</span>
+              <span className="text-xl"><LuupiIcon name="clock" /></span>
               <span className="text-[10px] font-semibold uppercase tracking-wider ink-60">Sayı</span>
             </div>
             <p className="display text-2xl font-extrabold tnum animate-value-pop" key={pomCount}>{pomCount} <span className="text-base font-bold">Pomodoro</span></p>
@@ -79,7 +76,7 @@ export default function Stats() {
           <p className="display text-sm font-bold mb-3" style={{ color: 'rgb(var(--ink))' }}>Uyanma</p>
           <div className="glass g-cream p-4" style={{ borderRadius: 20 }}>
             <div className="flex items-start justify-between mb-2">
-              <span className="text-xl">🌅</span>
+              <span className="text-xl"><LuupiIcon name="sunrise" /></span>
               <span className="text-[10px] font-semibold uppercase tracking-wider ink-60">{wakeRecords.length} gün</span>
             </div>
             <div className="grid grid-cols-3 text-center">

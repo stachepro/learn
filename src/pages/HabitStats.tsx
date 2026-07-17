@@ -1,244 +1,274 @@
-import { useState, useEffect, useMemo } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import BackBar from '../components/BackBar'
+import HabitDayDetailSheet from '../components/habits/HabitDayDetailSheet'
+import AppButton from '../components/ui/AppButton'
+import SurfaceCard from '../components/ui/SurfaceCard'
 import { useApp } from '../context/AppContext'
-import { getCategoryColor } from '../utils/categories'
-import { isHabitScheduledFor } from '../utils/habitSchedule'
+import type { HabitHistoryDay, HabitHistoryStatus } from '../utils/habitHistory'
+import { buildHabitAllTimeHistory, buildHabitMonthHistory, habitCreatedDate } from '../utils/habitHistory'
+import { getHabitCardShape, normalizeHabitCardColor } from '../utils/habitCard'
+import { getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS, todayStr } from '../utils/date'
+import { hapticEvent } from '../utils/haptics'
+import { MOTION } from '../utils/motion'
 import {
-  getDaysInMonth, getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS,
-} from '../utils/date'
+  beginPointerGesture,
+  finishPointerGesture,
+  updatePointerGesture,
+  type PointerGestureSession,
+} from '../utils/pointerGesture'
+import { WEEKDAY_NAMES } from '../utils/habitSchedule'
+import LuupiIcon from '../components/ui/LuupiIcon'
 
-// Local YYYY-MM-DD key — avoids the UTC shift that toISOString() causes on
-// local-midnight Dates in timezones ahead of UTC.
-function ymd(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const STATUS_LABELS: Record<HabitHistoryStatus, string> = {
+  completed: 'Tamamlandı',
+  'explicit-skip': 'Atlandı',
+  missed: 'Kaçırıldı',
+  pending: 'Bugün bekliyor',
+  off: 'Plan dışı',
+  future: 'Gelecek gün',
+  'before-created': 'Alışkanlık henüz yoktu',
 }
 
-type DayStatus = 'done' | 'missed' | 'today-pending' | 'off' | 'future' | 'none'
+const LEGEND: { status: HabitHistoryStatus; label: string }[] = [
+  { status: 'completed', label: 'Tamamlandı' },
+  { status: 'explicit-skip', label: 'Atlandı' },
+  { status: 'missed', label: 'Kaçırıldı' },
+  { status: 'pending', label: 'Bugün bekliyor' },
+  { status: 'off', label: 'Plan dışı' },
+]
 
-const STATUS_STYLE: Record<DayStatus, { bg: string; ring: string; color: string }> = {
-  done:          { bg: 'rgb(34,197,94)',        ring: 'rgba(34,197,94,0.5)',  color: '#06210f' },
-  missed:        { bg: 'rgba(225,90,60,0.85)',  ring: 'rgba(225,90,60,0.5)',  color: '#fff5f2' },
-  'today-pending': { bg: 'rgba(245,158,11,0.18)', ring: 'rgb(245,158,11)',     color: 'var(--sf-amber-tx)' },
-  off:           { bg: 'rgb(var(--ink) / 0.05)',   ring: 'rgb(var(--ink) / 0.06)',  color: 'rgb(var(--ink) / 0.3)' },
-  future:        { bg: 'rgb(var(--ink) / 0.03)',   ring: 'rgb(var(--ink) / 0.05)',  color: 'rgb(var(--ink) / 0.25)' },
-  none:          { bg: 'rgb(var(--ink) / 0.04)',   ring: 'rgb(var(--ink) / 0.05)',  color: 'rgb(var(--ink) / 0.25)' },
+function recurrenceLabel(recurrence: string | undefined, days: number[] | undefined): string {
+  if (recurrence === 'once') return 'Tek sefer'
+  if (recurrence === 'weekly') return 'Haftalık'
+  if (recurrence === 'custom' && days?.length) return days.map((day) => WEEKDAY_NAMES[day]).join(' · ')
+  return 'Her gün'
+}
+
+function monthIndex(year: number, month: number): number {
+  return year * 12 + month
+}
+
+function formatAriaDate(date: string): string {
+  return new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+    .format(new Date(`${date}T12:00:00`))
 }
 
 export default function HabitStats() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { habits, logs, categories } = useApp()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
+  const logicalToday = todayStr()
+  const [todayYear, todayMonth] = logicalToday.split('-').map(Number)
+  const habit = habits.find((item) => item.id === id)
+  const [viewYear, setViewYear] = useState(todayYear)
+  const [viewMonth, setViewMonth] = useState(todayMonth - 1)
+  const [calendarDirection, setCalendarDirection] = useState<'previous' | 'next'>('next')
+  const [selectedDay, setSelectedDay] = useState<HabitHistoryDay | null>(null)
+  const pointerRef = useRef<PointerGestureSession | null>(null)
+  const suppressDayClickRef = useRef(false)
 
-  const habit = habits.find((h) => h.id === id)
 
-  const now = new Date()
-  const [viewYear, setViewYear] = useState(now.getFullYear())
-  const [viewMonth, setViewMonth] = useState(now.getMonth())
+  const category = categories.find((item) => item.id === habit?.categoryId)
+  const shape = habit ? getHabitCardShape(habit.id) : 'pebble'
+  const seed = normalizeHabitCardColor(habit?.labelColor || category?.color)
+  const created = habit ? habitCreatedDate(habit) : logicalToday
+  const [createdYear, createdMonth] = created.split('-').map(Number)
+  const currentMonthIndex = monthIndex(todayYear, todayMonth - 1)
+  const createdMonthIndex = monthIndex(createdYear, createdMonth - 1)
+  const viewedMonthIndex = monthIndex(viewYear, viewMonth)
+  const canGoPrevious = viewedMonthIndex > createdMonthIndex
+  const canGoNext = viewedMonthIndex < currentMonthIndex
 
-  const today = ymd(new Date())
-  const createdKey = habit?.createdDate ?? (habit ? ymd(new Date(habit.createdAt)) : today)
-
-  // Status of the habit for a given date key (YYYY-MM-DD)
-  const statusFor = (key: string): DayStatus => {
-    if (!habit) return 'none'
-    if (key < createdKey) return 'none'
-    if (key > today) return 'future'
-    if (!isHabitScheduledFor(habit, key)) return 'off'
-    const completed = logs[key]?.habits[habit.id]?.completed
-    if (completed) return 'done'
-    if (key === today) return 'today-pending'
-    return 'missed'
-  }
-
-  // Success % over a set of date keys: done / (done + missed)
-  const successPct = (keys: string[]): { pct: number; done: number; total: number } => {
-    let done = 0, total = 0
-    for (const k of keys) {
-      const s = statusFor(k)
-      if (s === 'done') { done++; total++ }
-      else if (s === 'missed') { total++ }
-    }
-    return { pct: total === 0 ? 0 : Math.round((done / total) * 100), done, total }
-  }
-
-  const daysInMonth = getDaysInMonth(viewYear, viewMonth)
-  const firstDay = getFirstDayOfMonth(viewYear, viewMonth)
-
-  const monthKeys = useMemo(
-    () => Array.from({ length: daysInMonth }, (_, i) => ymd(new Date(viewYear, viewMonth, i + 1))),
-    [viewYear, viewMonth, daysInMonth],
+  const monthHistory = useMemo(
+    () => habit ? buildHabitMonthHistory(habit, logs, viewYear, viewMonth, logicalToday) : null,
+    [habit, logs, viewYear, viewMonth, logicalToday],
+  )
+  const allTimeHistory = useMemo(
+    () => habit ? buildHabitAllTimeHistory(habit, logs, logicalToday) : null,
+    [habit, logs, logicalToday],
   )
 
-  // All-time keys: from creation date through today
-  const allTimeKeys = useMemo(() => {
-    if (!habit) return []
-    const keys: string[] = []
-    const start = new Date(createdKey + 'T12:00:00')
-    const end = new Date(today + 'T12:00:00')
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      keys.push(ymd(d))
-    }
-    return keys
-  }, [habit, createdKey, today])
-
-  const monthStat = successPct(monthKeys)
-  const allStat = successPct(allTimeKeys)
-
-  const prevMonth = () => {
-    const d = new Date(viewYear, viewMonth - 1, 1)
-    setViewYear(d.getFullYear()); setViewMonth(d.getMonth())
-  }
-  const nextMonth = () => {
-    const d = new Date(viewYear, viewMonth + 1, 1)
-    setViewYear(d.getFullYear()); setViewMonth(d.getMonth())
-  }
-
-  // Don't navigate past the current month
-  const atCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth()
-
-  if (!habit) {
+  if (!habit || !monthHistory || !allTimeHistory) {
     return (
-      <div className="max-w-sm mx-auto px-4 py-20 text-center">
-        <p className="text-4xl mb-3">🔍</p>
-        <p className="display text-base font-bold" style={{ color: 'rgb(var(--ink))' }}>Alışkanlık bulunamadı</p>
-        <button onClick={() => navigate('/habits')} className="btn-ink btn-press mt-5 px-5 py-2.5 text-sm">
-          Alışkanlıklara dön
-        </button>
+      <div className="habit-detail-not-found max-w-sm mx-auto px-4 py-20">
+          <span aria-hidden><LuupiIcon name="search" size={18} /></span>
+        <h1>Alışkanlık bulunamadı</h1>
+        <AppButton tone="primary" onClick={() => navigate('/habits')}>Alışkanlıklara dön</AppButton>
       </div>
     )
   }
 
-  const cat = categories.find((c) => c.id === habit.categoryId)
-  const colors = getCategoryColor(cat?.color ?? '#6b7280')
+  const changeMonth = (delta: -1 | 1) => {
+    if ((delta < 0 && !canGoPrevious) || (delta > 0 && !canGoNext)) return
+    const next = new Date(viewYear, viewMonth + delta, 1)
+    setCalendarDirection(delta < 0 ? 'previous' : 'next')
+    setViewYear(next.getFullYear())
+    setViewMonth(next.getMonth())
+    void hapticEvent('selection')
+  }
+
+  const onCalendarPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    const captureTarget = event.target instanceof HTMLElement ? event.target : event.currentTarget
+    pointerRef.current = beginPointerGesture(event, captureTarget)
+  }
+
+  const onCalendarPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const pointer = pointerRef.current
+    if (!pointer || pointer.pointerId !== event.pointerId) return
+    const update = updatePointerGesture(pointer, event, 1.2)
+    if (update?.axis === 'vertical') pointerRef.current = null
+  }
+
+  const onCalendarPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const pointer = pointerRef.current
+    pointerRef.current = null
+    if (!pointer || pointer.pointerId !== event.pointerId) return
+    finishPointerGesture(pointer)
+    const deltaX = event.clientX - pointer.startX
+    if (pointer.axis !== 'horizontal' || Math.abs(deltaX) < 48) return
+    suppressDayClickRef.current = true
+    changeMonth(deltaX > 0 ? -1 : 1)
+    window.setTimeout(() => { suppressDayClickRef.current = false }, MOTION.standard)
+  }
+
+  const openDay = (day: HabitHistoryDay) => {
+    if (suppressDayClickRef.current) return
+    setSelectedDay(day)
+    void hapticEvent('selection')
+  }
+
+  const monthStat = monthHistory.summary
+  const allStat = allTimeHistory.summary
+  const firstDay = getFirstDayOfMonth(viewYear, viewMonth)
+  const progressStyle = {
+    '--habit-detail-seed': seed,
+    '--habit-detail-progress': `${monthStat.successPct ?? 0}%`,
+  } as CSSProperties
 
   return (
-    <div className={`max-w-sm mx-auto px-4 py-6 pb-40 sm:pb-8 space-y-5 ${mounted ? 'page-enter' : 'opacity-0'}`}>
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => navigate('/habits')}
-          aria-label="Geri"
-          className="ctrl btn-press w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-        >
-          ←
-        </button>
-        <span className="text-2xl">{habit.emoji}</span>
-        <div className="min-w-0">
-          <h1 className="display text-xl font-extrabold truncate" style={{ color: 'rgb(var(--ink))' }}>{habit.name}</h1>
-          {cat && (
-            <p className="text-[11px] font-semibold" style={{ color: colors.text }}>
-              {cat.emoji} {cat.name}
-            </p>
-          )}
-        </div>
-      </div>
+    <>
+      {selectedDay && (
+        <HabitDayDetailSheet
+          habit={habit}
+          day={selectedDay}
+          rawLog={logs[selectedDay.date]?.habits[habit.id]}
+          onClose={() => setSelectedDay(null)}
+        />
+      )}
 
-      {/* Success summary */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="glass g-lime p-4" style={{ borderRadius: 20, border: '1px solid rgba(34,197,94,0.3)' }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#15803d' }}>Bu Ay</p>
-          <p className="display text-3xl font-extrabold tnum mt-1" style={{ color: '#15803d' }}>%{monthStat.pct}</p>
-          <p className="text-[11px] mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
-            {monthStat.done}/{monthStat.total} gün başarılı
-          </p>
-        </div>
-        <div className="glass g-neutral p-4" style={{ borderRadius: 20 }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--ink) / 0.5)' }}>Tüm Zamanlar</p>
-          <p className="display text-3xl font-extrabold tnum mt-1" style={{ color: 'rgb(var(--ink))' }}>%{allStat.pct}</p>
-          <p className="text-[11px] mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
-            {allStat.done}/{allStat.total} gün başarılı
-          </p>
-        </div>
-      </div>
+      <div className="habit-detail-page max-w-xl mx-auto px-4 pt-5" style={progressStyle}>
+        <BackBar title="Alışkanlıklar" />
 
-      {/* Month navigation + grid */}
-      <div className="glass g-neutral p-5" style={{ borderRadius: 24 }}>
-        <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={prevMonth}
-            aria-label="Önceki ay"
-            className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm"
-          >
-            ←
-          </button>
-          <p className="display text-sm font-bold" style={{ color: 'rgb(var(--ink))' }}>
-            {trMonthName(viewMonth)} {viewYear}
-          </p>
-          <button
-            onClick={nextMonth}
-            disabled={atCurrentMonth}
-            aria-label="Sonraki ay"
-            className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm"
-            style={{ opacity: atCurrentMonth ? 0.35 : 1 }}
-          >
-            →
-          </button>
-        </div>
+        <SurfaceCard variant="hero" className="habit-detail-identity">
+          <span className={`habit-detail-identity__totem habit-detail-identity__totem--${shape}`} aria-hidden><LuupiIcon name={habit.icon} size={48} /></span>
+          <div className="habit-detail-identity__copy">
+            <span>{category && <LuupiIcon name={category.icon} size={16} />} {category?.name ?? 'Alışkanlık'}</span>
+            <h1>{habit.name}</h1>
+            <p>{recurrenceLabel(habit.recurrence, habit.recurrenceDays)}</p>
+          </div>
+          <span className="habit-detail-identity__orbit" aria-hidden />
+        </SurfaceCard>
 
-        {/* Day-of-week headers */}
-        <div className="grid grid-cols-7 gap-1 mb-1">
-          {TR_DAY_SHORTS.map((d) => (
-            <div key={d} className="text-center text-[9px] py-0.5 font-semibold" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
-              {d}
+        <SurfaceCard variant="raised" className="habit-detail-performance">
+          <div className="habit-detail-performance__heading">
+            <div>
+              <span>Seçili ay</span>
+              <h2>{trMonthName(viewMonth)} performansı</h2>
             </div>
-          ))}
-        </div>
+            <small>{monthStat.eligibleTotal > 0 ? `${monthStat.eligibleTotal} planlı gün` : 'Henüz veri yok'}</small>
+          </div>
 
-        {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: firstDay }).map((_, i) => (
-            <div key={`e${i}`} className="aspect-square" />
-          ))}
-
-          {monthKeys.map((key, i) => {
-            const day = i + 1
-            const status = statusFor(key)
-            const s = STATUS_STYLE[status]
-            const isToday = key === today
-            return (
-              <div
-                key={key}
-                className="aspect-square rounded-lg flex items-center justify-center"
-                style={{
-                  background: s.bg,
-                  boxShadow: isToday ? `0 0 0 2px ${s.ring}` : `inset 0 0 0 1px ${s.ring}`,
-                }}
-                title={`${day} ${trMonthName(viewMonth)}: ${
-                  status === 'done' ? 'Tamamlandı'
-                  : status === 'missed' ? 'Yapılmadı'
-                  : status === 'today-pending' ? 'Bugün · bekliyor'
-                  : status === 'off' ? 'Planlı değil'
-                  : status === 'future' ? 'Gelmedi'
-                  : 'Alışkanlık yoktu'
-                }`}
-              >
-                <span className="text-[10px] font-bold leading-none select-none tnum" style={{ color: s.color }}>
-                  {day}
-                </span>
+          <div className="habit-detail-performance__stage">
+            <div className={`habit-detail-performance__ring ${monthStat.successPct === null ? 'is-empty' : ''}`}>
+              <div>
+                <strong>{monthStat.successPct === null ? '—' : `%${monthStat.successPct}`}</strong>
+                <span>başarı</span>
               </div>
-            )
-          })}
-        </div>
-
-        {/* Legend */}
-        <div className="flex items-center justify-center gap-4 mt-4 flex-wrap">
-          {([
-            ['done', 'Tamamlandı'],
-            ['missed', 'Yapılmadı'],
-            ['off', 'Planlı değil'],
-          ] as [DayStatus, string][]).map(([st, lbl]) => (
-            <div key={st} className="flex items-center gap-1.5">
-              <span
-                className="w-3 h-3 rounded-[5px]"
-                style={{ background: STATUS_STYLE[st].bg, boxShadow: `inset 0 0 0 1px ${STATUS_STYLE[st].ring}` }}
-              />
-              <span className="text-[10px]" style={{ color: 'rgb(var(--ink) / 0.5)' }}>{lbl}</span>
             </div>
-          ))}
-        </div>
+            <div className="habit-detail-performance__metrics">
+              <div className="habit-detail-performance__metric habit-detail-performance__metric--completed">
+                <span aria-hidden>✓</span>
+                <div><strong>{monthStat.completed}</strong><small>Tamamlandı</small></div>
+              </div>
+              <div className="habit-detail-performance__metric habit-detail-performance__metric--missed">
+                <span aria-hidden>×</span>
+                <div><strong>{monthStat.skipped}</strong><small>Kaçırıldı</small></div>
+              </div>
+            </div>
+          </div>
+        </SurfaceCard>
+
+        <SurfaceCard
+          variant="raised"
+          className="habit-detail-calendar"
+          onPointerDown={onCalendarPointerDown}
+          onPointerMove={onCalendarPointerMove}
+          onPointerUp={onCalendarPointerUp}
+          onPointerCancel={() => {
+            finishPointerGesture(pointerRef.current)
+            pointerRef.current = null
+          }}
+          onLostPointerCapture={(event) => {
+            if (pointerRef.current?.pointerId === event.pointerId) pointerRef.current = null
+          }}
+        >
+          <header className="habit-detail-calendar__header">
+            <AppButton tone="quiet" size="sm" haptic="none" onClick={() => changeMonth(-1)} disabled={!canGoPrevious} aria-label="Önceki ay">←</AppButton>
+            <div>
+              <span>Aylık ritim</span>
+              <h2>{trMonthName(viewMonth)} {viewYear}</h2>
+            </div>
+            <AppButton tone="quiet" size="sm" haptic="none" onClick={() => changeMonth(1)} disabled={!canGoNext} aria-label="Sonraki ay">→</AppButton>
+          </header>
+
+          <div key={`${viewYear}-${viewMonth}`} className={`habit-detail-calendar__body habit-detail-calendar__body--${calendarDirection}`}>
+            <div className="habit-detail-calendar__weekdays" aria-hidden>
+              {TR_DAY_SHORTS.map((day) => <span key={day}>{day}</span>)}
+            </div>
+            <div className="habit-detail-calendar__grid" aria-label={`${trMonthName(viewMonth)} ${viewYear} alışkanlık takvimi`}>
+              {Array.from({ length: firstDay }).map((_, index) => <span key={`empty-${index}`} className="habit-detail-calendar__placeholder" />)}
+              {monthHistory.days.map((day) => {
+                const dayNumber = Number(day.date.slice(-2))
+                return (
+                  <button
+                    key={day.date}
+                    type="button"
+                    className={`habit-detail-day habit-detail-day--${day.status}`}
+                    onClick={() => openDay(day)}
+                    aria-label={`${formatAriaDate(day.date)}: ${STATUS_LABELS[day.status]}`}
+                  >
+                    <span>{dayNumber}</span>
+                    <i aria-hidden>{day.status === 'completed' ? '✓' : day.status === 'explicit-skip' ? '×' : day.status === 'missed' ? '／' : day.status === 'pending' ? '•' : ''}</i>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="habit-detail-legend" aria-label="Takvim açıklaması">
+            {LEGEND.map((item) => (
+              <span key={item.status}>
+                <i className={`habit-detail-legend__swatch habit-detail-legend__swatch--${item.status}`} aria-hidden />
+                {item.label}
+              </span>
+            ))}
+          </div>
+          <p className="habit-detail-calendar__gesture">Aylar arasında geçmek için takvimi yana kaydırabilirsin.</p>
+        </SurfaceCard>
+
+        <SurfaceCard variant="tinted" className="habit-detail-lifetime">
+          <div>
+            <span>Tüm zamanlar</span>
+            <strong>{allStat.successPct === null ? '—' : `%${allStat.successPct}`}</strong>
+          </div>
+          <dl>
+            <div><dt>Tamamlanan</dt><dd>{allStat.completed}</dd></div>
+            <div><dt>Kaçırılan</dt><dd>{allStat.skipped}</dd></div>
+            <div><dt>Planlı gün</dt><dd>{allStat.eligibleTotal}</dd></div>
+          </dl>
+        </SurfaceCard>
       </div>
-    </div>
+    </>
   )
 }

@@ -1,291 +1,343 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
+import { useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import { useApp } from '../context/AppContext'
-import StatModalShell from './StatModalShell'
-import StreakFlame from './StreakFlame'
-import { getFlameState, getFreezes, getFreezeProgress, MAX_STREAK_FREEZES, FREEZE_EARN_DAYS } from '../utils/streak'
-import { useCountUp } from '../utils/useCountUp'
 import {
-  todayStr, yesterdayStr, dateStr, addDaysStr,
-  getDaysInMonth, getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS,
-} from '../utils/date'
+  FREEZE_EARN_DAYS,
+  getFlameState,
+  getFreezes,
+  getFreezeProgress,
+  MAX_STREAK_FREEZES,
+  type FlameState,
+} from '../utils/streak'
+import {
+  buildStreakMonth,
+  buildStreakWeek,
+  getStreakActiveDates,
+  getStreakTrackingStart,
+  type StreakDayState,
+} from '../utils/streakHistory'
+import { getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS, todayStr, yesterdayStr } from '../utils/date'
+import { hapticEvent } from '../utils/haptics'
+import {
+  beginPointerGesture,
+  finishPointerGesture,
+  updatePointerGesture,
+  type PointerGestureSession,
+} from '../utils/pointerGesture'
+import { useCountUp } from '../utils/useCountUp'
+import { useModalDismiss } from '../utils/useModalDismiss'
+import { useSheetDragDismiss } from '../utils/useSheetDragDismiss'
+import AppButton from './ui/AppButton'
+import SurfaceCard from './ui/SurfaceCard'
+import StreakFlame from './StreakFlame'
+import LuupiIcon from './ui/LuupiIcon'
 
-/* Seri penceresi: alev durumu, dondurma hakları, son 7 gün, aylık takvim
-   ve kuralların açıklaması. Aktif gün = o gün en az 1 alışkanlık tamamlandı. */
-
-type DayState = 'done' | 'frozen' | 'missed' | 'pending' | 'future'
-
-const STATUS_TEXT: Record<string, { text: string; color: string }> = {
-  lit:     { text: 'Bugün serini devam ettirdin, alev yanıyor!', color: '#9a4d0a' },
-  pending: { text: 'Bugün henüz devam ettirmedin — bir alışkanlık tamamla, alevi yak.', color: 'rgb(var(--ink) / 0.55)' },
-  frozen:  { text: 'Serin dondurma ile kurtarıldı. Bugün tamamla, alev geri gelsin!', color: '#0369a1' },
-  out:     { text: 'Henüz seri yok. Bugün bir alışkanlık tamamla, seriyi başlat.', color: 'rgb(var(--ink) / 0.55)' },
+const HERO_COPY: Record<FlameState, { eyebrow: string; message: string }> = {
+  lit: { eyebrow: 'Alev yanıyor', message: 'Bugünkü ritmini tamamladın. Serin güvende.' },
+  pending: { eyebrow: 'Bugün seni bekliyor', message: 'Bir alışkanlık tamamla ve alevi yarına taşı.' },
+  frozen: { eyebrow: 'Seri korundu', message: 'Dondurma hakkın devreye girdi. Bugün alevi yeniden yak.' },
+  out: { eyebrow: 'Yeni bir başlangıç', message: 'Bugün bir alışkanlık tamamla ve ilk kıvılcımı yak.' },
 }
 
-function SnowFall() {
-  const flakes = useMemo(() =>
-    Array.from({ length: 9 }, (_, i) => ({
-      left: 6 + (i * 37) % 88,
-      delay: (i * 0.7) % 3.6,
-      dur: 3 + (i % 3),
-      size: 5 + (i % 3) * 2,
-    })), [])
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-      {flakes.map((f, i) => (
-        <span
-          key={i}
-          className="snow-flake"
-          style={{
-            left: `${f.left}%`,
-            width: f.size,
-            height: f.size,
-            '--dur': `${f.dur}s`,
-            '--delay': `${f.delay}s`,
-          } as CSSProperties}
-        />
-      ))}
-    </div>
-  )
+const DAY_LABELS: Record<StreakDayState, string> = {
+  done: 'aktif',
+  frozen: 'donduruldu',
+  missed: 'kaçırıldı',
+  pending: 'bugün bekliyor',
+  future: 'gelecek gün',
+  'before-tracking': 'takip başlamamıştı',
+}
+
+function monthIndex(year: number, month: number): number {
+  return year * 12 + month
+}
+
+function dayParts(date: string): { dayNumber: number; weekday: string } {
+  const [year, month, day] = date.split('-').map(Number)
+  const weekdayIndex = (new Date(year, month - 1, day).getDay() + 6) % 7
+  return { dayNumber: day, weekday: TR_DAY_SHORTS[weekdayIndex] }
 }
 
 export default function StreakModal({ onClose }: { onClose: () => void }) {
   const { profile, logs } = useApp()
+  const { isExiting, close } = useModalDismiss(onClose)
   const today = todayStr()
   const yesterday = yesterdayStr()
+  const [todayYear, todayMonth] = today.split('-').map(Number)
+  const [viewYear, setViewYear] = useState(todayYear)
+  const [viewMonth, setViewMonth] = useState(todayMonth - 1)
+  const [monthDirection, setMonthDirection] = useState<'previous' | 'next'>('next')
+  const [showRules, setShowRules] = useState(false)
+  const [rulesExiting, setRulesExiting] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const panelRef = useRef<HTMLElement>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const rulesCloseRef = useRef<HTMLButtonElement>(null)
+  const pointerRef = useRef<PointerGestureSession | null>(null)
+  const rulesTimerRef = useRef<number | null>(null)
+
   const flame = getFlameState(profile, today, yesterday)
+  const shownStreak = useCountUp(profile.streak, 800)
   const freezes = getFreezes(profile)
   const progress = getFreezeProgress(profile)
-  const shownStreak = useCountUp(profile.streak, 800)
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => { const t = requestAnimationFrame(() => setMounted(true)); return () => cancelAnimationFrame(t) }, [])
+  const heroCopy = HERO_COPY[flame]
+  const activeDates = useMemo(() => getStreakActiveDates(profile, logs, today), [profile, logs, today])
+  const trackingStart = useMemo(() => getStreakTrackingStart(profile, logs, today), [profile, logs, today])
+  const week = useMemo(() => buildStreakWeek(profile, logs, today), [profile, logs, today])
+  const monthDays = useMemo(
+    () => buildStreakMonth(profile, logs, viewYear, viewMonth, today),
+    [profile, logs, viewYear, viewMonth, today],
+  )
 
-  // O gün en az bir alışkanlık tamamlandıysa gün aktiftir
-  const activeDates = useMemo(() => {
-    const set = new Set<string>()
-    for (const [date, day] of Object.entries(logs)) {
-      if (Object.values(day.habits).some((h) => h.completed)) set.add(date)
+  useEffect(() => {
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const frame = window.requestAnimationFrame(() => {
+      setMounted(true)
+      closeRef.current?.focus()
+      void hapticEvent('control')
+    })
+    const trapFocus = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return
+      const focusScope = panelRef.current?.querySelector<HTMLElement>('.streak-rules__panel') ?? panelRef.current
+      const focusable = Array.from(focusScope?.querySelectorAll<HTMLElement>('button:not([disabled]), [tabindex="0"]') ?? [])
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
-    return set
-  }, [logs])
+    document.addEventListener('keydown', trapFocus)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      if (rulesTimerRef.current !== null) window.clearTimeout(rulesTimerRef.current)
+      document.removeEventListener('keydown', trapFocus)
+      previous?.focus()
+    }
+  }, [])
 
-  const frozenDates = useMemo(() => new Set(profile.frozenDates ?? []), [profile.frozenDates])
+  useEffect(() => {
+    if (showRules) window.requestAnimationFrame(() => rulesCloseRef.current?.focus())
+  }, [showRules])
 
-  const stateOf = (date: string): DayState => {
-    if (date > today) return 'future'
-    if (activeDates.has(date)) return 'done'
-    if (frozenDates.has(date)) return 'frozen'
-    if (date === today) return 'pending'
-    return 'missed'
+  const [trackingYear, trackingMonth] = trackingStart.split('-').map(Number)
+  const viewedIndex = monthIndex(viewYear, viewMonth)
+  const firstIndex = monthIndex(trackingYear, trackingMonth - 1)
+  const currentIndex = monthIndex(todayYear, todayMonth - 1)
+  const canGoPrevious = viewedIndex > firstIndex
+  const canGoNext = viewedIndex < currentIndex
+
+  const changeMonth = (delta: -1 | 1) => {
+    if ((delta < 0 && !canGoPrevious) || (delta > 0 && !canGoNext)) return
+    const next = new Date(viewYear, viewMonth + delta, 1)
+    setMonthDirection(delta < 0 ? 'previous' : 'next')
+    setViewYear(next.getFullYear())
+    setViewMonth(next.getMonth())
+    void hapticEvent('selection')
   }
 
-  // Son 7 gün — bugün en sağda
-  const last7 = useMemo(() =>
-    Array.from({ length: 7 }, (_, i) => {
-      const date = addDaysStr(today, i - 6)
-      const [y, m, d] = date.split('-').map(Number)
-      const dayIdx = (new Date(y, m - 1, d).getDay() + 6) % 7
-      return { date, short: TR_DAY_SHORTS[dayIdx], dayNum: d, state: stateOf(date) }
-    }),
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  [today, activeDates, frozenDates])
+  const onMonthPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    const captureTarget = event.target instanceof HTMLElement ? event.target : event.currentTarget
+    pointerRef.current = beginPointerGesture(event, captureTarget)
+  }
 
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth()
-  const daysInMonth = getDaysInMonth(year, month)
-  const firstDay = getFirstDayOfMonth(year, month)
-  const activeThisMonth = Array.from({ length: daysInMonth }, (_, i) =>
-    stateOf(dateStr(new Date(year, month, i + 1)))
-  ).filter((s) => s === 'done' || s === 'frozen').length
+  const onMonthPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const pointer = pointerRef.current
+    if (!pointer || pointer.pointerId !== event.pointerId) return
+    const update = updatePointerGesture(pointer, event, 1.2)
+    if (update?.axis === 'vertical') pointerRef.current = null
+  }
 
-  const totalActiveDays = activeDates.size
+  const onMonthPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const pointer = pointerRef.current
+    pointerRef.current = null
+    if (!pointer || pointer.pointerId !== event.pointerId) return
+    finishPointerGesture(pointer)
+    const deltaX = event.clientX - pointer.startX
+    if (pointer.axis !== 'horizontal' || Math.abs(deltaX) < 48) return
+    changeMonth(deltaX > 0 ? -1 : 1)
+  }
 
-  const heroBg = flame === 'frozen'
-    ? 'radial-gradient(circle at 50% 30%, rgba(125,211,252,0.35), rgba(125,211,252,0.08))'
-    : flame === 'lit'
-      ? 'radial-gradient(circle at 50% 30%, rgba(251,191,36,0.4), rgba(249,115,22,0.08))'
-      : 'radial-gradient(circle at 50% 30%, rgb(var(--ink) / 0.08), rgb(var(--ink) / 0.02))'
+  const firstDay = getFirstDayOfMonth(viewYear, viewMonth)
+  const totalActiveDays = [...activeDates].filter((date) => date <= today).length
+  const activeThisMonth = monthDays.filter((day) => day.state === 'done').length
+  const protectedThisMonth = monthDays.filter((day) => day.state === 'frozen').length
+  const progressPct = freezes >= MAX_STREAK_FREEZES ? 100 : (progress / FREEZE_EARN_DAYS) * 100
+  const openRules = () => {
+    setRulesExiting(false)
+    setShowRules(true)
+    void hapticEvent('control')
+  }
+  const closeRules = () => {
+    if (rulesExiting) return
+    setRulesExiting(true)
+    rulesTimerRef.current = window.setTimeout(() => {
+      setShowRules(false)
+      setRulesExiting(false)
+      rulesTimerRef.current = null
+      panelRef.current?.querySelector<HTMLElement>('.streak-freeze-card')?.focus()
+    }, 220)
+  }
+  const rulesDrag = useSheetDragDismiss(closeRules)
+  const closeRulesFromEffect = useEffectEvent(closeRules)
 
-  return (
-    <StatModalShell
-      title="Seri"
-      subtitle="Her gün en az bir alışkanlık"
-      onClose={onClose}
-      headerIcon={<StreakFlame state={flame} size={24} />}
-    >
-      {/* ── Alev + sayı ── */}
-      <div className="relative rounded-3xl px-4 pt-6 pb-5 text-center overflow-hidden animate-pop" style={{ background: heroBg }}>
-        {flame === 'frozen' && <SnowFall />}
-        <div
-          className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center ${flame === 'lit' ? 'flame-glow' : flame === 'frozen' ? 'ice-glow' : ''}`}
-          style={{
-            background: flame === 'frozen' ? 'var(--sf-ice)' : flame === 'lit' ? '#faecd6' : '#f1ede4',
-            border: `1px solid ${flame === 'frozen' ? 'var(--sf-ice-br)' : flame === 'lit' ? '#f3dcb0' : 'rgb(var(--ink) / 0.08)'}`,
-          }}
-        >
-          <StreakFlame state={flame} size={44} />
-        </div>
-        <p className="display text-5xl font-black tnum mt-3 leading-none" style={{ color: flame === 'frozen' ? '#0369a1' : flame === 'lit' ? '#9a4d0a' : 'rgb(var(--ink))' }}>
-          {shownStreak}
-        </p>
-        <p className="text-[11px] font-bold uppercase tracking-widest mt-1" style={{ color: 'rgb(var(--ink) / 0.4)' }}>günlük seri</p>
-        <p className="text-xs font-semibold mt-2 px-4" style={{ color: STATUS_TEXT[flame].color }}>
-          {STATUS_TEXT[flame].text}
-        </p>
-      </div>
+  useEffect(() => {
+    if (!showRules) return
+    const closeRulesOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      closeRulesFromEffect()
+    }
+    document.addEventListener('keydown', closeRulesOnEscape, true)
+    return () => document.removeEventListener('keydown', closeRulesOnEscape, true)
+  }, [showRules])
 
-      {/* ── Özet istatistikler ── */}
-      <div className="grid grid-cols-3 gap-2.5 animate-pop" style={{ animationDelay: '60ms' }}>
-        <MiniStat label="En uzun seri" value={`${profile.longestStreak}`} suffix="gün" />
-        <MiniStat label="Toplam aktif" value={`${totalActiveDays}`} suffix="gün" />
-        <MiniStat label={trMonthName(month)} value={`${activeThisMonth}/${daysInMonth}`} suffix="gün" />
-      </div>
-
-      {/* ── Dondurma hakları ── */}
-      <div className="rounded-3xl p-4 animate-pop" style={{ background: '#eaf5fd', border: '1px solid #cfe8fa', animationDelay: '120ms' }}>
-        <div className="flex items-center justify-between">
-          <p className="display text-sm font-extrabold" style={{ color: '#0c4a6e' }}>🧊 Seri Dondurma</p>
-          <div className="flex gap-1.5">
-            {Array.from({ length: MAX_STREAK_FREEZES }, (_, i) => (
-              <span
-                key={i}
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-sm animate-cell-pop"
-                style={{
-                  animationDelay: `${200 + i * 90}ms`,
-                  background: i < freezes ? 'linear-gradient(150deg, var(--sf-ice-br), #38bdf8)' : 'rgb(var(--ink) / 0.05)',
-                  border: i < freezes ? '1px solid #7dd3fc' : '1px dashed rgb(var(--ink) / 0.18)',
-                  boxShadow: i < freezes ? '0 4px 10px -4px rgba(14,165,233,0.5)' : 'none',
-                }}
-              >
-                {i < freezes ? '❄️' : ''}
-              </span>
-            ))}
+  return createPortal(
+    <div className={`streak-experience streak-experience--${flame}`} role="dialog" aria-modal="true" aria-labelledby="streak-experience-title">
+      <button type="button" className={`streak-experience__scrim ${isExiting ? 'animate-fade-out' : 'animate-fade-in'}`} onClick={close} aria-label="Seri ekranını kapat" />
+      <section ref={panelRef} className={`streak-experience__panel ${isExiting ? 'streak-experience__panel--exit' : 'streak-experience__panel--enter'}`}>
+        <header className="streak-experience__topbar">
+          <div>
+            <span>Luupi ritmi</span>
+            <h1 id="streak-experience-title">Seri merkezi</h1>
           </div>
-        </div>
+          <AppButton ref={closeRef} tone="quiet" size="sm" haptic="light" className="streak-experience__close" onClick={close} aria-label="Kapat">×</AppButton>
+        </header>
 
-        {/* Yeni hakka ilerleme */}
-        <div className="mt-3.5">
-          <div className="flex justify-between text-[11px] font-semibold mb-1.5" style={{ color: '#0369a1' }}>
-            <span>{freezes >= MAX_STREAK_FREEZES ? 'Hakların dolu — sayaç bekliyor' : 'Yeni hak'}</span>
-            <span className="tnum">{freezes >= MAX_STREAK_FREEZES ? `${MAX_STREAK_FREEZES}/${MAX_STREAK_FREEZES}` : `${progress}/${FREEZE_EARN_DAYS} gün`}</span>
-          </div>
-          <div className="well rounded-full overflow-hidden" style={{ height: 7 }}>
-            <div
-              className="h-full rounded-full progress-fill"
-              style={{
-                width: mounted ? `${freezes >= MAX_STREAK_FREEZES ? 100 : (progress / FREEZE_EARN_DAYS) * 100}%` : '0%',
-                background: 'linear-gradient(90deg, #7dd3fc, #0ea5e9)',
-              }}
-            />
-          </div>
-        </div>
-        <p className="text-[11px] mt-2.5 leading-relaxed" style={{ color: 'rgba(3,105,161,0.75)' }}>
-          Bir günü boş geçersen 1 hak otomatik harcanır ve serin korunur. Her 7 kesintisiz günde +1 hak kazanırsın (en fazla {MAX_STREAK_FREEZES}).
-        </p>
-      </div>
-
-      {/* ── Son 7 gün ── */}
-      <div className="animate-pop" style={{ animationDelay: '180ms' }}>
-        <p className="display text-sm font-extrabold mb-2.5" style={{ color: 'rgb(var(--ink))' }}>Son 7 gün</p>
-        <div className="grid grid-cols-7 gap-1.5">
-          {last7.map((d, i) => (
-            <div key={d.date} className="text-center animate-cell-pop" style={{ animationDelay: `${240 + i * 50}ms` }}>
-              <p className="text-[9px] font-semibold mb-1 ink-45">{d.short}</p>
-              <DayCell state={d.state} isToday={d.date === today} dayNum={d.dayNum} />
+        <div className="streak-experience__scroll">
+          <section className="streak-hero">
+            <span className="streak-hero__halo" aria-hidden />
+            <span className="streak-hero__spark streak-hero__spark--one" aria-hidden />
+            <span className="streak-hero__spark streak-hero__spark--two" aria-hidden />
+            <span className="streak-hero__spark streak-hero__spark--three" aria-hidden />
+            <div className="streak-hero__flame" aria-hidden>
+              <StreakFlame state={flame} size={126} />
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="streak-hero__number">
+              <strong>{shownStreak}</strong>
+              <span>günlük seri</span>
+            </div>
+            <div className="streak-hero__message">
+              <strong>{heroCopy.eyebrow}</strong>
+              <p>{heroCopy.message}</p>
+            </div>
 
-      {/* ── Aylık takvim ── */}
-      <div className="animate-pop" style={{ animationDelay: '240ms' }}>
-        <p className="display text-sm font-extrabold mb-2.5" style={{ color: 'rgb(var(--ink))' }}>{trMonthName(month)} {year}</p>
-        <div className="grid grid-cols-7 gap-1 mb-1">
-          {TR_DAY_SHORTS.map((d) => (
-            <div key={d} className="text-center text-[9px] ink-45 py-0.5 font-semibold">{d}</div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} className="aspect-square" />)}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const date = dateStr(new Date(year, month, i + 1))
-            const s = stateOf(date)
-            const isToday = date === today
-            const bg = s === 'done' ? 'rgba(249,115,22,0.75)'
-              : s === 'frozen' ? 'rgba(56,189,248,0.65)'
-              : s === 'future' ? 'rgb(var(--ink) / 0.03)'
-              : 'rgb(var(--ink) / 0.05)'
-            return (
-              <div
-                key={date}
-                className="contrib-cell animate-cell-pop aspect-square rounded-lg flex items-center justify-center"
-                style={{
-                  background: bg,
-                  boxShadow: isToday ? '0 0 0 2px rgb(249,115,22)' : 'inset 0 0 0 1px rgb(var(--ink) / 0.06)',
-                  '--cell-opacity': s === 'future' ? 0.5 : 1,
-                  animationDelay: `${(i % 7) * 0.02 + Math.floor(i / 7) * 0.015}s`,
-                } as CSSProperties}
-                title={`${i + 1} ${trMonthName(month)}`}
-              >
-                {s === 'frozen' && <span className="text-[9px] leading-none">❄️</span>}
-                {s === 'done' && <span className="text-[10px] font-bold leading-none tnum" style={{ color: '#4a1d05' }}>{i + 1}</span>}
+            <div className="streak-week" aria-label="Son 7 günün seri durumu">
+              {week.map((day) => {
+                const parts = dayParts(day.date)
+                return (
+                  <div key={day.date} className={`streak-week__day streak-week__day--${day.state} ${day.date === today ? 'is-today' : ''}`} aria-label={`${parts.weekday} ${parts.dayNumber}: ${DAY_LABELS[day.state]}`}>
+                    <span>{parts.weekday}</span>
+                  <i aria-hidden>{day.state === 'done' ? <LuupiIcon name="flame" size={18} /> : day.state === 'frozen' ? <LuupiIcon name="snowflake" size={18} /> : day.state === 'missed' ? '×' : parts.dayNumber}</i>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+
+          <SurfaceCard variant="raised" className="streak-metrics" aria-label="Seri istatistikleri">
+            <div><span>En uzun seri</span><strong>{profile.longestStreak}<small> gün</small></strong></div>
+            <div><span>Toplam aktif</span><strong>{totalActiveDays}<small> gün</small></strong></div>
+            <div><span>{trMonthName(viewMonth)}</span><strong>{activeThisMonth}<small> aktif</small></strong></div>
+          </SurfaceCard>
+
+          <SurfaceCard
+            variant="raised"
+            interactive
+            className="streak-freeze-card"
+            onClick={openRules}
+            aria-expanded={showRules}
+            aria-label={`Seri dondurma. ${freezes}/${MAX_STREAK_FREEZES} hakkın var. Kuralları aç.`}
+          >
+            <div className="streak-freeze-card__heading">
+              <div>
+                <span>Koruma kasası</span>
+                <h2>Seri Dondurma</h2>
               </div>
-            )
-          })}
+              <strong>{freezes}/{MAX_STREAK_FREEZES}</strong>
+            </div>
+            <div className="streak-freeze-card__slots" aria-hidden>
+              {Array.from({ length: MAX_STREAK_FREEZES }, (_, index) => (
+                <span key={index} className={index < freezes ? 'is-filled' : ''}>{index < freezes ? <LuupiIcon name="snowflake" size={16} /> : ''}</span>
+              ))}
+            </div>
+            <div className="streak-freeze-card__progress-copy">
+              <span>{freezes >= MAX_STREAK_FREEZES ? 'Kasan dolu, ilerlemen bekliyor' : 'Yeni hakka ilerleme'}</span>
+              <strong>{freezes >= MAX_STREAK_FREEZES ? 'Hazır' : `${progress}/${FREEZE_EARN_DAYS} gün`}</strong>
+            </div>
+            <div className="streak-freeze-card__track" aria-hidden>
+              <span style={{ '--freeze-progress': mounted ? `${progressPct}%` : '0%' } as CSSProperties} />
+            </div>
+            <p>{protectedThisMonth > 0 ? `Bu ay ${protectedThisMonth} günün otomatik korundu.` : 'Bir günü kaçırdığında uygun hakkın serini otomatik korur.'}</p>
+            <small>Nasıl çalıştığını gör <b>→</b></small>
+          </SurfaceCard>
+
+          <SurfaceCard variant="raised" className="streak-month">
+            <header className="streak-month__header">
+              <AppButton tone="quiet" size="sm" haptic="none" onClick={() => changeMonth(-1)} disabled={!canGoPrevious} aria-label="Önceki ay">←</AppButton>
+              <div><span>Aylık ritim</span><h2>{trMonthName(viewMonth)} {viewYear}</h2></div>
+              <AppButton tone="quiet" size="sm" haptic="none" onClick={() => changeMonth(1)} disabled={!canGoNext} aria-label="Sonraki ay">→</AppButton>
+            </header>
+            <div
+              className="streak-month__viewport"
+              onPointerDown={onMonthPointerDown}
+              onPointerMove={onMonthPointerMove}
+              onPointerUp={onMonthPointerUp}
+              onPointerCancel={() => {
+                finishPointerGesture(pointerRef.current)
+                pointerRef.current = null
+              }}
+              onLostPointerCapture={(event) => {
+                if (pointerRef.current?.pointerId === event.pointerId) pointerRef.current = null
+              }}
+            >
+              <div key={`${viewYear}-${viewMonth}`} className={`streak-month__body streak-month__body--${monthDirection}`}>
+                <div className="streak-month__weekdays" aria-hidden>{TR_DAY_SHORTS.map((day) => <span key={day}>{day}</span>)}</div>
+                <div className="streak-month__grid" aria-label={`${trMonthName(viewMonth)} ${viewYear} seri takvimi`}>
+                  {Array.from({ length: firstDay }).map((_, index) => <span key={`empty-${index}`} />)}
+                  {monthDays.map((day) => {
+                    const dayNumber = Number(day.date.slice(-2))
+                    return (
+                      <span key={day.date} className={`streak-month__day streak-month__day--${day.state} ${day.date === today ? 'is-today' : ''}`} role="img" aria-label={`${dayNumber} ${trMonthName(viewMonth)}: ${DAY_LABELS[day.state]}`}>
+                    {day.state === 'done' ? <b><LuupiIcon name="flame" size={16} /></b> : day.state === 'frozen' ? <b><LuupiIcon name="snowflake" size={16} /></b> : day.state === 'missed' ? <b>×</b> : dayNumber}
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+            <div className="streak-month__legend">
+              <span><i className="is-active" />Aktif</span>
+              <span><i className="is-frozen" />Korundu</span>
+              <span><i className="is-missed" />Kaçırıldı</span>
+              <span><i className="is-pending" />Bugün</span>
+            </div>
+            <p>Aylar arasında geçmek için takvimi yana kaydırabilirsin.</p>
+          </SurfaceCard>
         </div>
-        <div className="flex items-center justify-end gap-3 mt-2.5 text-[10px] ink-45">
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded inline-block" style={{ background: 'rgba(249,115,22,0.75)' }} /> aktif</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded inline-block" style={{ background: 'rgba(56,189,248,0.65)' }} /> donduruldu</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded inline-block" style={{ background: 'rgb(var(--ink) / 0.05)', boxShadow: 'inset 0 0 0 1px rgb(var(--ink) / 0.1)' }} /> boş</span>
-        </div>
-      </div>
 
-      {/* ── Nasıl işler ── */}
-      <div className="rounded-3xl p-4 space-y-2.5 animate-pop" style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.06)', animationDelay: '300ms' }}>
-        <p className="display text-sm font-extrabold" style={{ color: 'rgb(var(--ink))' }}>Seri nasıl işler?</p>
-        <Rule emoji="🔥" text="Günün ilk tamamlaması seriyi +1 ilerletir. Aynı gün içindeki diğer tamamlamalar sayıyı değiştirmez." />
-        <Rule emoji="🧊" text="Bir günü tamamen boş geçersen dondurma hakkın otomatik devreye girer — serin bozulmaz, sayı aynı kalır." />
-        <Rule emoji="📆" text="Kaçırılan her gün 1 hak harcar. Hak yetmezse seri sıfırlanır ama dondurmaların cebinde kalır." />
-        <Rule emoji="❄️" text={`Her ${FREEZE_EARN_DAYS} kesintisiz aktif gün +1 dondurma kazandırır. En fazla ${MAX_STREAK_FREEZES} hak biriktirebilirsin; harcayınca yeniden kazanabilirsin.`} />
-      </div>
-    </StatModalShell>
-  )
-}
-
-function MiniStat({ label, value, suffix }: { label: string; value: string; suffix?: string }) {
-  return (
-    <div className="rounded-2xl px-3 py-3 text-center" style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.06)' }}>
-      <p className="display text-lg font-black tnum leading-none" style={{ color: 'rgb(var(--ink))' }}>
-        {value}{suffix && <span className="text-[10px] font-bold ml-0.5 ink-45">{suffix}</span>}
-      </p>
-      <p className="text-[9px] font-bold uppercase tracking-wide mt-1.5 ink-45">{label}</p>
-    </div>
-  )
-}
-
-function DayCell({ state, isToday, dayNum }: { state: DayState; isToday: boolean; dayNum: number }) {
-  const styles: Record<DayState, CSSProperties> = {
-    done:    { background: 'linear-gradient(150deg, #fbbf24, #f97316)', color: '#4a1d05', boxShadow: '0 4px 10px -4px rgba(249,115,22,0.55)' },
-    frozen:  { background: 'linear-gradient(150deg, var(--sf-ice-br), #38bdf8)', color: '#0c4a6e', boxShadow: '0 4px 10px -4px rgba(14,165,233,0.5)' },
-    missed:  { background: 'rgb(var(--ink) / 0.05)', color: 'rgb(var(--ink) / 0.35)' },
-    pending: { background: 'rgba(249,115,22,0.08)', color: 'rgba(154,77,10,0.7)', border: '1.5px dashed rgba(249,115,22,0.5)' },
-    future:  { background: 'rgb(var(--ink) / 0.03)', color: 'rgb(var(--ink) / 0.2)' },
-  }
-  return (
-    <div
-      className={`aspect-square rounded-xl flex items-center justify-center text-xs font-bold tnum ${isToday && state === 'pending' ? 'ring-pulse' : ''}`}
-      style={styles[state]}
-    >
-      {state === 'done' ? '✓' : state === 'frozen' ? '❄️' : dayNum}
-    </div>
-  )
-}
-
-function Rule({ emoji, text }: { emoji: string; text: string }) {
-  return (
-    <div className="flex gap-2.5 items-start">
-      <span className="text-sm leading-none mt-0.5">{emoji}</span>
-      <p className="text-[11.5px] leading-relaxed flex-1" style={{ color: 'rgb(var(--ink) / 0.6)' }}>{text}</p>
-    </div>
+        {showRules && (
+          <div className={`streak-rules ${rulesExiting ? 'is-exiting' : ''}`} role="dialog" aria-labelledby="streak-rules-title">
+            <button type="button" className="streak-rules__scrim" onClick={closeRules} aria-label="Kuralları kapat" />
+            <section style={rulesDrag.surfaceStyle} className={`streak-rules__panel ${rulesDrag.surfaceClassName}`}>
+              <span className="streak-rules__handle sheet-drag-handle" {...rulesDrag.handleProps} />
+              <header><div><span>Koruma sistemi</span><h2 id="streak-rules-title">Seri Dondurma nasıl çalışır?</h2></div><AppButton ref={rulesCloseRef} tone="quiet" size="sm" haptic="light" onClick={closeRules} aria-label="Kapat">×</AppButton></header>
+              <div className="streak-rules__list">
+              <div><i><LuupiIcon name="flame" size={18} /></i><p>Günün ilk alışkanlık tamamlaması seriyi bir gün ilerletir.</p></div>
+              <div><i><LuupiIcon name="snowflake" size={18} /></i><p>Kaçırılan bir gün için bir hak otomatik harcanır ve seri korunur.</p></div>
+                <div><i>7</i><p>Her {FREEZE_EARN_DAYS} kesintisiz aktif günde yeni bir dondurma hakkı kazanırsın.</p></div>
+                <div><i>3</i><p>Kasanda en fazla {MAX_STREAK_FREEZES} hak tutabilirsin. Kasa doluyken ilerleme bekler.</p></div>
+              </div>
+            </section>
+          </div>
+        )}
+      </section>
+    </div>,
+    document.body,
   )
 }

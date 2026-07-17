@@ -7,13 +7,13 @@ const base = { id: 'h1', name: 'Su iç', createdAt: '2026-07-01T08:00:00.000Z' }
 describe('migrateHabit', () => {
   it('eksik alanlara varsayılan verir', () => {
     const h = migrateHabit({ ...base })
-    expect(h.emoji).toBe('⭐')
+    expect(h.icon).toBe('sparkles')
     expect(h.categoryId).toBe('diger')
   })
 
-  it('var olan emoji ve kategoriyi ezmez', () => {
+  it('eski emojiyi ikon kimliğine taşır ve kategoriyi ezmez', () => {
     const h = migrateHabit({ ...base, emoji: '💧', categoryId: 'saglik' })
-    expect(h.emoji).toBe('💧')
+    expect(h.icon).toBe('water')
     expect(h.categoryId).toBe('saglik')
   })
 

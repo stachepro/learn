@@ -6,6 +6,8 @@ import { isHabitScheduledFor, getWindowStatus } from '../utils/habitSchedule'
 import { migrateHabitLog } from '../utils/habitLog'
 import { dateStr, formatMinutes } from '../utils/date'
 import { getHabitTimeOfDay, type Habit, type HabitLog, type TimeOfDay } from '../types'
+import LuupiIcon from './ui/LuupiIcon'
+import type { IconName } from '../utils/icons'
 
 /* Bugün penceresi: günün ilerleme halkası + vakit gruplarına göre
    saat damgalı tamamlama dökümü. */
@@ -13,11 +15,11 @@ import { getHabitTimeOfDay, type Habit, type HabitLog, type TimeOfDay } from '..
 const RING_R = 52
 const RING_C = 2 * Math.PI * RING_R
 
-const TIME_GROUPS: { id: TimeOfDay; label: string; icon: string }[] = [
-  { id: 'morning', label: 'Sabah', icon: '☀️' },
-  { id: 'afternoon', label: 'Öğle', icon: '🌤️' },
-  { id: 'evening', label: 'Akşam', icon: '🌙' },
-  { id: 'any', label: 'Gün İçinde', icon: '🕐' },
+const TIME_GROUPS: { id: TimeOfDay; label: string; icon: IconName }[] = [
+  { id: 'morning', label: 'Sabah', icon: 'sunrise' },
+  { id: 'afternoon', label: 'Öğle', icon: 'sun' },
+  { id: 'evening', label: 'Akşam', icon: 'moon' },
+  { id: 'any', label: 'Gün İçinde', icon: 'clock' },
 ]
 
 export default function TodayModal({ onClose }: { onClose: () => void }) {
@@ -51,7 +53,7 @@ export default function TodayModal({ onClose }: { onClose: () => void }) {
       title="Bugün"
       subtitle={allDone ? 'Günün hepsi tamam — harikasın!' : 'Günün dökümü'}
       onClose={onClose}
-      headerIcon={<span className="text-xl leading-none">{allDone ? '🎉' : '📋'}</span>}
+      headerIcon={<span className="text-xl leading-none"><LuupiIcon name={allDone ? 'confetti' : 'list-check'} /></span>}
     >
       {/* ── İlerleme halkası ── */}
       <div
@@ -95,7 +97,7 @@ export default function TodayModal({ onClose }: { onClose: () => void }) {
       {/* ── Vakit gruplarına göre döküm ── */}
       {total === 0 ? (
         <div className="text-center py-6">
-          <p className="text-2xl mb-2">📅</p>
+          <p className="text-2xl mb-2"><LuupiIcon name="calendar" size={32} /></p>
           <p className="text-sm font-semibold ink-60">Bugün için planlanmış alışkanlık yok</p>
         </div>
       ) : (
@@ -105,7 +107,7 @@ export default function TodayModal({ onClose }: { onClose: () => void }) {
           return (
             <div key={id} className="animate-pop" style={{ animationDelay: '80ms' }}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm leading-none">{icon}</span>
+                <span className="text-sm leading-none"><LuupiIcon name={icon} size={16} /></span>
                 <p className="display text-sm font-extrabold" style={{ color: 'rgb(var(--ink))' }}>{label}</p>
                 <span className="text-[10px] font-bold tnum ink-45">
                   {group.filter(({ log }) => log.completed).length}/{group.length}
@@ -141,7 +143,7 @@ function HabitStatusRow({ habit, log, now, delay }: { habit: Habit; log: HabitLo
         opacity: missed ? 0.8 : 1,
       }}
     >
-      <span className="text-base leading-none flex-shrink-0">{habit.emoji}</span>
+      <span className="text-base leading-none flex-shrink-0"><LuupiIcon name={habit.icon} size={18} /></span>
       <p
         className="text-xs font-semibold flex-1 min-w-0 truncate"
         style={{ color: done ? '#15803d' : 'rgb(var(--ink))', textDecoration: done ? 'line-through' : 'none', textDecorationColor: 'rgba(21,128,61,0.4)' }}
@@ -153,7 +155,7 @@ function HabitStatusRow({ habit, log, now, delay }: { habit: Habit; log: HabitLo
           ✓ {completedTime ?? 'tamam'}
         </span>
       ) : missed ? (
-        <span className="text-[10px] font-bold flex-shrink-0" style={{ color: 'rgba(245,158,11,0.9)' }}>⏰ pencere kapandı</span>
+        <span className="text-[10px] font-bold flex-shrink-0" style={{ color: 'rgba(245,158,11,0.9)' }}><LuupiIcon name="alarm" size={14} /> pencere kapandı</span>
       ) : (
         <span className="text-[10px] font-bold flex-shrink-0 ink-45">bekliyor</span>
       )}

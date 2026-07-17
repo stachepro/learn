@@ -9,7 +9,17 @@
    amber = energy/streak/XP.
    ════════════════════════════════════════════════ */
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
 
 html { scroll-behavior: smooth; }
 html { overflow-x: hidden; }
@@ -76,7 +86,6 @@ input, textarea, [contenteditable] {
   --energy2: 249 115 22;
   --ink: 26 23 38;        /* primary dark text (light theme) */
   --canvas: 251 247 240;  /* warm cream page (light theme) */
-  --action-blue: #0066cc; /* Apple birincil aksan — tek CTA rengi */
 }
 
 /* ════════════════ KARANLIK TEMA ════════════════
@@ -85,7 +94,6 @@ input, textarea, [contenteditable] {
 :root[data-theme="dark"] {
   --ink: 228 228 238;
   --canvas: 15 16 21;
-  --action-blue: #2f8bff;
 }
 
 /* Nötr (aksan olmayan) sabit-renkli karolar için token — açık temada krem,
@@ -182,8 +190,6 @@ input, textarea, [contenteditable] {
 :root[data-theme="dark"] .btn-ink:hover { filter: brightness(1.1); background: var(--action-blue); }
 :root[data-theme="dark"] .btn-dark { background: #2a2b36; color: rgb(var(--ink)); border-color: rgba(255,255,255,0.12); }
 :root[data-theme="dark"] .btn-dark:hover { background: #34353f; }
-
-:root[data-theme="dark"] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
 
 /* ── Energetic gradient text accents ── */
 .energy-text {
@@ -289,7 +295,7 @@ input[type="range"] { accent-color: #f59e0b; }
 }
 .chip:hover { background: rgba(26,23,38,0.09); }
 
-/* Action Blue lozenge — the primary CTA (e.g. "Ekle"). Apple: tek mavi pill. */
+/* Primary CTA compatibility class; its colour is provided by design-system.css. */
 .btn-ink {
   border-radius: 999px;
   font-weight: 600;
@@ -347,11 +353,6 @@ input[type="range"] { accent-color: #f59e0b; }
 
 /* ── Accessibility: focus ring ── */
 :focus-visible { outline: 2px solid rgba(245,158,11,0.85); outline-offset: 2px; border-radius: 6px; }
-
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(26,23,38,0.18); border-radius: 6px; }
 
 /* ── XP / energy progress fill with travelling shimmer ── */
 .energy-fill {
@@ -518,11 +519,11 @@ input[type="range"] { accent-color: #f59e0b; }
    Genişte (sm+): merkezi diyalog gibi hafifçe büyüyerek/küçülerek belirir/kaybolur. */
 @keyframes sheet-slide-in  { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes sheet-slide-out { from { transform: translateY(0); } to { transform: translateY(100%); } }
-.sheet-enter { animation: sheet-slide-in  0.36s cubic-bezier(0.16,1,0.3,1) both; }
-.sheet-exit  { animation: sheet-slide-out 0.28s cubic-bezier(0.4,0,1,1) both; }
+.sheet-enter { animation: sheet-slide-in var(--motion-sheet) var(--ease-enter) both; }
+.sheet-exit  { animation: sheet-slide-out var(--motion-sheet-exit) var(--ease-exit) both; }
 @media (min-width: 640px) {
-  .sheet-enter { animation: fade-up   0.28s cubic-bezier(0.16,1,0.3,1) both; }
-  .sheet-exit  { animation: fade-down 0.17s cubic-bezier(0.4,0,1,1)   both; }
+  .sheet-enter { animation: fade-up var(--motion-sheet) var(--ease-enter) both; }
+  .sheet-exit  { animation: fade-down var(--motion-sheet-exit) var(--ease-exit) both; }
 }
 
 /* ── Motion: page + element entrances ── */
@@ -683,6 +684,14 @@ input[type="range"] { accent-color: #f59e0b; }
   50%      { box-shadow: 0 16px 34px -14px rgba(107,74,53,0.7); }
 }
 .norush-breathe { animation: norush-breathe 4.5s ease-in-out infinite; }
+.norush-hero-card { isolation: isolate; }
+.norush-stage-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 110% at 50% 0%, rgba(255,255,255,0.18) 0%, transparent 60%);
+}
 
 /* ── Just Start: aktif adım karosu — sıcak nabız ── */
 @keyframes js-step-glow {
@@ -854,27 +863,24 @@ input[type="range"] { accent-color: #f59e0b; }
 
 /* ════════════════════════════════════════════════
    APPLE PİLOT — yalnız Dashboard için scoped katman.
-   SF Pro tipografi + sıkı harf aralığı, tek Action Blue
+   SF Pro tipografi + sıkı harf aralığı, ortak CTA
    birincil aksan, sakin yüzeyler. Kişilik (alev, habit
    renkleri, XP) korunur. Sadece .apple-surface altını etkiler.
    ════════════════════════════════════════════════ */
 .apple-surface {
   font-family: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --action-blue: #0066cc;
 }
 /* Başlıklar ve büyük sayılar: SF stack + Apple'ın imza sıkı aralığı */
 .apple-surface .display {
   font-family: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
   letter-spacing: -0.028em;
 }
-:root[data-theme="dark"] .apple-surface { --action-blue: #2f8bff; }
-
-/* Action Blue pill — Dashboard'ın tek birincil CTA'sı */
+/* Luupi primary pill — Dashboard'ın tek birincil CTA'sı */
 .btn-apple {
   border-radius: 9999px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  background: var(--action-blue, #0066cc);
+  background: var(--action-blue, rgb(var(--brand-lime)));
   color: #ffffff;
   border: 1px solid transparent;
 }

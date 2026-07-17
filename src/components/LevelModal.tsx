@@ -8,6 +8,8 @@ import {
 } from '../utils/exp'
 import { migrateHabitLog } from '../utils/habitLog'
 import { todayStr } from '../utils/date'
+import LuupiIcon from './ui/LuupiIcon'
+import type { IconName } from '../utils/icons'
 
 /* Seviye penceresi: ilerleme halkası, bugünkü kazanç, XP kaynakları
    ve seviye merdiveni. XP kayıtlardan türetilir — hiçbir kazanç kaybolmaz. */
@@ -92,10 +94,10 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
       {/* ── XP kaynakları ── */}
       <div className="rounded-3xl p-4 space-y-2 animate-pop" style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.06)', animationDelay: '120ms' }}>
         <p className="display text-sm font-extrabold mb-1" style={{ color: 'rgb(var(--ink))' }}>XP nasıl kazanılır?</p>
-        <XpRow emoji="✅" label="Alışkanlık tamamlama" xp={`+${HABIT_COMPLETION_EXP}`} />
-        <XpRow emoji="🍅" label="Pomodoro oturumu" xp={`+${DEFAULT_SESSION_EXP}`} />
-        <XpRow emoji="⚡" label="Boost pomodoro (tek seferde bitir)" xp="+15" />
-        <XpRow emoji="🚀" label="Just Start turu (10 adım)" xp="süreye göre" />
+        <XpRow icon="circle-check" label="Alışkanlık tamamlama" xp={`+${HABIT_COMPLETION_EXP}`} />
+        <XpRow icon="timer" label="Pomodoro oturumu" xp={`+${DEFAULT_SESSION_EXP}`} />
+        <XpRow icon="bolt" label="Boost pomodoro (tek seferde bitir)" xp="+15" />
+        <XpRow icon="rocket" label="Just Start turu (10 adım)" xp="süreye göre" />
         <p className="text-[11px] leading-relaxed pt-1" style={{ color: 'rgb(var(--ink) / 0.5)' }}>
           XP asla silinmez: alışkanlığı kaldırsan bile kazandığın puanlar hesabında kalır.
         </p>
@@ -155,10 +157,10 @@ export default function LevelModal({ onClose }: { onClose: () => void }) {
   )
 }
 
-function XpRow({ emoji, label, xp }: { emoji: string; label: string; xp: string }) {
+function XpRow({ icon, label, xp }: { icon: IconName; label: string; xp: string }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="text-sm leading-none">{emoji}</span>
+      <span className="text-sm leading-none"><LuupiIcon name={icon} size={16} /></span>
       <p className="text-xs font-semibold flex-1" style={{ color: 'rgb(var(--ink) / 0.7)' }}>{label}</p>
       <span className="text-xs font-black tnum" style={{ color: 'var(--sf-lime-tx)' }}>{xp}</span>
     </div>

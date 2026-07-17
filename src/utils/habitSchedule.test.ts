@@ -5,7 +5,7 @@ import type { Habit, RecurrenceType } from '../types'
 // 2026-07-06 Pzt · 07-08 Çar · 07-10 Cum · 07-13 Pzt · 07-17 Cum
 function habit(partial: Partial<Habit> = {}): Habit {
   return {
-    id: 'h1', name: 'Test', emoji: '⭐', categoryId: 'diger',
+    id: 'h1', name: 'Test', icon: 'star', categoryId: 'diger',
     createdAt: '2026-07-06T09:00:00.000Z', createdDate: '2026-07-06',
     ...partial,
   }
@@ -35,6 +35,12 @@ describe('isHabitScheduledFor', () => {
     const h = habit({ recurrence: 'weekly' })   // Pazartesi oluşturuldu
     expect(isHabitScheduledFor(h, '2026-07-13')).toBe(true)   // Pazartesi
     expect(isHabitScheduledFor(h, '2026-07-10')).toBe(false)  // Cuma
+  })
+
+  it('weekly için açıkça seçilen gün oluşturulma gününü geçersiz kılar', () => {
+    const h = habit({ recurrence: 'weekly', recurrenceDays: [5] }) // Cuma
+    expect(isHabitScheduledFor(h, '2026-07-10')).toBe(true)
+    expect(isHabitScheduledFor(h, '2026-07-13')).toBe(false)
   })
 
   it('custom yalnızca seçilen günlerde görünür', () => {

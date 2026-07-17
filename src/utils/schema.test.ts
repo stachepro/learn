@@ -85,3 +85,42 @@ describe('v2: başlangıç dondurma hakkı', () => {
     expect(store.has(PROFILE_KEY)).toBe(false)
   })
 })
+
+describe('v3: kalıcı streak günleri', () => {
+  const PROFILE_KEY = 'luupi_user_profile'
+  const LOGS_KEY = 'luupi_daily_logs'
+  const store = new Map<string, string>()
+  const fakeLocalStorage = {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => { store.set(key, value) },
+  }
+  const run = MIGRATIONS.find((migration) => migration.to === 3)!.run
+
+  beforeEach(() => {
+    store.clear()
+    ;(globalThis as Record<string, unknown>).localStorage = fakeLocalStorage
+  })
+  afterAll(() => { delete (globalThis as Record<string, unknown>).localStorage })
+
+  it('tamamlanan log günlerini ve son aktif günü profile taşır', () => {
+    store.set(PROFILE_KEY, JSON.stringify({ lastActiveDate: '2026-07-10' }))
+    store.set(LOGS_KEY, JSON.stringify({
+      '2026-07-09': { habits: { h1: { completed: true } } },
+      '2026-07-08': { habits: { h1: { completed: false } } },
+    }))
+    run()
+    expect(JSON.parse(store.get(PROFILE_KEY)!).streakActiveDates).toEqual(['2026-07-09', '2026-07-10'])
+  })
+
+  it('alan zaten varsa geçmişe dokunmaz', () => {
+    store.set(PROFILE_KEY, JSON.stringify({ lastActiveDate: '2026-07-10', streakActiveDates: ['2026-07-01'] }))
+    run()
+    expect(JSON.parse(store.get(PROFILE_KEY)!).streakActiveDates).toEqual(['2026-07-01'])
+  })
+
+  it('dondurma muhasebesinin sentetik son aktif tarihini gerçek tamamlanma saymaz', () => {
+    store.set(PROFILE_KEY, JSON.stringify({ lastActiveDate: '2026-07-10', frozenDates: ['2026-07-10'] }))
+    run()
+    expect(JSON.parse(store.get(PROFILE_KEY)!).streakActiveDates).toEqual([])
+  })
+})

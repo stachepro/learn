@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext'
+import LuupiIcon from './ui/LuupiIcon'
+import type { IconName } from '../utils/icons'
 
 interface Slice {
   id: string
   name: string
-  emoji: string
+  icon: IconName
   color: string
   count: number
   pct: number
@@ -38,7 +40,7 @@ export default function CategoryPie() {
       .filter((c) => (counts.get(c.id) ?? 0) > 0)
       .map((c) => {
         const count = counts.get(c.id) ?? 0
-        return { id: c.id, name: c.name, emoji: c.emoji, color: c.color, count, pct: total ? Math.round((count / total) * 100) : 0 }
+        return { id: c.id, name: c.name, icon: c.icon, color: c.color, count, pct: total ? Math.round((count / total) * 100) : 0 }
       })
       .sort((a, b) => b.count - a.count)
 
@@ -49,7 +51,7 @@ export default function CategoryPie() {
   if (total === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-3xl mb-2">📊</p>
+        <p className="text-3xl mb-2"><LuupiIcon name="chart-pie" size={32} /></p>
         <p className="text-sm font-semibold" style={{ color: 'rgb(var(--ink))' }}>Henüz veri yok</p>
         <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
           Alışkanlık tamamladıkça kategori dağılımın burada görünecek.
@@ -107,7 +109,7 @@ export default function CategoryPie() {
           >
             <span className="w-3 h-3 rounded-[4px] flex-shrink-0" style={{ background: s.color }} />
             <span className="text-sm flex-1 min-w-0 truncate" style={{ color: 'rgb(var(--ink) / 0.7)' }}>
-              {s.emoji} {s.name}
+              <LuupiIcon name={s.icon} size={16} /> {s.name}
             </span>
             <span className="text-sm font-bold tnum flex-shrink-0" style={{ color: s.color }}>
               %{s.pct}

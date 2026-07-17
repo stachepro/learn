@@ -13,6 +13,7 @@ export function migrateHabitLog(raw: Partial<HabitLog>): HabitLog {
     notes: raw.notes ?? '',
     pomodoroSessions: raw.pomodoroSessions ?? [],
     completedAt: raw.completedAt,
+    skippedAt: raw.completed ? undefined : raw.skippedAt,
     completionCount: raw.completionCount ?? 0,
   }
 }

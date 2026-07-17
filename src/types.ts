@@ -1,7 +1,9 @@
+import type { IconName } from './utils/icons'
+
 export interface Category {
   id: string
   name: string
-  emoji: string
+  icon: IconName
   color: string
   isCustom?: boolean
 }
@@ -12,15 +14,15 @@ export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'any'
 
 export interface ScheduleOptions {
   recurrence?: RecurrenceType
-  recurrenceDays?: number[]              // 0=Sun…6=Sat; used when recurrence='custom'
-  timeWindow?: { start: string; end: string }  // "HH:MM" local time
+  recurrenceDays?: number[]              // 0=Sun…6=Sat; weekly uses one, custom uses one or more
+  timeWindow?: { start: string; end: string } | null  // null explicitly clears an existing window
   timeOfDay?: TimeOfDay                  // coarse day part — independent of timeWindow
 }
 
 export interface Habit {
   id: string
   name: string
-  emoji: string
+  icon: IconName
   categoryId: string
   createdAt: string
   createdDate?: string               // YYYY-MM-DD; for 'once' and 'weekly' recurrence
@@ -68,8 +70,11 @@ export interface HabitLog {
   notes: string
   pomodoroSessions: PomodoroSession[]
   completedAt?: string
+  skippedAt?: string       // explicit "bugün atlandı" decision; mutually exclusive with completed
   completionCount?: number  // for 'multi' mode — how many times tapped today
 }
+
+export type HabitDayStatus = 'pending' | 'completed' | 'skipped'
 
 export interface DayLog {
   date: string
@@ -97,6 +102,9 @@ export interface UserProfile {
   freezeProgress?: number
   // Dondurma ile kapatılan günler (YYYY-MM-DD) — takvimde buz olarak gösterilir.
   frozenDates?: string[]
+  // Günün ilk gerçek tamamlaması burada kalıcılaşır. Tamamlama sonradan geri
+  // alınsa bile seri geçmişi ve takvim o günün aktif olduğunu unutmamalıdır.
+  streakActiveDates?: string[]
 }
 
 export interface PomodoroSettings {
@@ -108,7 +116,7 @@ export interface PomodoroSettings {
 export interface Badge {
   id: string
   name: string
-  emoji: string
+  icon: IconName
   description: string
   condition: string
 }
@@ -123,12 +131,19 @@ export interface NoRushStage {
   startedAt: number | null   // epoch ms of current run start, when status === 'running'
 }
 
+export interface NoRushRecordStage {
+  id: string
+  text: string
+  elapsedSeconds: number
+}
+
 export interface NoRushRecord {
   id: string
   title: string
   stageCount: number
   totalSeconds: number
   completedAt: string
+  stages?: NoRushRecordStage[]
 }
 
 // Devam eden pomodoro sayacının kalıcı durumu — uygulama kapatılsa bile
@@ -149,15 +164,19 @@ export interface ActivePomodoroState {
 export interface WakeRecord {
   date: string   // YYYY-MM-DD
   time: string   // HH:MM
+  goal?: string | null // kayıt anındaki hedef; legacy kayıtlarda bulunmayabilir
 }
 
 export interface TodoItem {
   id: string
   text: string
-  color: string       // random outline color, fixed at creation
+  color?: string      // legacy outline color; yeni arayüz semantic token kullanır
   done: boolean
   createdAt: string
   completedAt?: string // ISO; Günlük Özet "o gün tamamlananlar"ı buradan bulur
+  archivedAt?: string  // tamamlananları görünümden kaldırır, geçmişi silmez
+  pinned?: boolean
+  order?: number
 }
 
 // Su takibi — her yudum/bardak ayrı bir kayıt, tarih+saat damgasıyla
@@ -167,4 +186,10 @@ export interface WaterEntry {
   time: string      // HH:MM (yerel)
   ml: number
   timestamp: string // ISO — kronolojik sıralama için
+}
+
+export interface WaterGoalRecord {
+  date: string      // Hedefin geçerli olmaya başladığı yerel gün
+  ml: number
+  timestamp: string
 }

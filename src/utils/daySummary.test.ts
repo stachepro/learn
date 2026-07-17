@@ -1,14 +1,16 @@
 import { describe, it, expect } from 'vitest'
-import { calcDayScore, type DaySummary } from './daySummary'
+import { calcDayScore, summaryHasActivity, type DaySummary } from './daySummary'
 import type { Habit, HabitLog, PomodoroSession, NoRushRecord, TodoItem } from '../types'
 
 /* calcDayScore saf — DaySummary'yi elle kurarak her senaryo test edilir. */
 
 const habit = (id: string): Habit =>
-  ({ id, name: id, emoji: '⭐', categoryId: 'diger', createdAt: '2026-07-01T08:00:00.000Z' })
+  ({ id, name: id, icon: 'star', categoryId: 'diger', createdAt: '2026-07-01T08:00:00.000Z' })
 
 const log = (completed: boolean): HabitLog =>
   ({ completed, boostMode: false, boostUsed: false, notes: '', pomodoroSessions: [] })
+
+const habitEntry = (id: string, completed: boolean) => ({ habit: habit(id), log: log(completed), status: completed ? 'completed' as const : 'pending' as const })
 
 const session = (): PomodoroSession =>
   ({ id: 'p1', habitId: 'h1', date: '2026-07-10', workDuration: 25, breakDuration: 5, timestamp: '2026-07-10T10:00:00.000Z' })
@@ -22,9 +24,9 @@ const todo = (): TodoItem =>
 function summary(partial: Partial<DaySummary> = {}): DaySummary {
   return {
     date: '2026-07-10',
-    habitEntries: [], doneCount: 0,
+    habitEntries: [], doneCount: 0, skippedCount: 0, pendingCount: 0,
     water: null, wake: null,
-    sessions: [], totalPomMin: 0, noRush: [], todos: [],
+    sessions: [], totalPomMin: 0, noRush: [], todos: [], justStartCount: 0,
     ...partial,
   }
 }
@@ -38,7 +40,7 @@ describe('calcDayScore', () => {
 
   it('tüm alışkanlıklar tamamsa 10 verir', () => {
     const r = calcDayScore(summary({
-      habitEntries: [{ habit: habit('a'), log: log(true) }, { habit: habit('b'), log: log(true) }],
+      habitEntries: [habitEntry('a', true), habitEntry('b', true)],
       doneCount: 2,
     }))
     expect(r.score).toBe(10)
@@ -47,7 +49,7 @@ describe('calcDayScore', () => {
 
   it('hiçbir alışkanlık yapılmadıysa 0 verir', () => {
     const r = calcDayScore(summary({
-      habitEntries: [{ habit: habit('a'), log: log(false) }],
+      habitEntries: [habitEntry('a', false)],
       doneCount: 0,
     }))
     expect(r.score).toBe(0)
@@ -55,7 +57,7 @@ describe('calcDayScore', () => {
 
   it('olmayan hedef paydaya girmez: yarım alışkanlık günü 5 puandır', () => {
     const r = calcDayScore(summary({
-      habitEntries: [{ habit: habit('a'), log: log(true) }, { habit: habit('b'), log: log(false) }],
+      habitEntries: [habitEntry('a', true), habitEntry('b', false)],
       doneCount: 1,
     }))
     expect(r.score).toBe(5)
@@ -79,7 +81,7 @@ describe('calcDayScore', () => {
 
   it('bileşenler ağırlıklarıyla harmanlanır (alışkanlık 5, su 2.5, uyanma 2.5)', () => {
     const r = calcDayScore(summary({
-      habitEntries: [{ habit: habit('a'), log: log(true) }],
+      habitEntries: [habitEntry('a', true)],
       doneCount: 1,                                  // 1.0 × 5
       water: { goal: 2000, actual: 1000 },           // 0.5 × 2.5
       wake: { goal: '07:00', actualTime: null, onTime: false }, // 0 × 2.5
@@ -89,7 +91,7 @@ describe('calcDayScore', () => {
 
   it('kullanılan her araç +0.4 bonus verir, tavan 10', () => {
     const half = summary({
-      habitEntries: [{ habit: habit('a'), log: log(true) }, { habit: habit('b'), log: log(false) }],
+      habitEntries: [habitEntry('a', true), habitEntry('b', false)],
       doneCount: 1,
       sessions: [session()], noRush: [noRush()], todos: [todo()],
     })
@@ -100,5 +102,21 @@ describe('calcDayScore', () => {
     expect(calcDayScore(summary({ sessions: [session()] })).score).toBe(7)
     expect(calcDayScore(summary({ sessions: [session()], todos: [todo()] })).score).toBe(9)
     expect(calcDayScore(summary({ sessions: [session()], todos: [todo()], noRush: [noRush()] })).score).toBe(10)
+  })
+})
+
+describe('summaryHasActivity', () => {
+  it('yalnızca planlanmış hedef varsa günü aktif saymaz', () => {
+    expect(summaryHasActivity(summary({
+      habitEntries: [habitEntry('a', false)],
+      pendingCount: 1,
+      water: { goal: 2000, actual: 0 },
+      wake: { goal: '07:00', actualTime: null, onTime: false },
+    }))).toBe(false)
+  })
+
+  it('atlama veya araç sonucu varsa günü aktif sayar', () => {
+    expect(summaryHasActivity(summary({ skippedCount: 1 }))).toBe(true)
+    expect(summaryHasActivity(summary({ justStartCount: 1 }))).toBe(true)
   })
 })

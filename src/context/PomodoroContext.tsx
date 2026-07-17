@@ -8,15 +8,18 @@ import { getHabitMode, getHabitGoal } from '../types'
 import { storage } from '../utils/storage'
 import { scheduleTimerNotification, cancelTimerNotification, NOTIF_POMODORO } from '../utils/timerNotifications'
 import { enterFocusNative, exitFocusNative } from '../utils/focusMode'
+import { hapticEvent } from '../utils/haptics'
+import { showToast } from '../utils/toast'
+import { DEFAULT_SESSION_EXP } from '../utils/exp'
+import LuupiIcon from '../components/ui/LuupiIcon'
+import type { PomodoroPhase } from '../utils/pomodoroView'
 
 export const FREE_ID = '__free__'
 // 'work-done' = work finished, waiting for the user to start the break (manual mode)
 // 'break-done' = break finished, waiting for the user to start the next work round
-type TimerPhase = 'idle' | 'work' | 'work-done' | 'break' | 'break-done'
-
 interface PomodoroContextValue {
   activeHabitId: string | null
-  phase: TimerPhase
+  phase: PomodoroPhase
   secondsLeft: number
   totalSeconds: number
   sessionCount: number
@@ -47,7 +50,7 @@ const PomodoroContext = createContext<PomodoroContextValue | null>(null)
 export function PomodoroProvider({ children }: { children: ReactNode }) {
   const { pomodoroSettings, addPomodoroSession, addFreeSession, logs, freeSessions, todayLog, habits } = useApp()
   const [activeHabitId, setActiveHabitId] = useState<string | null>(null)
-  const [phase, setPhase] = useState<TimerPhase>('idle')
+  const [phase, setPhase] = useState<PomodoroPhase>('idle')
   const [secondsLeft, setSecondsLeft] = useState(0)
   const [totalSeconds, setTotalSeconds] = useState(0)
   const [sessionCount, setSessionCount] = useState(0)
@@ -72,8 +75,8 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   const today = todayStr()
 
   const notifyAt = (atMs: number, forPhase: 'work' | 'break') => {
-    if (forPhase === 'work') scheduleTimerNotification(NOTIF_POMODORO, atMs, 'Pomodoro bitti 🍅', 'Çalışma süresi doldu — mola zamanı!')
-    else scheduleTimerNotification(NOTIF_POMODORO, atMs, 'Mola bitti ☕', 'Çalışmaya dönme zamanı!')
+  if (forPhase === 'work') scheduleTimerNotification(NOTIF_POMODORO, atMs, 'Pomodoro bitti', 'Çalışma süresi doldu — mola zamanı!')
+  else scheduleTimerNotification(NOTIF_POMODORO, atMs, 'Mola bitti', 'Çalışmaya dönme zamanı!')
   }
 
   useEffect(() => { settingsRef.current = pomodoroSettings }, [pomodoroSettings])
@@ -99,7 +102,10 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     if (phase === 'idle') setIsFocusMode(false)
   }, [phase])
 
-  const toggleFocusMode = useCallback(() => setIsFocusMode((f) => !f), [])
+  const toggleFocusMode = useCallback(() => {
+    void hapticEvent('featured')
+    setIsFocusMode((f) => !f)
+  }, [])
 
   const completedFocusSec = (() => {
     const dayLog = logs[today]
@@ -179,6 +185,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
       timestamp: new Date().toISOString(),
     }
 
+    let earnedXp = DEFAULT_SESSION_EXP
     if (habitId === FREE_ID) {
       addFreeSession(session)
     } else {
@@ -193,6 +200,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
 
       // Extra sessions = 1.5× base (15 XP). Boost sessions = 1.5× base (15 XP). Both independent.
       const xpAmount = isExtra ? 15 : boost ? 15 : 10
+      earnedXp = xpAmount
       addPomodoroSession(session, xpAmount, boost && !isExtra, autoComplete)
       setIsExtraSession(isExtra)
     }
@@ -201,6 +209,13 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     setIsPaused(false)
     setIsBoostSession(false)
     isBoostRef.current = false
+    showToast({
+      id: `pomodoro-complete-${session.id}`,
+      tone: 'reward',
+      icon: '✦',
+      title: 'Odak tamamlandı',
+      message: `${workDuration} dk odak · +${earnedXp} XP`,
+    })
 
     if (settingsRef.current.autoLoop) {
       // Auto mode: break starts immediately
@@ -220,6 +235,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     cancelTimerNotification(NOTIF_POMODORO)
     endAtRef.current = null
     if (soundEnabledRef.current) playBell()
+      showToast({ tone: 'success', contextIcon: <LuupiIcon name="coffee" size={16} />, title: 'Mola tamamlandı', message: 'Yeni odak turuna hazırsın.' })
     if (settingsRef.current.autoLoop) {
       // Auto mode: next work round starts immediately
       beginWork()
@@ -320,12 +336,21 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     setIsVisible(true)
     setIsBoostSession(boost)
     isBoostRef.current = boost
+    void hapticEvent('featured')
+    showToast({
+      tone: 'info',
+      icon: '◎',
+      title: 'Odak başladı',
+      message: `${Math.round(secs / 60)} dakikalık alan senin.`,
+      haptic: 'none',
+    })
   }, [])
 
   const startPomodoro = useCallback((habitId: string) => launch(habitId), [launch])
   const startFree = useCallback(() => launch(FREE_ID), [launch])
 
   const pauseResume = useCallback(() => {
+    void hapticEvent('control')
     setIsPaused((p) => {
       const next = !p
       if (next) {
@@ -347,6 +372,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   }, [phase, secondsLeft])
 
   const toggleSound = useCallback(() => {
+    void hapticEvent('selection')
     setSoundEnabled((prev) => {
       const next = !prev
       soundEnabledRef.current = next
@@ -356,9 +382,13 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Manual "Mola Başlat" — start the break after a work round (from 'work-done')
-  const startBreak = useCallback(() => { beginBreak() }, [])
+  const startBreak = useCallback(() => {
+    void hapticEvent('featured')
+    beginBreak()
+  }, [])
 
   const skipBreak = useCallback(() => {
+    void hapticEvent('featured')
     clearTick()
     // Re-check boost status (may have changed since previous session used it)
     const currentId = activeHabitId
@@ -391,6 +421,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     setActiveHabitId(null); setSessionCount(0); setIsPaused(false)
     setIsVisible(false); setIsBoostSession(false); setIsExtraSession(false)
     isBoostRef.current = false
+    showToast({ tone: 'warning', contextIcon: '■', title: 'Seans sonlandırıldı', message: 'Bu turun ilerlemesi kaydedilmedi.' })
   }, [])
 
   return (

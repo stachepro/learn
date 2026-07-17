@@ -1,441 +1,175 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp } from '../context/AppContext'
-import HabitRow from '../components/HabitRow'
-import ExpBar from '../components/ExpBar'
-import AddHabitModal from '../components/AddHabitModal'
-import HabitCreateChooser from '../components/HabitCreateChooser'
-import PresetHabitsModal, { type PresetHabit } from '../components/PresetHabitsModal'
-import PresetCustomizeModal from '../components/PresetCustomizeModal'
+import HabitCreationFlow from '../components/habits/HabitCreationFlow'
 import StreakFlame from '../components/StreakFlame'
 import StreakModal from '../components/StreakModal'
 import LevelModal from '../components/LevelModal'
 import TodayModal from '../components/TodayModal'
+import AppButton from '../components/ui/AppButton'
+import PageHeader from '../components/ui/PageHeader'
+import SurfaceCard from '../components/ui/SurfaceCard'
+import HabitSwipeDeck, { type DashboardHabitEntry } from '../components/dashboard/HabitSwipeDeck'
+import {
+  DashboardResultsSheet,
+  MiniResultDeck,
+  type DashboardResultEntry,
+  type ResultOpenOrigin,
+} from '../components/dashboard/DashboardResults'
 import { getFlameState, getFreezes } from '../utils/streak'
-import { useNavigate } from 'react-router-dom'
-import { formatDisplayDate, formatMinutes, yesterdayStr, dateStr, logicalNow, getDayEndHour } from '../utils/date'
-import { isHabitScheduledFor, getWindowStatus } from '../utils/habitSchedule'
-import type { HabitLog, TimeOfDay } from '../types'
-import { getHabitTimeOfDay } from '../types'
-
-function emptyLog(): HabitLog {
-  return { completed: false, boostMode: false, boostUsed: false, notes: '', pomodoroSessions: [] }
-}
-
-const TIME_GROUPS: { id: TimeOfDay; label: string; icon: string }[] = [
-  { id: 'morning', label: 'Sabah', icon: '☀️' },
-  { id: 'afternoon', label: 'Öğle', icon: '🌤️' },
-  { id: 'evening', label: 'Akşam', icon: '🌙' },
-  { id: 'any', label: 'Gün İçinde', icon: '🕐' },
-]
+import { dateStr, formatDisplayDate, logicalNow, yesterdayStr } from '../utils/date'
+import { getWindowStatus, isHabitScheduledFor } from '../utils/habitSchedule'
+import { migrateHabitLog } from '../utils/habitLog'
+import { sortResultsNewestFirst } from '../utils/dashboardResults'
+import { showToast } from '../utils/toast'
+import type { HabitDayStatus } from '../types'
+import LuupiIcon from '../components/ui/LuupiIcon'
 
 export default function Dashboard() {
-  const navigate = useNavigate()
-  const { habits, profile, todayLog, logs, freeSessions } = useApp()
-  const [createStep, setCreateStep] = useState<'chooser' | 'presets' | 'preset-customize' | 'form' | null>(null)
-  const [presetInitial, setPresetInitial] = useState<PresetHabit | null>(null)
+  const { habits, profile, todayLog, categories, setHabitDayStatus } = useApp()
+  const [showCreateFlow, setShowCreateFlow] = useState(false)
   const [statModal, setStatModal] = useState<'streak' | 'level' | 'today' | null>(null)
-  const [mounted, setMounted] = useState(false)
+  const [showResults, setShowResults] = useState(false)
+  const [resultOrigin, setResultOrigin] = useState<ResultOpenOrigin | null>(null)
   const [now, setNow] = useState(() => new Date())
-  const yesterday = yesterdayStr()
-  const [animatingIds, setAnimatingIds] = useState<Record<string, boolean>>({})
-  const prevCompletedRef = useRef<Record<string, boolean>>({})
-  const baselineSetRef = useRef(false)
-  const moveTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
-  const lastTodayLogRef = useRef(todayLog)
 
-  useEffect(() => { setMounted(true) }, [])
-
-  // Detect habits transitioning to completed *during render* (not in an effect) so the
-  // "still animating" flag is applied before this render commits — otherwise the habit
-  // would flash into the Tamamlananlar section for one frame before the animation kicks in.
-  if (!baselineSetRef.current) {
-    // First render: record today's already-completed habits as the baseline so they
-    // aren't mistaken for "just completed" the next time any habit's state changes.
-    baselineSetRef.current = true
-    habits.forEach((habit) => {
-      prevCompletedRef.current[habit.id] = (todayLog.habits[habit.id] ?? emptyLog()).completed
-    })
-  } else if (lastTodayLogRef.current !== todayLog) {
-    lastTodayLogRef.current = todayLog
-    const newlyCompleted: string[] = []
-    habits.forEach((habit) => {
-      const log = todayLog.habits[habit.id] ?? emptyLog()
-      const wasCompleted = prevCompletedRef.current[habit.id]
-      if (log.completed && !wasCompleted) newlyCompleted.push(habit.id)
-      prevCompletedRef.current[habit.id] = log.completed
-    })
-    if (newlyCompleted.length > 0) {
-      setAnimatingIds((cur) => {
-        const next = { ...cur }
-        newlyCompleted.forEach((id) => { next[id] = true })
-        return next
-      })
-    }
-  }
-
-  // Timer per newly-completed habit, matching HabitRow's gray→slide animation
-  // (250ms delay + 600ms gray + 500ms slide), after which it drops to the bottom section.
   useEffect(() => {
-    Object.keys(animatingIds).forEach((id) => {
-      if (moveTimersRef.current[id]) return
-      moveTimersRef.current[id] = setTimeout(() => {
-        setAnimatingIds((cur) => {
-          const next = { ...cur }
-          delete next[id]
-          return next
-        })
-        delete moveTimersRef.current[id]
-      }, 1400)
-    })
-  }, [animatingIds])
-
-  useEffect(() => () => {
-    Object.values(moveTimersRef.current).forEach(clearTimeout)
+    const timer = window.setInterval(() => setNow(new Date()), 60_000)
+    return () => window.clearInterval(timer)
   }, [])
 
-  // Update `now` every minute so time-window expiry is reflected in real time
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000)
-    return () => clearInterval(id)
-  }, [])
+  const today = dateStr(now)
+  const scheduledHabits = habits.filter((habit) => isHabitScheduledFor(habit, today))
+  const entries: DashboardHabitEntry[] = scheduledHabits.map((habit) => ({
+    habit,
+    log: migrateHabitLog(todayLog.habits[habit.id] ?? {}),
+    category: categories.find((category) => category.id === habit.categoryId),
+    windowExpired: getWindowStatus(habit, now) === 'expired',
+  }))
+  const pendingEntries = entries.filter(({ log }) => !log.completed && !log.skippedAt)
+  const resultEntries: DashboardResultEntry[] = sortResultsNewestFirst(entries
+    .filter(({ log }) => log.completed || Boolean(log.skippedAt))
+    .map((entry) => ({
+      ...entry,
+      status: entry.log.completed ? 'completed' as const : 'skipped' as const,
+      resolvedAt: entry.log.completedAt ?? entry.log.skippedAt ?? `${today}T00:00:00`,
+    })))
 
-  const todayDateStr = dateStr(now)
-
-  // Only habits scheduled for today
-  const scheduledHabits = habits.filter((h) => isHabitScheduledFor(h, todayDateStr))
-  const allEntries = scheduledHabits.map((h) => ({ habit: h, log: todayLog.habits[h.id] ?? emptyLog() }))
-
-  // Active: completed OR time window not yet expired
-  const habitEntries = allEntries.filter(({ habit, log }) =>
-    log.completed || getWindowStatus(habit, now) !== 'expired'
-  )
-  // Missed: window expired and not completed
-  const missedEntries = allEntries.filter(({ habit, log }) =>
-    !log.completed && getWindowStatus(habit, now) === 'expired'
-  )
-
-  const isAnimatingMove = (habitId: string) => !!animatingIds[habitId]
-
-  // Completed today — shown in their own section at the bottom, unless
-  // still playing the "moving to completed" animation in their original group.
-  const completedEntries = allEntries.filter(({ habit, log }) =>
-    log.completed && !isAnimatingMove(habit.id)
-  )
-
-  const completed = allEntries.filter(({ log }) => log.completed).length
-  const total = scheduledHabits.length
-  const allDone = total > 0 && completed === total && missedEntries.length === 0
-
-  const flameState = getFlameState(profile, todayDateStr, yesterday)
+  const completedCount = resultEntries.filter((entry) => entry.status === 'completed').length
+  const skippedCount = resultEntries.filter((entry) => entry.status === 'skipped').length
+  const resolvedCount = resultEntries.length
+  const flameState = getFlameState(profile, today, yesterdayStr())
   const freezes = getFreezes(profile)
 
-  const todayWork = habitEntries.reduce(
-    (acc, { log }) => acc + log.pomodoroSessions.reduce((s, p) => s + p.workDuration, 0), 0)
-  const todayFreeWork = (freeSessions ?? [])
-    .filter((s) => s.date === todayDateStr)
-    .reduce((acc, s) => acc + s.workDuration, 0)
-  const todayBreak = habitEntries.reduce(
-    (acc, { log }) => acc + log.pomodoroSessions.reduce((s, p) => s + p.breakDuration, 0), 0)
-  const yesterdayWork = (() => {
-    const yd = logs[yesterday]
-    if (!yd) return 0
-    return Object.values(yd.habits).reduce(
-      (acc, h) => acc + h.pomodoroSessions.reduce((s, p) => s + p.workDuration, 0), 0)
-  })()
-  const vsYesterday = yesterdayWork === 0 ? null
-    : Math.round(((todayWork - yesterdayWork) / yesterdayWork) * 100)
+  const handleResolve = (habitId: string, status: HabitDayStatus) => {
+    setHabitDayStatus(habitId, status)
+  }
+
+  const handleUndo = (habitId: string) => {
+    const entry = resultEntries.find((item) => item.habit.id === habitId)
+    setHabitDayStatus(habitId, 'pending')
+    if (resultEntries.length === 1) {
+      setShowResults(false)
+      setResultOrigin(null)
+    }
+    showToast({
+      tone: 'info',
+      icon: '↶',
+      title: 'Ana desteye geri alındı',
+      message: entry?.habit.name,
+      haptic: 'light',
+    })
+  }
+
+  const openResults = (origin?: ResultOpenOrigin) => {
+    setResultOrigin(origin ?? null)
+    setShowResults(true)
+  }
+
+  const closeResults = () => {
+    setShowResults(false)
+    setResultOrigin(null)
+  }
 
   return (
     <>
-      {createStep === 'chooser' && (
-        <HabitCreateChooser
-          onClose={() => setCreateStep(null)}
-          onPreset={() => setCreateStep('presets')}
-          onCreate={() => { setPresetInitial(null); setCreateStep('form') }}
-        />
-      )}
-      {createStep === 'presets' && (
-        <PresetHabitsModal
-          onClose={() => setCreateStep(null)}
-          onBack={() => setCreateStep('chooser')}
-          onSelect={(p) => { setPresetInitial(p); setCreateStep('preset-customize') }}
-        />
-      )}
-      {createStep === 'preset-customize' && presetInitial && (
-        <PresetCustomizeModal
-          preset={presetInitial}
-          onClose={() => { setCreateStep(null); setPresetInitial(null) }}
-          onBack={() => setCreateStep('presets')}
-        />
-      )}
-      {createStep === 'form' && <AddHabitModal onClose={() => setCreateStep(null)} />}
+      {showCreateFlow && <HabitCreationFlow onClose={() => setShowCreateFlow(false)} />}
 
       {statModal === 'streak' && <StreakModal onClose={() => setStatModal(null)} />}
       {statModal === 'level' && <LevelModal onClose={() => setStatModal(null)} />}
       {statModal === 'today' && <TodayModal onClose={() => setStatModal(null)} />}
+      {showResults && resultEntries.length > 0 && (
+        <DashboardResultsSheet entries={resultEntries} origin={resultOrigin} onClose={closeResults} onUndo={handleUndo} />
+      )}
 
-      <div className={`apple-surface max-w-3xl mx-auto px-4 py-6 pb-36 sm:pb-24 space-y-7 ${mounted ? 'page-enter' : 'opacity-0'}`}>
-        {/* Greeting */}
-        <div className="flex items-end justify-between pt-1">
-          <div>
-            <p className="text-[13px] font-medium tracking-tight" style={{ color: 'rgb(var(--ink) / 0.5)' }}>
-              {formatDisplayDate(logicalNow())}
-            </p>
-            <h1 className="display text-[30px] sm:text-[38px] font-bold mt-1.5 leading-[1.05]" style={{ color: 'rgb(var(--ink))' }}>
-              Merhaba, {profile.username}
-            </h1>
-          </div>
-          <div
-            className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(150deg, #fbbf24, #f97316)', boxShadow: 'rgba(0, 0, 0, 0.22) 3px 5px 30px' }}
-          >
-            <span className="display font-bold text-lg" style={{ color: '#2a1402' }}>{profile.username.charAt(0).toUpperCase()}</span>
-          </div>
-        </div>
+      <div className="dashboard-redesign max-w-xl mx-auto px-4 pt-6">
+        <PageHeader
+          title="Bugün"
+          subtitle={formatDisplayDate(logicalNow())}
+          action={(
+            <AppButton tone="primary" size="sm" haptic="light" onClick={() => setShowCreateFlow(true)}>
+              + Ekle
+            </AppButton>
+          )}
+        />
 
-        {/* Thin stat strip — gamification, compact. Üçü de tıklanır: detay penceresi açar */}
-        <div className="grid grid-cols-3 gap-2.5">
-          {/* Streak — alev durumu güne göre değişir: yanıyor / bekliyor / buzda / sönük */}
-          <button
-            onClick={() => setStatModal('streak')}
-            aria-label={`Seri: ${profile.streak} gün — detayları aç`}
-            className={`relative rounded-2xl tile-press soft-trans flex items-center gap-2.5 px-3 py-2.5 text-left ${flameState === 'lit' ? 'flame-glow' : flameState === 'frozen' ? 'ice-glow' : ''}`}
-            style={
-              flameState === 'frozen'
-                ? { background: 'var(--sf-ice)', border: '1px solid var(--sf-ice-br)' }
-                : flameState === 'lit'
-                  ? { background: 'var(--sf-amber)', border: '1px solid var(--sf-amber-br)' }
-                  : { background: 'var(--tile-dim)', border: '1px solid rgb(var(--ink) / 0.08)' }
-            }
-          >
-            <StreakFlame state={flameState} size={22} />
-            <div className="min-w-0">
-              <p
-                key={`${profile.streak}-${flameState}`}
-                className="display text-xl font-black tnum leading-none animate-value-pop"
-                style={{ color: flameState === 'frozen' ? 'var(--sf-ice-tx)' : flameState === 'lit' ? 'var(--sf-amber-tx)' : 'rgb(var(--ink) / 0.45)' }}
-              >
-                {profile.streak}
-              </p>
-              <p
-                className="text-[10px] font-bold uppercase tracking-wide mt-0.5"
-                style={{ color: flameState === 'frozen' ? 'var(--sf-ice-tx2)' : flameState === 'lit' ? 'var(--sf-amber-tx2)' : 'rgb(var(--ink) / 0.35)' }}
-              >
-                {flameState === 'frozen' ? 'buzda' : 'seri'}
-              </p>
-            </div>
-            {freezes > 0 && (
-              <span
-                className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center text-[9px] font-black tnum animate-pop"
-                style={{
-                  background: 'linear-gradient(150deg, var(--sf-ice-br), #38bdf8)',
-                  color: '#0c4a6e',
-                  border: '1.5px solid rgb(var(--canvas))',
-                  boxShadow: '0 4px 8px -3px rgba(14,165,233,0.5)',
-                }}
-              >
-                ❄{freezes}
+        <section className="dashboard-pulse" aria-label="Günün kısa özeti">
+          <button type="button" className="dashboard-pulse__item dashboard-pulse__item--streak" onClick={() => setStatModal('streak')}>
+            <span className="dashboard-pulse__icon"><StreakFlame state={flameState} size={24} /></span>
+            <span><strong>{profile.streak}</strong><small>gün seri</small></span>
+          {freezes > 0 && <em><LuupiIcon name="snowflake" size={14} /> {freezes}</em>}
+          </button>
+          <button type="button" className="dashboard-pulse__item" onClick={() => setStatModal('level')}>
+            <span className="dashboard-pulse__symbol">✦</span>
+            <span><strong>{profile.level}</strong><small>seviye</small></span>
+          </button>
+          <button type="button" className="dashboard-pulse__item" onClick={() => setStatModal('today')}>
+            <span className="dashboard-pulse__symbol">◎</span>
+            <span><strong>{resolvedCount}/{scheduledHabits.length}</strong><small>işlendi</small></span>
+          </button>
+        </section>
+
+        <main className="dashboard-flow">
+          <div className="dashboard-flow__heading">
+            <div>
+              <span className="type-caption uppercase tracking-[0.15em]" style={{ color: 'rgb(var(--brand-lime-strong))' }}>
+                Günün akışı
               </span>
+              <h1 className="type-section-title mt-1">
+                {pendingEntries.length > 0 ? 'Bugünün kartları' : 'Bugünün kartları işlendi'}
+              </h1>
+            </div>
+            {scheduledHabits.length > 0 && (
+              <span className="dashboard-flow__progress">{completedCount} tamamlandı · {skippedCount} atlandı</span>
             )}
-          </button>
-          {/* Level */}
-          <button
-            onClick={() => setStatModal('level')}
-            aria-label={`Seviye ${profile.level} — detayları aç`}
-            className="rounded-2xl tile-press flex items-center gap-2.5 px-3 py-2.5 text-left"
-            style={{ background: 'var(--sf-lime)', border: '1px solid var(--sf-lime-br)' }}
-          >
-            <BoltIcon size={22} />
-            <div className="min-w-0 flex-1">
-              <p key={profile.level} className="display text-xl font-black tnum leading-none animate-value-pop" style={{ color: 'var(--sf-lime-tx)' }}>{profile.level}</p>
-              <div className="mt-1"><ExpBar totalExp={profile.totalExp} level={profile.level} compact tiny /></div>
-            </div>
-          </button>
-          {/* Today */}
-          <button
-            onClick={() => setStatModal('today')}
-            aria-label={`Bugün ${completed}/${total} tamamlandı — detayları aç`}
-            className="rounded-2xl tile-press flex items-center gap-2.5 px-3 py-2.5 soft-trans text-left"
-            style={allDone ? { background: 'var(--sf-lime)', border: '1px solid var(--sf-lime-br)' } : { background: 'var(--sf-blue)', border: '1px solid var(--sf-blue-br)' }}
-          >
-            <CheckRingIcon size={22} done={allDone} />
-            <div className="min-w-0">
-              <p key={completed} className="display text-xl font-black tnum leading-none animate-value-pop" style={{ color: allDone ? 'var(--sf-lime-tx)' : 'var(--sf-blue-tx)' }}>{completed}/{total}</p>
-              <p className="text-[10px] font-bold uppercase tracking-wide mt-0.5" style={{ color: allDone ? 'var(--sf-lime-tx2)' : 'var(--sf-blue-tx2)' }}>{allDone ? 'bitti' : 'bugün'}</p>
-            </div>
-          </button>
-        </div>
-
-        {/* Habits header */}
-        <div className="flex items-center justify-between pt-1">
-          <h2 className="display text-[22px] font-bold" style={{ color: 'rgb(var(--ink))' }}>
-            Bugün
-          </h2>
-          <button
-            onClick={() => setCreateStep('chooser')}
-            className="btn-apple btn-press flex items-center gap-1 text-[13px] px-4 py-2"
-          >
-            + Ekle
-          </button>
-        </div>
-
-        {/* Habit list */}
-        {habits.length === 0 ? (
-          <button
-            onClick={() => setCreateStep('chooser')}
-            className="glass g-neutral glass-lift btn-press w-full p-10 text-center"
-            style={{ borderRadius: 24 }}
-          >
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl font-black ring-pulse" style={{ background: 'var(--sf-lime)', color: 'var(--sf-lime-tx)' }}>+</div>
-            <p className="display text-base font-bold">İlk alışkanlığını ekle</p>
-            <p className="text-xs mt-1 ink-60">Her gün küçük adımlar büyük değişimler yaratır</p>
-          </button>
-        ) : habitEntries.length === 0 && missedEntries.length === 0 ? (
-          <div className="glass g-neutral p-6 text-center" style={{ borderRadius: 24 }}>
-            <p className="text-2xl mb-2">📅</p>
-            <p className="text-sm font-semibold ink-60">Bugün için planlanmış alışkanlık yok</p>
           </div>
-        ) : (
-          <div className="space-y-5">
-            {TIME_GROUPS.map(({ id, label, icon }) => {
-              const groupEntries = habitEntries.filter(({ habit, log }) =>
-                getHabitTimeOfDay(habit) === id && (!log.completed || isAnimatingMove(habit.id))
-              )
-              if (groupEntries.length === 0) return null
-              const remaining = groupEntries.filter(({ log }) => !log.completed).length
-              return (
-                <div key={id} className="space-y-2.5">
-                  <div className="flex items-center gap-2 px-0.5">
-                    <span className="text-sm leading-none">{icon}</span>
-                    <h3 className="display text-sm font-extrabold" style={{ color: 'rgb(var(--ink))' }}>{label}</h3>
-                    {remaining > 0 && (
-                      <span className="text-[11px] font-bold tnum" style={{ color: 'rgb(var(--ink) / 0.4)' }}>
-                        {remaining}
-                      </span>
-                    )}
-                  </div>
-                  <div className="space-y-2.5">
-                    {groupEntries.map(({ habit, log }, i) => (
-                      <div key={habit.id} className="animate-pop" style={{ animationDelay: `${Math.min(i * 60, 360)}ms` }}>
-                        <HabitRow habit={habit} log={log} justCompleted={log.completed && isAnimatingMove(habit.id)} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
 
-        {/* Missed habits section */}
-        {missedEntries.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 pt-1">
-              <span className="text-base">⏰</span>
-              <h2 className="display text-base font-bold" style={{ color: 'rgba(245,158,11,0.9)' }}>
-                Yapılmamış Alışkanlıklar
-              </h2>
-              <span
-                className="text-xs font-bold px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(245,158,11,0.15)', color: 'rgba(245,158,11,0.9)', border: '1px solid rgba(245,158,11,0.3)' }}
-              >
-                {missedEntries.length}
-              </span>
-            </div>
-            <p className="text-[11px] ink-45 -mt-1">Pencere kapandı — geç de olsa tamamlayabilirsin</p>
-            <div className="space-y-2.5" style={{ opacity: 0.75 }}>
-              {missedEntries.map(({ habit, log }, i) => (
-                <div key={habit.id} className="animate-pop" style={{ animationDelay: `${Math.min(i * 60, 360)}ms` }}>
-                  <HabitRow habit={habit} log={log} />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          {habits.length === 0 ? (
+            <SurfaceCard variant="hero" interactive onClick={() => setShowCreateFlow(true)} className="dashboard-empty">
+              <span className="dashboard-empty__icon">＋</span>
+              <h2>İlk kartını oluştur</h2>
+              <p>Bugünün akışını bir alışkanlıkla başlat.</p>
+            </SurfaceCard>
+          ) : scheduledHabits.length === 0 ? (
+            <SurfaceCard variant="tinted" className="dashboard-empty">
+            <span className="dashboard-empty__emoji"><LuupiIcon name="cloud" size={48} /></span>
+              <h2>Bugün planlı kart yok</h2>
+              <p>Ritmini dinlendir veya yeni bir alışkanlık ekle.</p>
+            </SurfaceCard>
+          ) : pendingEntries.length > 0 ? (
+            <HabitSwipeDeck entries={pendingEntries} onResolve={handleResolve} />
+          ) : (
+            <SurfaceCard variant="hero" className="dashboard-complete-scene">
+              <div className="dashboard-complete-scene__mark">✓</div>
+              <span className="type-caption uppercase tracking-[0.15em]">Akış tamamlandı</span>
+              <h2>Bugünün kararları hazır.</h2>
+              <p>{completedCount} alışkanlık tamamlandı, {skippedCount} alışkanlık bugün atlandı.</p>
+              <AppButton tone="tonal" size="sm" onClick={() => openResults()}>Sonuçları gör</AppButton>
+            </SurfaceCard>
+          )}
 
-        {/* Completed habits — bottom section */}
-        {completedEntries.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 pt-1">
-              <span className="text-base">✅</span>
-              <h2 className="display text-base font-bold" style={{ color: 'rgba(99,153,34,0.9)' }}>
-                Tamamlananlar
-              </h2>
-              <span
-                className="text-xs font-bold px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(34,197,94,0.15)', color: 'rgba(59,109,17,0.9)', border: '1px solid rgba(34,197,94,0.3)' }}
-              >
-                {completedEntries.length}
-              </span>
-            </div>
-            <div className="space-y-2.5">
-              {completedEntries.map(({ habit, log }, i) => (
-                <div key={habit.id} className="animate-pop" style={{ animationDelay: `${Math.min(i * 60, 360)}ms` }}>
-                  <HabitRow habit={habit} log={log} />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Daily stats */}
-        {habits.length > 0 && (
-          <div className="glass g-neutral" style={{ borderRadius: 24 }}>
-            <p className="display text-sm font-bold px-5 py-3.5" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
-              Günlük İstatistikler
-            </p>
-            <div className="grid grid-cols-3">
-              <StatCell label="Aktif çalışma" value={formatMinutes(todayWork + todayFreeWork)} />
-              <StatCell label="Mola süresi" value={formatMinutes(todayBreak)} border />
-              <StatCell
-                label="Düne göre"
-                value={vsYesterday === null ? '--' : `${vsYesterday >= 0 ? '+' : ''}${vsYesterday}%`}
-                border
-                color={vsYesterday === null ? undefined : vsYesterday >= 0 ? 'var(--sf-lime-tx)' : '#cc4322'}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Gün döngüsü notu — küçük, gri; ayarlara götürür */}
-        <button
-          onClick={() => navigate('/settings')}
-          className="btn-press block w-full text-center text-[11px] leading-relaxed pt-1"
-          style={{ color: 'rgb(var(--ink) / 0.38)' }}
-        >
-          {getDayEndHour() === 0
-            ? 'Gün gece yarısı (00:00) yenilenir · Ayarlar’dan değiştir'
-            : `Gün ${String(getDayEndHour()).padStart(2, '0')}:00’da yenilenir · Ayarlar’dan değiştir`}
-        </button>
-
+          <MiniResultDeck entries={resultEntries} onOpen={openResults} />
+        </main>
       </div>
     </>
-  )
-}
-
-function BoltIcon({ size = 24 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="var(--sf-lime-tx)" />
-    </svg>
-  )
-}
-
-function CheckRingIcon({ size = 24, done }: { size?: number; done?: boolean }) {
-  const c = done ? 'var(--sf-lime-tx)' : 'var(--sf-blue-tx)'
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="12" r="9" stroke={c} strokeWidth="2.2" />
-      <path d="M8 12l3 3 5-6" stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function StatCell({ label, value, color, border }: { label: string; value: string; color?: string; border?: boolean }) {
-  return (
-    <div className="px-5 py-4" style={border ? { borderLeft: '1px solid rgb(var(--ink) / 0.08)' } : undefined}>
-      <p className="text-[10px] mb-1 font-semibold uppercase tracking-wider ink-45">{label}</p>
-      <p className="display text-xl font-bold tnum" style={color ? { color } : undefined}>{value}</p>
-    </div>
   )
 }

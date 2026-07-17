@@ -21,6 +21,24 @@ export async function requestNotificationPermission(): Promise<boolean> {
   return ensurePermission()
 }
 
+export function openNotificationSettings(): boolean {
+  if (!isNative || Capacitor.getPlatform() !== 'ios') return false
+  try {
+    window.location.href = 'app-settings:'
+    return true
+  } catch { return false }
+}
+
+export async function cancelAllPendingNotifications(): Promise<void> {
+  if (!isNative) return
+  try {
+    const pending = await LocalNotifications.getPending()
+    if (pending.notifications.length > 0) {
+      await LocalNotifications.cancel({ notifications: pending.notifications.map(({ id }) => ({ id })) })
+    }
+  } catch { /* reset must continue even when notification cleanup fails */ }
+}
+
 // Alışkanlık hatırlatmaları ve "Uyandım" hedef saati için gerçek mobil bildirimler.
 // Web'de sessizce devre dışı (timerNotifications.ts ile aynı desen).
 const isNative = Capacitor.isNativePlatform()
@@ -69,7 +87,7 @@ export async function scheduleHabitReminder(habit: Habit): Promise<void> {
   if (Number.isNaN(hour) || Number.isNaN(minute)) return
   if (!(await ensurePermission())) return
 
-  const title = `${habit.emoji} ${habit.name}`
+  const title = habit.name
   const body = 'Hatırlatma: bu alışkanlığı tamamlamayı unutma!'
 
   try {
@@ -82,8 +100,8 @@ export async function scheduleHabitReminder(habit: Habit): Promise<void> {
           sound: 'default',
         })),
       })
-    } else if (habit.recurrence === 'weekly' && habit.createdDate) {
-      const weekday = new Date(`${habit.createdDate}T00:00:00`).getDay()
+    } else if (habit.recurrence === 'weekly' && (habit.recurrenceDays?.length || habit.createdDate)) {
+      const weekday = habit.recurrenceDays?.[0] ?? new Date(`${habit.createdDate}T00:00:00`).getDay()
       await LocalNotifications.schedule({
         notifications: [{
           id: habitNotifId(habit.id, weekday),
@@ -135,7 +153,7 @@ export async function scheduleWakeGoalReminder(time: string | null): Promise<voi
     await LocalNotifications.schedule({
       notifications: [{
         id: NOTIF_WAKE_GOAL,
-        title: '☀️ Uyanma vakti',
+        title: 'Uyanma vakti',
         body: `Hedef saatin ${time}. Uyandıysan işaretlemeyi unutma!`,
         schedule: { on: { hour, minute }, allowWhileIdle: true },
         sound: 'default',
@@ -160,7 +178,7 @@ export async function scheduleDailySummaryNotification(): Promise<void> {
     await LocalNotifications.schedule({
       notifications: [{
         id: NOTIF_DAILY_SUMMARY,
-        title: '🎬 Günün özeti hazır',
+        title: 'Günün özeti hazır',
         body: 'Bugünün hikayesi seni bekliyor — izlemek için dokun.',
         schedule: { on: { hour: getDayEndHour(), minute: 0 }, allowWhileIdle: true },
         sound: 'default',
@@ -188,11 +206,13 @@ export async function scheduleStreakRiskReminder(hasCompletedToday: boolean): Pr
   if (!(await ensurePermission())) return
 
   try {
+    const dayEndHour = getDayEndHour()
+    const deadline = dayEndHour === 0 ? 'gece yarısına' : `${String(dayEndHour).padStart(2, '0')}:00'a`
     await LocalNotifications.schedule({
       notifications: [{
         id: NOTIF_STREAK_RISK,
-        title: '🔥 Streak tehlikede!',
-        body: 'Bugün henüz bir alışkanlık tamamlamadın. Gece yarısına kadar bir tanesini bitirmezsen streak\'in sıfırlanacak.',
+        title: 'Streak tehlikede!',
+        body: `Bugün henüz bir alışkanlık tamamlamadın. ${deadline} kadar bir tanesini bitirmezsen streak'in sıfırlanacak.`,
         schedule: { at },
         sound: 'default',
       }],

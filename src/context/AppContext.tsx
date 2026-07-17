@@ -10,9 +10,10 @@ import { todayStr, yesterdayStr } from '../utils/date'
 import { scheduleHabitReminder, cancelHabitReminder, syncHabitReminders, scheduleStreakRiskReminder, scheduleDailySummaryNotification } from '../utils/reminderNotifications'
 import type {
   Habit, DailyLogs, DayLog, HabitLog, UserProfile,
-  PomodoroSession, PomodoroSettings, Category, CompletionMode, ScheduleOptions,
+  PomodoroSession, PomodoroSettings, Category, CompletionMode, ScheduleOptions, HabitDayStatus,
 } from '../types'
-import { getHabitGoal } from '../types'
+import { getHabitGoal, getHabitMode } from '../types'
+import type { IconName } from '../utils/icons'
 
 interface AppContextValue {
   habits: Habit[]
@@ -22,11 +23,12 @@ interface AppContextValue {
   categories: Category[]
   todayLog: DayLog
   freeSessions: PomodoroSession[]
-  addHabit: (name: string, emoji: string, categoryId: string, mode?: CompletionMode, goal?: number, schedule?: ScheduleOptions, labelColor?: string) => void
+  addHabit: (name: string, icon: IconName, categoryId: string, mode?: CompletionMode, goal?: number, schedule?: ScheduleOptions, labelColor?: string) => void
   deleteHabit: (id: string) => void
-  editHabit: (id: string, name: string, emoji: string, categoryId: string, mode?: CompletionMode, goal?: number, schedule?: ScheduleOptions, labelColor?: string) => void
+  editHabit: (id: string, name: string, icon: IconName, categoryId: string, mode?: CompletionMode, goal?: number, schedule?: ScheduleOptions, labelColor?: string) => void
   incrementCompletion: (habitId: string) => void
   toggleHabitComplete: (habitId: string) => void
+  setHabitDayStatus: (habitId: string, status: HabitDayStatus) => void
   addJustStartXP: (amount: number) => void
   setHabitBoostMode: (habitId: string, on: boolean) => void
   setHabitNote: (habitId: string, note: string) => void
@@ -110,7 +112,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   // Günün ilk tamamlaması: seriyi ilerletir; 7 günlük sayaç dolup yeni bir
-  // dondurma hakkı kazanıldıysa bunu duyurur (StreakToast dinler).
+  // dondurma hakkı kazanıldıysa bunu duyurur (ToastProvider dinler).
   const advanceStreak = (p: UserProfile): UserProfile => {
     const next = applyCompletionStreak(p, today, yesterdayStr())
     if (getFreezes(next) > getFreezes(p)) {
@@ -135,10 +137,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveProfile(syncProfile(logs, updated))
   }, [profile, logs])
 
-  const addHabit = useCallback((name: string, emoji: string, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions, labelColor?: string) => {
+  const addHabit = useCallback((name: string, icon: IconName, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions, labelColor?: string) => {
     const today = todayStr()
     const h: Habit = {
-      id: crypto.randomUUID(), name: name.trim(), emoji, categoryId,
+      id: crypto.randomUUID(), name: name.trim(), icon, categoryId,
       createdAt: new Date().toISOString(),
       createdDate: today,
       completionMode: mode,
@@ -179,19 +181,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [habits, logs, profile])
 
-  const editHabit = useCallback((id: string, name: string, emoji: string, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions, labelColor?: string) => {
+  const editHabit = useCallback((id: string, name: string, icon: IconName, categoryId: string, mode: CompletionMode = 'single', goal?: number, schedule?: ScheduleOptions, labelColor?: string) => {
     let updatedHabit: Habit | undefined
     saveHabits(habits.map((h) => {
       if (h.id !== id) return h
       updatedHabit = {
-        ...h, name: name.trim(), emoji, categoryId,
+        ...h, name: name.trim(), icon, categoryId,
         completionMode: mode,
         completionGoal: mode !== 'single' && goal ? goal : undefined,
         pomodoroEnabled: mode === 'pomodoro',
         pomodoroGoal: mode === 'pomodoro' ? goal : undefined,
         recurrence: schedule?.recurrence ?? h.recurrence,
         recurrenceDays: schedule?.recurrenceDays ?? h.recurrenceDays,
-        timeWindow: schedule?.timeWindow !== undefined ? schedule.timeWindow : h.timeWindow,
+        timeWindow: schedule && Object.prototype.hasOwnProperty.call(schedule, 'timeWindow')
+          ? schedule.timeWindow ?? undefined
+          : h.timeWindow,
         labelColor: labelColor ?? undefined,
         timeOfDay: schedule?.timeOfDay ?? h.timeOfDay ?? 'any',
       }
@@ -207,12 +211,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const newLogs = patchDayHabitLog(habitId, logs, {
       completed: nowCompleted,
       completedAt: nowCompleted ? new Date().toISOString() : undefined,
+      skippedAt: undefined,
     })
     saveLogs(newLogs)
     // Tamamlama geri alınırsa seri geri alınmaz: o gün uygulamaya girilip işlem yapıldı
     const p = nowCompleted ? advanceStreak(profile) : profile
     saveProfile(syncProfile(newLogs, p))
   }, [logs, profile, today])
+
+  const setHabitDayStatus = (habitId: string, status: HabitDayStatus) => {
+    const raw = logs[today]?.habits[habitId]
+    const current = raw ? migrateHabitLog(raw) : defaultHabitLog()
+    const habit = habits.find((item) => item.id === habitId)
+    const now = new Date().toISOString()
+    const completionCount = status === 'completed' && habit && getHabitMode(habit) === 'multi'
+      ? Math.max(current.completionCount ?? 0, getHabitGoal(habit))
+      : status === 'pending'
+        ? 0
+        : current.completionCount
+    const newLogs = patchDayHabitLog(habitId, logs, {
+      completed: status === 'completed',
+      completedAt: status === 'completed' ? now : undefined,
+      skippedAt: status === 'skipped' ? now : undefined,
+      completionCount,
+    })
+    saveLogs(newLogs)
+    const nextProfile = status === 'completed' && !current.completed
+      ? advanceStreak(profile)
+      : profile
+    saveProfile(syncProfile(newLogs, nextProfile))
+  }
 
   const incrementCompletion = useCallback((habitId: string) => {
     const habit = habits.find((h) => h.id === habitId)
@@ -224,7 +252,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const nowCompleted = !currentHL.completed && newCount >= goal
     const newLogs = patchDayHabitLog(habitId, logs, {
       completionCount: newCount,
-      ...(nowCompleted ? { completed: true, completedAt: new Date().toISOString() } : {}),
+      ...(nowCompleted ? { completed: true, completedAt: new Date().toISOString(), skippedAt: undefined } : {}),
     })
     saveLogs(newLogs)
     if (nowCompleted) {
@@ -249,7 +277,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...currentHL,
       pomodoroSessions: [...currentHL.pomodoroSessions, { ...session, xp: xpAmount }],
       ...(isBoost ? { boostUsed: true } : {}),
-      ...(autoComplete ? { completed: true, completedAt: new Date().toISOString() } : {}),
+      ...(autoComplete ? { completed: true, completedAt: new Date().toISOString(), skippedAt: undefined } : {}),
     }
     const newLogs: DailyLogs = {
       ...logs,
@@ -290,7 +318,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{
       habits, logs, profile, pomodoroSettings, categories, todayLog, freeSessions,
       addHabit, deleteHabit, editHabit,
-      toggleHabitComplete, incrementCompletion, setHabitBoostMode, setHabitNote, addJustStartXP,
+      toggleHabitComplete, setHabitDayStatus, incrementCompletion, setHabitBoostMode, setHabitNote, addJustStartXP,
       addPomodoroSession, addFreeSession,
       updateUsername, updatePomodoroSettings,
       addCustomCategory, deleteCustomCategory,

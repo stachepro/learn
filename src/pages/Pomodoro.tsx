@@ -1,236 +1,145 @@
+import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { usePomodoro } from '../context/PomodoroContext'
 import BackBar from '../components/BackBar'
-import TimerDial from '../components/TimerDial'
-import { todayStr, formatSeconds } from '../utils/date'
+import AppButton from '../components/ui/AppButton'
+import PomodoroDial from '../components/pomodoro/PomodoroDial'
+import { PomodoroSettingsSheet, PomodoroStopSheet } from '../components/pomodoro/PomodoroSheets'
+import { formatSeconds } from '../utils/date'
+import { formatFocusTotal, getPomodoroVisualState, POMODORO_STATE_COPY } from '../utils/pomodoroView'
 
-/* ════════════════════════════════════════════════
-   POMODORO — tikli kadran + ışıltılı ilerleme yayı.
-   Seans başlayınca "Odak Modu" butonu masa saati
-   görünümüne (FocusMode overlay) geçirir.
-   ════════════════════════════════════════════════ */
+function PlayIcon() {
+  return <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden><path d="M4 2.3 14 8 4 13.7z" /></svg>
+}
+function PauseIcon() {
+  return <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden><rect x="3" y="2" width="4" height="12" rx="1" /><rect x="9" y="2" width="4" height="12" rx="1" /></svg>
+}
+function ExpandIcon() {
+  return <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
+}
+function SettingsIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.16.36.37.7.6 1 .28.28.67.42 1.1.4H21v4h-.09c-.42-.02-.82.12-1.1.4-.23.3-.44.64-.6 1Z" /></svg>
+}
+function SoundIcon({ on }: { on: boolean }) {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M11 5 6 9H2v6h4l5 4z" />{on ? <><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" /></> : <path d="m16 9 5 5m0-5-5 5" />}</svg>
+}
 
 export default function Pomodoro() {
-  const { pomodoroSettings, freeSessions } = useApp()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const { habits, pomodoroSettings, updatePomodoroSettings, todayLog, freeSessions } = useApp()
   const {
-    phase, secondsLeft, totalSeconds, sessionCount,
-    isPaused, isFree, soundEnabled,
+    activeHabitId, phase, secondsLeft, totalSeconds, sessionCount,
+    isPaused, isFree, soundEnabled, todayFocusSeconds,
     startFree, pauseResume, startBreak, skipBreak, stopTimer, toggleSound, toggleFocusMode,
   } = usePomodoro()
+  const [settingsOpen, setSettingsOpen] = useState(() => searchParams.get('settings') === '1')
+  const [stopOpen, setStopOpen] = useState(false)
 
-  // Paylaşılan sayaçta bir alışkanlık Pomodoro'su çalışıyor
-  const otherActive = phase !== 'idle' && !isFree
-
-  const isWork = isFree && phase === 'work'
-  const isBreak = isFree && phase === 'break'
-  const isWorkDone = isFree && phase === 'work-done'
-  const isDone = isFree && phase === 'break-done'
-  const running = isWork || isBreak || isWorkDone || isDone
-  const ticking = (isWork || isBreak) && !isPaused
-
-  const today = todayStr()
-  const todayCount = freeSessions.filter((s) => s.date === today).length
-
+  const state = getPomodoroVisualState(phase, isPaused)
+  const copy = POMODORO_STATE_COPY[state]
+  const activeHabit = activeHabitId && !isFree ? habits.find((habit) => habit.id === activeHabitId) : null
+  const active = phase !== 'idle'
+  const waiting = phase === 'work-done' || phase === 'break-done'
   const progress = totalSeconds > 0 ? (totalSeconds - secondsLeft) / totalSeconds : 0
-  const accent = isBreak ? '#22c55e' : '#f97316'
-  const accentSoft = isBreak ? 'rgba(34,197,94,' : 'rgba(249,115,22,'
-  const showArc = isWork || isBreak
-
-  const phaseLabel = isWorkDone ? 'Çalışma Bitti' : isDone ? 'Mola Bitti' : isWork ? 'Odak' : isBreak ? 'Mola' : 'Hazır'
+  const displayTime = formatSeconds(active && !waiting ? secondsLeft : pomodoroSettings.workDuration * 60)
+  const sessionTitle = activeHabit ? activeHabit.name : active ? 'Serbest Odak' : 'Serbest Pomodoro'
+  const sessionType = activeHabit ? 'Alışkanlık seansı' : 'Bağımsız odak seansı'
+  const elapsedSeconds = Math.max(0, totalSeconds - secondsLeft)
+  const todayHabitSessions = Object.values(todayLog.habits).reduce((sum, log) => sum + log.pomodoroSessions.length, 0)
+  const todayFreeSessions = freeSessions.filter((session) => session.date === todayLog.date).length
+  const todaySessions = todayHabitSessions + todayFreeSessions
+  const closeSettings = () => {
+    setSettingsOpen(false)
+    if (!searchParams.has('settings')) return
+    const next = new URLSearchParams(searchParams)
+    next.delete('settings')
+    setSearchParams(next, { replace: true })
+  }
 
   return (
-    <div className="max-w-sm mx-auto px-4 pt-6 pb-40">
-      <BackBar />
+    <div className={`pomodoro-page pomodoro-page--${state}`}>
+      <div className="pomodoro-page__inner">
+        <BackBar title="Araçlar" />
 
-      {/* Başlık */}
-      <div className="mb-7 text-center">
-        <h1 className="display text-2xl font-extrabold tracking-tight" style={{ color: 'rgb(var(--ink))' }}>
-          Pomodoro
-        </h1>
-        <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
-          Serbest odak · {pomodoroSettings.workDuration} dk seans
-        </p>
+        <header className="pomodoro-page__header">
+          <div>
+            <span>ODAK ARACI</span>
+            <h1>Pomodoro</h1>
+          </div>
+          <div className="pomodoro-page__header-actions">
+            <button type="button" className="app-icon-button" onClick={toggleSound} aria-label={soundEnabled ? 'Sesi kapat' : 'Sesi aç'}><SoundIcon on={soundEnabled} /></button>
+            <button type="button" className="app-icon-button" onClick={() => setSettingsOpen(true)} aria-label="Pomodoro ayarları"><SettingsIcon /></button>
+          </div>
+        </header>
+
+        <section className="pomodoro-stage" aria-live="polite">
+          <div className="pomodoro-stage__identity">
+            <span>{sessionType}</span>
+            <strong>{sessionTitle}</strong>
+          </div>
+
+          <PomodoroDial
+            progress={progress}
+            state={state}
+            time={displayTime}
+            label={copy.label}
+            sessionLabel={active ? `${sessionCount} seans tamamlandı` : `${pomodoroSettings.workDuration} dk odak`}
+          />
+
+          <p className="pomodoro-stage__cue">{copy.cue}</p>
+
+          <div className="pomodoro-primary-actions">
+            {phase === 'idle' && (
+              <AppButton tone="primary" size="lg" block onClick={startFree} leadingIcon={<PlayIcon />}>Odaklanmaya Başla</AppButton>
+            )}
+            {(phase === 'work' || phase === 'break') && (
+              <>
+                <AppButton tone="primary" size="lg" block onClick={pauseResume} leadingIcon={isPaused ? <PlayIcon /> : <PauseIcon />}>
+                  {isPaused ? 'Devam Et' : 'Duraklat'}
+                </AppButton>
+                <AppButton tone="secondary" size="lg" block onClick={toggleFocusMode} leadingIcon={<ExpandIcon />}>Tam Ekran Odak</AppButton>
+              </>
+            )}
+            {phase === 'work-done' && (
+              <AppButton tone="primary" size="lg" block onClick={startBreak}>Molayı Başlat</AppButton>
+            )}
+            {phase === 'break-done' && (
+              <AppButton tone="primary" size="lg" block onClick={skipBreak} leadingIcon={<PlayIcon />}>Yeni Odak Başlat</AppButton>
+            )}
+          </div>
+
+          {active && (
+            <div className="pomodoro-utility-actions">
+              {phase === 'break' && <button type="button" onClick={skipBreak}>Molayı Atla</button>}
+              {waiting && <button type="button" onClick={toggleFocusMode}><ExpandIcon /> Tam ekrana geç</button>}
+              <button type="button" className="is-destructive" onClick={() => setStopOpen(true)}>Seansı Sonlandır</button>
+            </div>
+          )}
+        </section>
+
+        {!active && (
+          <>
+            <button type="button" className="pomodoro-rhythm-row" onClick={() => setSettingsOpen(true)}>
+              <span><SettingsIcon /></span>
+              <span><strong>Oturum ritmi</strong><small>{pomodoroSettings.workDuration} dk odak · {pomodoroSettings.breakDuration} dk mola</small></span>
+              <b>{pomodoroSettings.autoLoop ? 'Otomatik' : 'Manuel'}</b>
+            </button>
+            <div className="pomodoro-today-overview">
+              <div><span>Bugünkü odak</span><strong>{formatFocusTotal(todayFocusSeconds)}</strong></div>
+              <i aria-hidden />
+              <div><span>Tamamlanan</span><strong>{todaySessions} seans</strong></div>
+            </div>
+          </>
+        )}
       </div>
 
-      {otherActive ? (
-        <div
-          className="glass g-neutral rounded-2xl px-5 py-8 text-center space-y-2 animate-fade-up"
-          style={{ border: '1px solid rgb(var(--ink) / 0.1)' }}
-        >
-          <p className="text-3xl leading-none">⏳</p>
-          <p className="text-sm font-semibold" style={{ color: 'rgb(var(--ink))' }}>
-            Şu anda başka bir Pomodoro çalışıyor
-          </p>
-          <p className="text-xs" style={{ color: 'rgb(var(--ink) / 0.5)' }}>
-            Serbest seans başlatmak için önce aktif seansı bitir.
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* ── Kadran ── */}
-          <div className="flex flex-col items-center animate-fade-up">
-            <TimerDial progress={progress} accent={accent} showArc={showArc} ticking={ticking}>
-              <span
-                key={phaseLabel + String(isPaused)}
-                className="pom-chip px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.18em]"
-                style={{
-                  background: running ? `${accentSoft}0.12)` : 'rgb(var(--ink) / 0.05)',
-                  color: running ? accent : 'rgb(var(--ink) / 0.45)',
-                  border: `1px solid ${running ? `${accentSoft}0.3)` : 'rgb(var(--ink) / 0.08)'}`,
-                }}
-              >
-                {isPaused ? 'Durakladı' : phaseLabel}
-              </span>
-              <span
-                className="display tnum font-extrabold leading-none mt-2.5"
-                style={{
-                  fontSize: 54,
-                  color: running ? 'rgb(var(--ink))' : 'rgb(var(--ink) / 0.28)',
-                  transition: 'color 0.4s ease',
-                }}
-              >
-                {(isWorkDone || isDone) ? '✓' : formatSeconds(running ? secondsLeft : pomodoroSettings.workDuration * 60)}
-              </span>
-              {running && (
-                <span className="text-[11px] font-semibold mt-2" style={{ color: 'rgb(var(--ink) / 0.45)' }}>
-                  {sessionCount} seans tamamlandı
-                </span>
-              )}
-            </TimerDial>
-          </div>
-
-          {/* ── Kontroller ── */}
-          <div className="mt-7 space-y-3">
-            {phase === 'idle' && (
-              <button
-                onClick={startFree}
-                className="btn-press btn-go w-full py-4 text-[15px] font-bold animate-fade-up"
-              >
-                ▶ Odaklanmaya Başla
-              </button>
-            )}
-
-            {(isWork || isBreak) && (
-              <div className="flex gap-2.5 animate-fade-up">
-                <button
-                  onClick={pauseResume}
-                  className="btn-press flex-1 py-3.5 rounded-2xl text-sm font-bold"
-                  style={{
-                    background: isPaused ? 'rgba(34,197,94,0.9)' : 'rgb(var(--ink) / 0.06)',
-                    color: isPaused ? '#06210f' : 'rgb(var(--ink))',
-                    border: '1px solid rgb(var(--ink) / 0.08)',
-                  }}
-                >
-                  {isPaused ? '▶ Devam Et' : '⏸ Duraklat'}
-                </button>
-                {/* Odak Modu — masa saati görünümü */}
-                <button
-                  onClick={toggleFocusMode}
-                  className="btn-press flex-1 py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2"
-                  style={{
-                    background: 'rgb(var(--ink))',
-                    color: 'rgb(var(--canvas))',
-                    boxShadow: '0 10px 22px -10px rgb(var(--ink) / 0.55)',
-                  }}
-                >
-                  <ExpandIcon /> Odak Modu
-                </button>
-              </div>
-            )}
-
-            {isWorkDone && (
-              <div className="flex gap-2.5 animate-fade-up">
-                <button
-                  onClick={startBreak}
-                  className="btn-press btn-go flex-1 py-3.5 text-sm font-bold"
-                >
-                  ☕ Mola Başlat
-                </button>
-                <button
-                  onClick={toggleFocusMode}
-                  aria-label="Odak Modu"
-                  className="btn-press w-[52px] rounded-2xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgb(var(--ink))', color: 'rgb(var(--canvas))' }}
-                >
-                  <ExpandIcon />
-                </button>
-              </div>
-            )}
-
-            {isDone && (
-              <div className="flex gap-2.5 animate-fade-up">
-                <button
-                  onClick={skipBreak}
-                  className="btn-press flex-1 py-3.5 rounded-2xl text-sm font-bold"
-                  style={{ background: '#f97316', color: '#fff5f2', boxShadow: '0 10px 22px -10px rgba(249,115,22,0.55)' }}
-                >
-                  🔥 Çalışmaya Başla
-                </button>
-                <button
-                  onClick={toggleFocusMode}
-                  aria-label="Odak Modu"
-                  className="btn-press w-[52px] rounded-2xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgb(var(--ink))', color: 'rgb(var(--canvas))' }}
-                >
-                  <ExpandIcon />
-                </button>
-              </div>
-            )}
-
-            {/* İkincil satır: ses + molayı atla + iptal */}
-            {running && (
-              <div className="flex gap-2 animate-fade-up">
-                <button
-                  onClick={toggleSound}
-                  className="ctrl btn-press flex-1 py-2.5 rounded-2xl text-xs font-semibold"
-                >
-                  {soundEnabled ? '🔔 Ses açık' : '🔕 Ses kapalı'}
-                </button>
-                {isBreak && (
-                  <button
-                    onClick={skipBreak}
-                    className="ctrl btn-press flex-1 py-2.5 rounded-2xl text-xs font-semibold"
-                  >
-                    ⏭ Molayı Atla
-                  </button>
-                )}
-                <button
-                  onClick={stopTimer}
-                  className="btn-press flex-1 py-2.5 rounded-2xl text-xs font-bold"
-                  style={{ background: 'rgba(225,90,60,0.12)', color: '#b3422a', boxShadow: 'inset 0 0 0 1px rgba(225,90,60,0.3)' }}
-                >
-                  İptal Et
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* ── İstatistikler ── */}
-          <div className="grid grid-cols-2 gap-3 mt-6">
-            <div className="glass g-flame rounded-2xl px-4 py-4 text-center animate-fade-up" style={{ animationDelay: '0.05s' }}>
-              <p className="display text-3xl font-extrabold tnum" style={{ color: 'rgb(var(--txt))' }}>{todayCount}</p>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1 ink-60">Bugünkü Seans</p>
-            </div>
-            <div className="glass g-neutral rounded-2xl px-4 py-4 text-center animate-fade-up" style={{ animationDelay: '0.1s' }}>
-              <p className="display text-3xl font-extrabold tnum" style={{ color: 'rgb(var(--ink))' }}>{freeSessions.length}</p>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] mt-1" style={{ color: 'rgb(var(--ink) / 0.45)' }}>Toplam Seans</p>
-            </div>
-          </div>
-
-          <p className="text-center text-[11px] mt-5" style={{ color: 'rgb(var(--ink) / 0.4)' }}>
-            Her tamamlanan serbest seans 10 XP kazandırır.
-          </p>
-        </>
+      {settingsOpen && (
+        <PomodoroSettingsSheet settings={pomodoroSettings} onClose={closeSettings} onSave={updatePomodoroSettings} />
+      )}
+      {stopOpen && (
+        <PomodoroStopSheet elapsedLabel={formatFocusTotal(elapsedSeconds)} onClose={() => setStopOpen(false)} onConfirm={stopTimer} />
       )}
     </div>
   )
 }
-
-const ExpandIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="15 3 21 3 21 9" />
-    <polyline points="9 21 3 21 3 15" />
-    <line x1="21" y1="3" x2="14" y2="10" />
-    <line x1="3" y1="21" x2="10" y2="14" />
-  </svg>
-)

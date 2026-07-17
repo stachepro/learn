@@ -20,6 +20,7 @@ describe('applyCompletionStreak', () => {
     const p = applyCompletionStreak(profile(), TODAY, YESTERDAY)
     expect(p.streak).toBe(1)
     expect(p.lastActiveDate).toBe(TODAY)
+    expect(p.streakActiveDates).toEqual([TODAY])
   })
 
   it('dün de aktifse seriyi sürdürür', () => {
@@ -35,8 +36,14 @@ describe('applyCompletionStreak', () => {
   })
 
   it('aynı gün ikinci tamamlamada seriyi artırmaz', () => {
-    const already = profile({ streak: 3, longestStreak: 3, lastActiveDate: TODAY })
+    const already = profile({ streak: 3, longestStreak: 3, lastActiveDate: TODAY, streakActiveDates: [TODAY] })
     expect(applyCompletionStreak(already, TODAY, YESTERDAY)).toBe(already)
+  })
+
+  it('legacy profilde aynı gün yeniden çalışırsa aktif tarihi tamamlar ama seriyi artırmaz', () => {
+    const p = applyCompletionStreak(profile({ streak: 3, longestStreak: 3, lastActiveDate: TODAY }), TODAY, YESTERDAY)
+    expect(p.streak).toBe(3)
+    expect(p.streakActiveDates).toEqual([TODAY])
   })
 
   // Kural: tamamlamayı geri almak günü seriden düşürmez. Geri alma lastActiveDate'i

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useReducedMotion } from '../utils/useReducedMotion'
 
 /* ════════════════════════════════════════════════════════
    WaterFill — canvas tabanlı gerçekçi su simülasyonu.
@@ -27,6 +28,7 @@ interface Bubble {
 }
 
 export default function WaterFill({ ml, goalMl }: { ml: number; goalMl: number }) {
+  const reducedMotion = useReducedMotion()
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const targetRef = useRef(MIN_FRAC)
   const pourRef = useRef(0) // su eklenince > 0 — döngü içinde tüketilir
@@ -62,7 +64,7 @@ export default function WaterFill({ ml, goalMl }: { ml: number; goalMl: number }
     resize()
     window.addEventListener('resize', resize)
 
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reduced = reducedMotion
 
     /* ── fizik durumu ── */
     let level = targetRef.current
@@ -265,7 +267,7 @@ export default function WaterFill({ ml, goalMl }: { ml: number; goalMl: number }
       window.removeEventListener('deviceorientation', onOrient)
       window.removeEventListener('devicemotion', onMotion)
     }
-  }, [])
+  }, [reducedMotion])
 
   return (
     <canvas

@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import LuupiIcon from './ui/LuupiIcon'
 import { captureError, toCrashEntry, type CrashEntry } from '../utils/errorReporting'
 
 interface Props { children: ReactNode }
@@ -52,7 +53,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         padding: '24px', paddingTop: 'calc(24px + env(safe-area-inset-top))',
       }}>
         <div style={{ maxWidth: 420, width: '100%' }}>
-          <p style={{ fontSize: 44, lineHeight: 1, marginBottom: 16 }}>🌧️</p>
+          <p style={{ fontSize: 44, lineHeight: 1, marginBottom: 16 }}><LuupiIcon name="cloud" size={48} /></p>
           <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Bir şeyler ters gitti</h1>
           <p style={{ fontSize: 15, lineHeight: 1.5, opacity: 0.75, marginBottom: 20 }}>
             Verilerin cihazında duruyor, kaybolmadı. Tekrar denemek işe yaramazsa

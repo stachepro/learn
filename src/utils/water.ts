@@ -13,6 +13,11 @@ export function formatMl(ml: number): string {
   return `${ml} ml`
 }
 
+export function formatWaterAmount(ml: number): string {
+  if (ml < 1000) return `${ml.toLocaleString('tr-TR')} ml`
+  return `${(ml / 1000).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} L`
+}
+
 export function dayTotalMl(entries: WaterEntry[], date: string): number {
   return entries.filter((e) => e.date === date).reduce((sum, e) => sum + e.ml, 0)
 }
@@ -57,8 +62,49 @@ export function bestDay(entries: WaterEntry[]): DayTotal | null {
   return days.reduce((best, d) => (d.ml > best.ml ? d : best), days[0])
 }
 
-export function daysGoalMet(entries: WaterEntry[], goalMl: number): number {
-  return totalsByDate(entries).filter((d) => d.ml >= goalMl).length
+export type WaterGoalResolver = number | ((date: string) => number)
+
+export function goalForDate(goal: WaterGoalResolver, date: string): number {
+  return typeof goal === 'function' ? goal(date) : goal
+}
+
+export function daysGoalMet(entries: WaterEntry[], goal: WaterGoalResolver): number {
+  return totalsByDate(entries).filter((d) => d.ml >= goalForDate(goal, d.date)).length
+}
+
+export function elapsedDaysInMonth(year: number, month: number, today: string): number {
+  const prefix = `${year}-${String(month + 1).padStart(2, '0')}`
+  const currentPrefix = today.slice(0, 7)
+  if (prefix > currentPrefix) return 0
+  if (prefix < currentPrefix) return new Date(year, month + 1, 0).getDate()
+  return Number(today.slice(8, 10))
+}
+
+export interface WaterMonthSummary {
+  total: number
+  average: number
+  goalDays: number
+  elapsedDays: number
+  best: DayTotal | null
+}
+
+export function waterMonthSummary(
+  entries: WaterEntry[],
+  year: number,
+  month: number,
+  today: string,
+  goal: WaterGoalResolver,
+): WaterMonthSummary {
+  const days = totalsForMonth(entries, year, month)
+  const elapsedDays = elapsedDaysInMonth(year, month, today)
+  const total = days.reduce((sum, day) => sum + day.ml, 0)
+  return {
+    total,
+    average: elapsedDays > 0 ? Math.round(total / elapsedDays) : 0,
+    goalDays: days.filter((day) => day.ml >= goalForDate(goal, day.date)).length,
+    elapsedDays,
+    best: days.length > 0 ? days.reduce((best, day) => day.ml > best.ml ? day : best, days[0]) : null,
+  }
 }
 
 export function yearsAvailable(entries: WaterEntry[]): number[] {

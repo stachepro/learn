@@ -17,6 +17,9 @@ export function isHabitScheduledFor(habit: Habit, dateStr: string): boolean {
     case 'daily':
       return true
     case 'weekly': {
+      if (habit.recurrenceDays?.length) {
+        return habit.recurrenceDays[0] === parseLocalDate(dateStr).getDay()
+      }
       const created = habit.createdDate ?? habit.createdAt.slice(0, 10)
       return parseLocalDate(created).getDay() === parseLocalDate(dateStr).getDay()
     }

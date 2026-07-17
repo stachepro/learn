@@ -1,315 +1,62 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import BackBar from '../components/BackBar'
-import WaterFill from '../components/WaterFill'
-import { storage } from '../utils/storage'
-import { useModalDismiss } from '../utils/useModalDismiss'
-import { awardStandaloneBadges } from '../utils/badges'
-import { todayStr, dateStr, getDaysInMonth, getFirstDayOfMonth, trMonthName, TR_DAY_SHORTS, formatShortDate } from '../utils/date'
+import AppButton from '../components/ui/AppButton'
+import WaterHero from '../components/water/WaterHero'
+import WaterRhythm from '../components/water/WaterRhythm'
 import {
-  formatLiters, formatMl, dayTotalMl, entriesForDate, totalsForMonth, totalsForYear,
-  averageDailyMl, bestDay, daysGoalMet, yearsAvailable,
-} from '../utils/water'
+  WaterAmountSheet,
+  WaterDeleteDialog,
+  WaterGoalSheet,
+  WaterHistorySheet,
+  WaterInsightsSheet,
+} from '../components/water/WaterSheets'
 import type { WaterEntry } from '../types'
+import { awardStandaloneBadges } from '../utils/badges'
+import { todayStr } from '../utils/date'
+import { storage } from '../utils/storage'
+import { showToast } from '../utils/toast'
+import { useLongPressGesture } from '../utils/useLongPressGesture'
+import { dayTotalMl, entriesForDate, formatWaterAmount } from '../utils/water'
+import LuupiIcon from '../components/ui/LuupiIcon'
 
-type StatsTab = 'day' | 'month' | 'year'
+type WaterSheet = 'bottle' | 'custom' | 'goal' | 'history' | 'insights' | null
 
-const NAVY = 'var(--wt-navy)'
-const NAVY_60 = 'var(--wt-navy-soft)'
-
-function intensity(ml: number, goal: number): string {
-  if (ml <= 0) return 'rgb(var(--ink) / 0.05)'
-  const t = Math.min(ml / goal, 1)
-  const alpha = 0.22 + t * 0.68
-  return `rgba(37,99,235,${alpha.toFixed(2)})`
-}
-
-/* ── İstatistik penceresi: gün / ay / yıl sekmeleri ── */
-function WaterStatsModal({ entries, goalMl, onClose, onReset, onDeleteEntry }: {
-  entries: WaterEntry[]
-  goalMl: number
-  onClose: () => void
-  onReset: () => void
-  onDeleteEntry: (id: string) => void
-}) {
-  const { isExiting, close } = useModalDismiss(onClose)
-  const [tab, setTab] = useState<StatsTab>('day')
-  const [confirmReset, setConfirmReset] = useState(false)
-  const [day, setDay] = useState(() => todayStr())
-  const now = new Date()
-  const [ym, setYm] = useState({ year: now.getFullYear(), month: now.getMonth() })
-  const [year, setYear] = useState(now.getFullYear())
-
-  const shiftDay = (delta: number) => {
-    const d = new Date(`${day}T12:00:00`)
-    d.setDate(d.getDate() + delta)
-    setDay(dateStr(d))
-  }
-  const shiftMonth = (delta: number) => {
-    let { year: y, month: m } = ym
-    m += delta
-    if (m < 0) { m = 11; y -= 1 } else if (m > 11) { m = 0; y += 1 }
-    setYm({ year: y, month: m })
-  }
-
-  const dayEntries = entriesForDate(entries, day)
-  const dayTotal = dayTotalMl(entries, day)
-
-  const monthDays = totalsForMonth(entries, ym.year, ym.month)
-  const monthMap = new Map(monthDays.map((d) => [d.date, d.ml]))
-  const daysInMonth = getDaysInMonth(ym.year, ym.month)
-  const firstDayCol = getFirstDayOfMonth(ym.year, ym.month)
-  const monthTotal = monthDays.reduce((s, d) => s + d.ml, 0)
-  const monthAvg = monthDays.length > 0 ? Math.round(monthTotal / daysInMonth) : 0
-  const monthBest = monthDays.reduce((best, d) => (d.ml > (best?.ml ?? -1) ? d : best), monthDays[0] ?? null)
-
-  const yearMonths = totalsForYear(entries, year)
-  const yearTotal = yearMonths.reduce((s, m) => s + m.ml, 0)
-  const maxMonthMl = Math.max(1, ...yearMonths.map((m) => m.ml))
-  const years = yearsAvailable(entries)
-
-  const globalAvg = averageDailyMl(entries)
-  const globalBest = bestDay(entries)
-  const goalDays = daysGoalMet(entries, goalMl)
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className={`fixed inset-0 ${isExiting ? 'animate-fade-out' : 'animate-fade-in'}`} style={{ background: 'rgb(var(--ink) / 0.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} onClick={close} />
-      <div className="relative min-h-full flex items-center justify-center p-4">
-        <div className={`glass g-neutral w-full max-w-sm ${isExiting ? 'animate-fade-down' : 'animate-pop'}`} style={{ borderRadius: 24 }}>
-          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
-            <p className="display text-base font-bold">💧 Su İstatistikleri</p>
-            <div className="flex items-center gap-2">
-              {entries.length > 0 && (
-                <button
-                  onClick={() => setConfirmReset(true)}
-                  className="btn-press text-xs font-bold px-3 py-1.5 rounded-full"
-                  style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--sf-red-tx)', border: '1px solid rgba(239,68,68,0.25)' }}
-                >
-                  Sıfırla
-                </button>
-              )}
-              <button onClick={close} aria-label="Kapat" className="ctrl btn-press w-8 h-8 rounded-full flex items-center justify-center text-sm">✕</button>
-            </div>
-          </div>
-
-          {confirmReset && (
-            <div className="px-5 py-4 animate-fade-up" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)', background: 'rgba(239,68,68,0.05)' }}>
-              <p className="text-sm font-semibold mb-3" style={{ color: 'rgb(var(--ink))' }}>Tüm su geçmişin silinecek, emin misin?</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { onReset(); setConfirmReset(false) }}
-                  className="btn-press flex-1 py-2 rounded-xl text-sm font-bold"
-                  style={{ background: '#e2503f', color: '#fff5f2', boxShadow: '0 8px 18px -10px rgba(226,80,63,0.7)' }}
-                >
-                  Eminim, Sil
-                </button>
-                <button onClick={() => setConfirmReset(false)} className="ctrl btn-press flex-1 py-2 rounded-xl text-sm font-bold">Vazgeç</button>
-              </div>
-            </div>
-          )}
-
-          {/* Genel özet */}
-          <div className="grid grid-cols-3 px-5 py-4 text-center" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.08)' }}>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Günlük Ort.</p>
-              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatMl(globalAvg)}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En İyi Gün</p>
-              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-mint-tx)' }}>{globalBest ? formatMl(globalBest.ml) : '--'}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Hedef Günü</p>
-              <p className="display text-lg font-bold tnum" style={{ color: 'var(--sf-amber-tx)' }}>{goalDays}</p>
-            </div>
-          </div>
-
-          {/* Sekmeler */}
-          <div className="flex gap-1.5 px-5 pt-3">
-            {([['day', 'Gün'], ['month', 'Ay'], ['year', 'Yıl']] as [StatsTab, string][]).map(([key, label]) => (
-              <button
-                key={key}
-                onClick={() => setTab(key)}
-                className="btn-press flex-1 text-xs font-bold py-2 rounded-xl transition-all"
-                style={tab === key
-                  ? { background: '#1d4ed8', color: '#eaf1ff' }
-                  : { background: 'rgb(var(--ink) / 0.05)', color: 'rgb(var(--ink) / 0.5)' }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div className="px-5 py-4 max-h-80 overflow-y-auto">
-            {tab === 'day' && (
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <button onClick={() => shiftDay(-1)} className="ctrl btn-press w-7 h-7 rounded-full flex items-center justify-center text-xs">‹</button>
-                  <p className="text-sm font-bold tnum">{formatShortDate(new Date(`${day}T12:00:00`))}</p>
-                  <button onClick={() => shiftDay(1)} disabled={day >= todayStr()} className="ctrl btn-press w-7 h-7 rounded-full flex items-center justify-center text-xs disabled:opacity-30">›</button>
-                </div>
-                <p className="text-center display text-2xl font-black tnum mb-1" style={{ color: 'var(--sf-blue-tx)' }}>{formatLiters(dayTotal)}</p>
-                <p className="text-center text-[11px] font-semibold ink-45 mb-4">
-                  {dayTotal >= goalMl ? '🎉 Hedefe ulaşıldı' : `Hedefin %${Math.round((dayTotal / goalMl) * 100)}'i`}
-                </p>
-                {dayEntries.length === 0 ? (
-                  <p className="text-sm text-center ink-45 py-4">Bu gün hiç su içilmemiş</p>
-                ) : (
-                  <div className="space-y-1.5">
-                    {dayEntries.map((e) => (
-                      <div key={e.id} className="flex items-center gap-2 text-sm py-1.5 px-2 rounded-lg" style={{ background: 'rgba(37,99,235,0.05)' }}>
-                        <span className="ink-60 font-medium tnum flex-1">{e.time}</span>
-                        <span className="display font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatMl(e.ml)}</span>
-                        <button
-                          onClick={() => onDeleteEntry(e.id)}
-                          aria-label="Sil"
-                          className="btn-press w-6 h-6 rounded-full flex items-center justify-center text-[10px]"
-                          style={{ background: 'rgba(239,68,68,0.08)', color: 'var(--sf-red-tx)' }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {tab === 'month' && (
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <button onClick={() => shiftMonth(-1)} className="ctrl btn-press w-7 h-7 rounded-full flex items-center justify-center text-xs">‹</button>
-                  <p className="text-sm font-bold">{trMonthName(ym.month)} {ym.year}</p>
-                  <button onClick={() => shiftMonth(1)} className="ctrl btn-press w-7 h-7 rounded-full flex items-center justify-center text-xs">›</button>
-                </div>
-
-                <div className="grid grid-cols-7 gap-1 mb-1">
-                  {TR_DAY_SHORTS.map((d) => (
-                    <div key={d} className="text-center text-[9px] ink-45 py-0.5 font-semibold">{d}</div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-7 gap-1 mb-4">
-                  {Array.from({ length: firstDayCol }).map((_, i) => <div key={`e${i}`} className="aspect-square" />)}
-                  {Array.from({ length: daysInMonth }).map((_, i) => {
-                    const dNum = i + 1
-                    const key = `${ym.year}-${String(ym.month + 1).padStart(2, '0')}-${String(dNum).padStart(2, '0')}`
-                    const ml = monthMap.get(key) ?? 0
-                    return (
-                      <div
-                        key={dNum}
-                        title={`${dNum} ${trMonthName(ym.month)}: ${formatMl(ml)}`}
-                        className="aspect-square rounded-lg flex items-center justify-center"
-                        style={{ background: intensity(ml, goalMl), boxShadow: 'inset 0 0 0 1px rgb(var(--ink) / 0.06)' }}
-                      >
-                        <span className="text-[9px] font-bold tnum" style={{ color: ml > goalMl * 0.5 ? '#eaf1ff' : 'rgb(var(--ink) / 0.5)' }}>{dNum}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                <div className="grid grid-cols-3 text-center">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Toplam</p>
-                    <p className="display text-base font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatLiters(monthTotal)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Ortalama</p>
-                    <p className="display text-base font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatMl(monthAvg)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">En İyi Gün</p>
-                    <p className="display text-base font-bold tnum" style={{ color: 'var(--sf-mint-tx)' }}>{monthBest ? formatMl(monthBest.ml) : '--'}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {tab === 'year' && (
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <button onClick={() => setYear((y) => y - 1)} className="ctrl btn-press w-7 h-7 rounded-full flex items-center justify-center text-xs">‹</button>
-                  <select
-                    value={year}
-                    onChange={(e) => setYear(Number(e.target.value))}
-                    className="text-sm font-bold bg-transparent outline-none text-center"
-                  >
-                    {years.map((y) => <option key={y} value={y}>{y}</option>)}
-                  </select>
-                  <button onClick={() => setYear((y) => y + 1)} className="ctrl btn-press w-7 h-7 rounded-full flex items-center justify-center text-xs">›</button>
-                </div>
-
-                <div className="flex items-end gap-1.5 mb-4" style={{ height: 110 }}>
-                  {yearMonths.map((m) => (
-                    <div key={m.month} className="flex-1 flex flex-col items-center justify-end gap-1 h-full">
-                      <div
-                        className="w-full rounded-t-md soft-trans"
-                        style={{
-                          height: `${Math.max(3, (m.ml / maxMonthMl) * 100)}%`,
-                          background: m.ml > 0 ? 'linear-gradient(180deg, #60a5fa, #1d4ed8)' : 'rgb(var(--ink) / 0.06)',
-                        }}
-                        title={`${m.label}: ${formatMl(m.ml)}`}
-                      />
-                      <span className="text-[8px] font-semibold ink-45">{m.label.slice(0, 3)}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-2 text-center">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Yıl Toplamı</p>
-                    <p className="display text-base font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatLiters(yearTotal)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider ink-45 mb-1">Aylık Ortalama</p>
-                    <p className="display text-base font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatLiters(Math.round(yearTotal / 12))}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const PRESETS = [
-  { ml: 200, label: 'Bardak' },
-  { ml: 300, label: 'Büyük Bardak' },
-  { ml: 500, label: 'Şişe' },
-  { ml: 1000, label: 'Büyük Şişe' },
-]
-const GOAL_PRESETS = [2000, 2500, 3000, 4000]
-const CUSTOM_CHIPS = [150, 250, 400, 750]
+const QUICK_AMOUNTS = [250, 500, 750]
 
 export default function WaterTracker() {
   const [entries, setEntries] = useState<WaterEntry[]>(() => storage.getWaterEntries())
-  const [bottleMl, setBottleMl] = useState<number>(() => storage.getWaterBottleMl())
-  const [goalMl, setGoalMl] = useState<number>(() => storage.getWaterGoalMl())
-  const [statsOpen, setStatsOpen] = useState(false)
-  const [goalOpen, setGoalOpen] = useState(false)
-  const [customOpen, setCustomOpen] = useState(false)
-  const [customMl, setCustomMl] = useState(250)
+  const [bottleMl, setBottleMl] = useState(() => storage.getWaterBottleMl())
+  const [goalMl, setGoalMl] = useState(() => storage.getWaterGoalMl())
+  const [sheet, setSheet] = useState<WaterSheet>(null)
+  const [deleteTarget, setDeleteTarget] = useState<WaterEntry | null>(null)
   const [pulseKey, setPulseKey] = useState(0)
-  const [undo, setUndo] = useState<{ id: string; ml: number } | null>(null)
-  const undoTimer = useRef<number | null>(null)
+  const bottleLongPress = useLongPressGesture({ onLongPress: () => setSheet('bottle') })
 
   useEffect(() => {
-    const sync = () => setBottleMl(storage.getWaterBottleMl())
+    const sync = () => {
+      setEntries(storage.getWaterEntries())
+      setBottleMl(storage.getWaterBottleMl())
+      setGoalMl(storage.getWaterGoalMl())
+    }
     window.addEventListener('focus', sync)
     return () => {
       window.removeEventListener('focus', sync)
-      if (undoTimer.current != null) window.clearTimeout(undoTimer.current)
     }
   }, [])
 
   const today = todayStr()
-  const todayTotal = dayTotalMl(entries, today)
   const todayEntries = entriesForDate(entries, today)
-  const goalPct = Math.round((todayTotal / goalMl) * 100)
-  const goalMet = todayTotal >= goalMl
+  const todayTotal = dayTotalMl(entries, today)
+  const remaining = Math.max(0, goalMl - todayTotal)
+
+  const deleteEntry = (id: string, feedback = true) => {
+    storage.deleteWaterEntry(id)
+    setEntries(storage.getWaterEntries())
+    if (feedback) showToast({ tone: 'info', icon: '↺', title: 'Su kaydı kaldırıldı', message: 'Günlük toplamın güncellendi.', haptic: 'light' })
+  }
 
   const addWater = (ml: number) => {
+    if (!storage.hasWaterGoal()) storage.setWaterGoalMl(goalMl, today)
     const now = new Date()
     const entry: WaterEntry = {
       id: crypto.randomUUID(),
@@ -318,231 +65,109 @@ export default function WaterTracker() {
       ml,
       timestamp: now.toISOString(),
     }
+    const crossedGoal = todayTotal < goalMl && todayTotal + ml >= goalMl
     storage.addWaterEntry(entry)
     setEntries(storage.getWaterEntries())
+    setPulseKey((value) => value + 1)
     awardStandaloneBadges()
-    setPulseKey((k) => k + 1)
-    setUndo({ id: entry.id, ml })
-    if (undoTimer.current != null) window.clearTimeout(undoTimer.current)
-    undoTimer.current = window.setTimeout(() => setUndo(null), 5000)
+    showToast({
+      id: `water-${entry.id}`,
+      tone: 'success',
+      contextIcon: <LuupiIcon name={crossedGoal ? 'sparkles' : 'water'} size={16} />,
+      title: crossedGoal ? 'Günlük hedef tamamlandı' : `${formatWaterAmount(ml)} eklendi`,
+      message: crossedGoal ? 'Bugünün su ritmi tamam.' : `${formatWaterAmount(todayTotal + ml)} seviyesine ulaştın.`,
+      haptic: crossedGoal ? 'success' : 'light',
+      action: { label: 'Geri Al', onPress: () => deleteEntry(entry.id, false) },
+    })
   }
 
-  const deleteEntry = (id: string) => {
-    storage.deleteWaterEntry(id)
-    setEntries(storage.getWaterEntries())
-    setUndo((u) => (u?.id === id ? null : u))
+  const saveBottle = (ml: number) => {
+    storage.setWaterBottleMl(ml)
+    setBottleMl(ml)
+    setSheet(null)
+    showToast({ tone: 'info', contextIcon: <LuupiIcon name="water" size={16} />, title: 'Hızlı ekleme güncellendi', message: `Yeni miktar ${formatWaterAmount(ml)}.`, haptic: 'light' })
   }
 
-  const undoLast = () => {
-    if (!undo) return
-    deleteEntry(undo.id)
+  const saveGoal = (ml: number) => {
+    storage.setWaterGoalMl(ml, today)
+    setGoalMl(storage.getWaterGoalMl())
+    setSheet(null)
+    showToast({ tone: 'success', icon: '◎', title: 'Günlük hedef güncellendi', message: `${formatWaterAmount(ml)} bugünden itibaren geçerli.`, haptic: 'success' })
   }
 
-  const updateGoal = (ml: number) => {
-    const clamped = Math.max(500, Math.min(6000, ml))
-    setGoalMl(clamped)
-    storage.setWaterGoalMl(clamped)
+  const requestDelete = (entry: WaterEntry) => {
+    setSheet(null)
+    window.setTimeout(() => setDeleteTarget(entry), 310)
   }
 
   return (
-    <div className="relative min-h-full">
-      <WaterFill ml={todayTotal} goalMl={goalMl} />
-      {statsOpen && (
-        <WaterStatsModal
-          entries={entries}
-          goalMl={goalMl}
-          onClose={() => setStatsOpen(false)}
-          onReset={() => { storage.clearWaterEntries(); setEntries([]) }}
-          onDeleteEntry={deleteEntry}
-        />
-      )}
-
-      <div
-        className="relative z-10 max-w-sm mx-auto px-4 pt-3 pb-24 flex flex-col"
-        style={{ minHeight: 'calc(100dvh - env(safe-area-inset-top))' }}
-      >
+    <main className="water-page">
+      <div className="water-page__ambient" aria-hidden />
+      <div className="water-page__content">
         <BackBar title="Su Takibi" />
 
-        {/* Büyük litre göstergesi + hedef durumu */}
-        <div className="text-center mb-3">
-          <p key={pulseKey} className="display font-black tnum animate-value-pop" style={{ fontSize: 42, lineHeight: 1.1, color: NAVY, textShadow: '0 2px 20px var(--wt-num-shadow)' }}>
-            {formatLiters(todayTotal)}
-          </p>
-          <div className="flex items-center justify-center gap-2 mt-1.5">
-            <button
-              onClick={() => setGoalOpen((o) => !o)}
-              className="btn-press text-[11px] font-bold px-3 py-1.5 rounded-full"
-              style={{
-                background: 'var(--wt-pill)',
-                color: NAVY,
-                border: goalOpen ? '1px solid rgba(29,78,216,0.5)' : '1px solid var(--wt-pill-br)',
-                boxShadow: '0 4px 12px -6px rgba(12,42,92,0.25)',
+        <div className="water-page__intro">
+          <div><span>SU RİTMİ</span><h1>Bugün akışta kal.</h1></div>
+        <button type="button" onClick={() => setSheet('insights')} aria-label="Su içgörülerini aç"><span aria-hidden><LuupiIcon name="chart-line" size={16} /></span> Ritmi Gör</button>
+        </div>
+
+        <WaterHero total={todayTotal} goal={goalMl} pulseKey={pulseKey} onGoal={() => setSheet('goal')} />
+
+        <section className="water-add" aria-labelledby="water-add-title">
+          <div className="water-add__heading"><div><span>HIZLI KAYIT</span><h2 id="water-add-title">Bir şişe ekle</h2></div><small>{remaining > 0 ? `${formatWaterAmount(remaining)} kaldı` : 'Hedef tamam'}</small></div>
+          <div className="water-add__hold-surface long-press-surface" data-long-pressing={bottleLongPress.isPressing}>
+            <AppButton
+              className="water-add__primary"
+              tone="primary"
+              size="lg"
+              block
+              haptic="none"
+              onPointerDown={bottleLongPress.start}
+              onPointerMove={bottleLongPress.move}
+              onPointerUp={bottleLongPress.end}
+              onPointerCancel={bottleLongPress.cancel}
+              onLostPointerCapture={bottleLongPress.lostCapture}
+              onPointerLeave={(event) => { if (event.pointerType === 'mouse') bottleLongPress.cancel() }}
+              onContextMenu={(event) => { event.preventDefault(); bottleLongPress.trigger(false) }}
+              onKeyDown={(event) => {
+                if ((event.shiftKey && event.key === 'F10') || event.key === 'ContextMenu') {
+                  event.preventDefault()
+                  bottleLongPress.trigger(false)
+                }
               }}
+              onClick={() => { if (!bottleLongPress.consumeClick()) addWater(bottleMl) }}
+              aria-describedby="water-bottle-hold-hint"
+              aria-haspopup="dialog"
+              aria-keyshortcuts="Shift+F10"
+              leadingIcon={<span className="water-add__drop" aria-hidden>◆</span>}
             >
-              🎯 Hedef {formatMl(goalMl)}
-            </button>
-            <span
-              className="text-[11px] font-bold px-3 py-1.5 rounded-full"
-              style={goalMet
-                ? { background: 'rgba(34,197,94,0.16)', color: 'var(--sf-mint-tx)', border: '1px solid rgba(34,197,94,0.35)' }
-                : { background: 'var(--wt-pill)', color: NAVY_60, border: '1px solid var(--wt-pill-br)' }}
-            >
-              {goalMet ? 'Hedef tamam! 🎉' : `%${goalPct}`}
-            </span>
+              + {formatWaterAmount(bottleMl)} Ekle
+            </AppButton>
+            <span className="long-press-progress" aria-hidden />
           </div>
-        </div>
-
-        {/* Hedef düzenleme paneli */}
-        {goalOpen && (
-          <div className="glass g-sky animate-fade-up p-3 mb-3" style={{ borderRadius: 20 }}>
-            <p className="text-xs font-bold mb-2">Günlük Hedef</p>
-            <div className="flex items-center justify-center gap-4 mb-2">
-              <button onClick={() => updateGoal(goalMl - 250)} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">−</button>
-              <p className="display text-2xl font-black tnum w-28 text-center" style={{ color: 'var(--sf-blue-tx)' }}>{formatMl(goalMl)}</p>
-              <button onClick={() => updateGoal(goalMl + 250)} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">+</button>
-            </div>
-            <div className="flex gap-1.5">
-              {GOAL_PRESETS.map((g) => (
-                <button
-                  key={g}
-                  onClick={() => updateGoal(g)}
-                  className="btn-press flex-1 text-[11px] font-bold py-1.5 rounded-full"
-                  style={goalMl === g
-                    ? { background: '#1d4ed8', color: '#eaf1ff' }
-                    : { background: 'rgb(var(--ink) / 0.05)', color: 'rgb(var(--ink) / 0.55)' }}
-                >
-                  {formatMl(g)}
-                </button>
-              ))}
-            </div>
+          <p id="water-bottle-hold-hint" className="water-add__hold-hint">Miktarı değiştirmek için basılı tut</p>
+          <div className="water-add__quick">
+            {QUICK_AMOUNTS.map((amount) => <button type="button" key={amount} onClick={() => addWater(amount)}><strong>+{formatWaterAmount(amount)}</strong><span>{amount === 250 ? 'Bardak' : amount === 500 ? 'Şişe' : 'Büyük'}</span></button>)}
+            <button type="button" onClick={() => setSheet('custom')}><strong>+</strong><span>Özel</span></button>
           </div>
-        )}
+        </section>
 
-        {/* Sayaç + hedef üstte sabit; geri kalan her şey kalan alanda dikeyde ortalanır */}
-        <div className="flex-1 flex flex-col justify-center">
+        <WaterRhythm entries={todayEntries} historyCount={entries.length} onOpenHistory={() => setSheet('history')} />
 
-        {/* Hızlı ekleme */}
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          {PRESETS.map((b) => (
-            <button
-              key={b.ml}
-              onClick={() => addWater(b.ml)}
-              className="btn-press tile-press glass glass-lift g-sky flex flex-col items-center justify-center py-2.5"
-              style={{ borderRadius: 18 }}
-            >
-              <span className="display text-lg font-black tnum" style={{ color: 'var(--sf-blue-tx)' }}>{b.ml >= 1000 ? formatLiters(b.ml) : `${b.ml} ml`}</span>
-              <span className="text-[10px] ink-60 font-semibold">{b.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Suluk + özel miktar */}
-        <div className="flex gap-2 mb-2">
-          <button
-            onClick={() => addWater(bottleMl)}
-            className="btn-press tile-press glass glass-lift g-sky flex-1 flex items-center justify-center gap-2 py-3"
-            style={{ borderRadius: 18 }}
-          >
-            <span className="text-base leading-none">💧</span>
-            <span className="text-sm font-bold">Suluk</span>
-            <span className="text-xs ink-60 font-semibold">({formatMl(bottleMl)})</span>
-          </button>
-          <button
-            onClick={() => setCustomOpen((o) => !o)}
-            className="btn-press tile-press glass g-sky px-5 py-3 text-sm font-bold"
-            style={{ borderRadius: 18, ...(customOpen ? { boxShadow: 'inset 0 0 0 2px rgba(29,78,216,0.45)' } : {}) }}
-          >
-            Özel
-          </button>
-        </div>
-
-        {/* Özel miktar paneli */}
-        {customOpen && (
-          <div className="glass g-sky animate-fade-up p-3 mb-2" style={{ borderRadius: 20 }}>
-            <div className="flex items-center justify-center gap-4 mb-2">
-              <button onClick={() => setCustomMl((v) => Math.max(50, v - 50))} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">−</button>
-              <p className="display text-2xl font-black tnum w-28 text-center" style={{ color: 'var(--sf-blue-tx)' }}>{customMl} ml</p>
-              <button onClick={() => setCustomMl((v) => Math.min(3000, v + 50))} className="ctrl btn-press w-9 h-9 rounded-full text-lg font-bold flex items-center justify-center">+</button>
-            </div>
-            <div className="flex gap-1.5 mb-3">
-              {CUSTOM_CHIPS.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setCustomMl(c)}
-                  className="btn-press flex-1 text-[11px] font-bold py-1.5 rounded-full"
-                  style={customMl === c
-                    ? { background: '#1d4ed8', color: '#eaf1ff' }
-                    : { background: 'rgb(var(--ink) / 0.05)', color: 'rgb(var(--ink) / 0.55)' }}
-                >
-                  {c} ml
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => { addWater(customMl); setCustomOpen(false) }}
-              className="btn-ink btn-press w-full py-2.5 text-sm"
-            >
-              Ekle
-            </button>
-          </div>
-        )}
-
-        <p className="text-[10px] font-semibold text-center w-full mb-3" style={{ color: 'var(--wt-navy-soft)' }}>
-          Suluk boyutu Profil → Su Takibi Ayarları'ndan değiştirilir
-        </p>
-
-        {/* Bugünkü kayıtlar */}
         {todayEntries.length > 0 && (
-          <div className="glass g-neutral mb-3" style={{ borderRadius: 18 }}>
-            <div className="flex items-center justify-between px-4 py-2" style={{ borderBottom: '1px solid rgb(var(--ink) / 0.07)' }}>
-              <p className="text-xs font-bold">Bugün İçtiklerin</p>
-              <span className="text-[11px] font-bold tnum ink-45">{todayEntries.length} kez</span>
-            </div>
-            <div className="px-3 py-1.5 max-h-28 overflow-y-auto">
-              {[...todayEntries].reverse().map((e) => (
-                <div key={e.id} className="flex items-center gap-2 text-sm py-1 px-1.5 rounded-lg">
-                  <span className="ink-60 font-medium tnum flex-1">{e.time}</span>
-                  <span className="display font-bold tnum" style={{ color: 'var(--sf-blue-tx)' }}>{formatMl(e.ml)}</span>
-                  <button
-                    onClick={() => deleteEntry(e.id)}
-                    aria-label="Sil"
-                    className="btn-press w-6 h-6 rounded-full flex items-center justify-center text-[10px]"
-                    style={{ background: 'rgba(239,68,68,0.08)', color: 'var(--sf-red-tx)' }}
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <section className="water-recent" aria-labelledby="water-recent-title">
+            <header><div><span>SON KAYITLAR</span><h2 id="water-recent-title">Bugün içtiklerin</h2></div><button type="button" onClick={() => setSheet('history')}>Tümü <span aria-hidden>›</span></button></header>
+            <div>{[...todayEntries].reverse().slice(0, 3).map((entry) => <article key={entry.id}><span aria-hidden>◆</span><div><strong>{formatWaterAmount(entry.ml)}</strong><small>{entry.time}</small></div><i>{Math.round(entry.ml / goalMl * 100)}%</i></article>)}</div>
+          </section>
         )}
-
-        {/* İstatistik butonu */}
-        <button
-          onClick={() => setStatsOpen(true)}
-          className="btn-dark btn-press w-full py-2.5 text-sm flex items-center justify-center gap-2"
-        >
-          📊 Su İstatistikleri
-        </button>
-
-        </div>
       </div>
 
-      {/* Geri al bildirimi */}
-      {undo && (
-        <div className="fixed left-0 right-0 z-40 flex justify-center pointer-events-none" style={{ bottom: 'calc(env(safe-area-inset-bottom) + 96px)' }}>
-          <div className="glass g-neutral animate-fade-up pointer-events-auto flex items-center gap-3 pl-4 pr-2 py-2" style={{ borderRadius: 999 }}>
-            <span className="text-xs font-semibold whitespace-nowrap">✓ {formatMl(undo.ml)} eklendi</span>
-            <button
-              onClick={undoLast}
-              className="btn-press text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap"
-              style={{ background: 'rgba(29,78,216,0.1)', color: 'var(--sf-blue-tx)' }}
-            >
-              Geri Al
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      {sheet === 'bottle' && <WaterAmountSheet mode="bottle" initialValue={bottleMl} onClose={() => setSheet(null)} onConfirm={saveBottle} />}
+      {sheet === 'custom' && <WaterAmountSheet mode="custom" initialValue={250} onClose={() => setSheet(null)} onConfirm={(ml) => { setSheet(null); addWater(ml) }} />}
+      {sheet === 'goal' && <WaterGoalSheet initialValue={goalMl} onClose={() => setSheet(null)} onConfirm={saveGoal} />}
+      {sheet === 'history' && <WaterHistorySheet entries={entries} total={entries.reduce((sum, entry) => sum + entry.ml, 0)} onClose={() => setSheet(null)} onManage={requestDelete} />}
+      {sheet === 'insights' && <WaterInsightsSheet entries={entries} goal={(date) => storage.getWaterGoalForDate(date)} onClose={() => setSheet(null)} />}
+      {deleteTarget && <WaterDeleteDialog entry={deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={() => { deleteEntry(deleteTarget.id); setDeleteTarget(null) }} />}
+    </main>
   )
 }
